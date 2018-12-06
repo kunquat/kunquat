@@ -2,7 +2,7 @@
 
 /*
  * Authors: Ossi Saresoja, Finland 2016
- *          Tomi Jylhä-Ollila, Finland 2016
+ *          Tomi Jylhä-Ollila, Finland 2016-2018
  *
  * This file is part of Kunquat.
  *
@@ -18,6 +18,7 @@
 
 
 #include <debug/assert.h>
+#include <intrinsics.h>
 
 #include <limits.h>
 #include <math.h>
@@ -65,6 +66,30 @@ static inline double fast_exp2(double x)
 #undef L
 #undef A
 }
+
+
+#if KQT_SSE4_1
+static inline __m128 fast_exp2_f4(__m128 x)
+{
+    // Based on:
+    // https://stackoverflow.com/questions/47025373/fastest-implementation-of-exponential-function-using-sse
+    const __m128 c0 = _mm_set1_ps(0.3371894346f);
+    const __m128 c1 = _mm_set1_ps(0.657636276f);
+    const __m128 c2 = _mm_set1_ps(1.00172476f);
+
+    const __m128 fl = _mm_floor_ps(x);
+    const __m128 rem = _mm_sub_ps(x, fl);
+    __m128 p = _mm_mul_ps(c0, rem);
+    p = _mm_add_ps(p, c1);
+    p = _mm_mul_ps(p, rem);
+    p = _mm_add_ps(p, c2);
+    const __m128i exp_add = _mm_slli_epi32(_mm_cvtps_epi32(fl), 23);
+
+    const __m128 ret = _mm_castsi128_ps(_mm_add_epi32(exp_add, _mm_castps_si128(p)));
+
+    return ret;
+}
+#endif
 
 
 #endif // KQT_FAST_EXP2_H

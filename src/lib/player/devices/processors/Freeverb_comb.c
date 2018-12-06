@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2018
  *
  * This file is part of Kunquat.
  *
@@ -60,45 +60,63 @@ Freeverb_comb* new_Freeverb_comb(int32_t buffer_size)
 
 
 void Freeverb_comb_process(
-        Freeverb_comb* comb,
+        Freeverb_comb* comb_l,
+        Freeverb_comb* comb_r,
         float* out_buf,
         const float* in_buf,
         const float* refls,
         const float* damps,
-        int32_t buf_start,
-        int32_t buf_stop)
+        int32_t frame_count)
 {
-    rassert(comb != NULL);
+    rassert(comb_l != NULL);
+    rassert(comb_r != NULL);
     rassert(out_buf != NULL);
     rassert(in_buf != NULL);
     rassert(refls != NULL);
     rassert(damps != NULL);
-    rassert(buf_start >= 0);
-    rassert(buf_stop > buf_start);
+    rassert(frame_count > 0);
 
-#ifdef KQT_SSE
+#if KQT_SSE
     dassert(_MM_GET_FLUSH_ZERO_MODE() == _MM_FLUSH_ZERO_ON);
 #endif
 
-    for (int32_t i = buf_start; i < buf_stop; ++i)
+    const float* in = in_buf;
+    float* out = out_buf;
+
+    for (int32_t i = 0; i < frame_count; ++i)
     {
-        float output = comb->buffer[comb->buffer_pos];
-#ifndef KQT_SSE
-        output = undenormalise(output);
+        float output_l = comb_l->buffer[comb_l->buffer_pos];
+        float output_r = comb_r->buffer[comb_r->buffer_pos];
+#if !KQT_SSE
+        output_l = undenormalise(output_l);
+        output_r = undenormalise(output_r);
 #endif
         const float damp1 = damps[i];
         const float damp2 = 1 - damp1;
-        comb->filter_store = (output * damp2) + (comb->filter_store * damp1);
-#ifndef KQT_SSE
-        comb->filter_store = undenormalise(comb->filter_store);
+
+        const float refl = refls[i];
+
+        comb_l->filter_store = (output_l * damp2) + (comb_l->filter_store * damp1);
+        comb_r->filter_store = (output_r * damp2) + (comb_r->filter_store * damp1);
+#if !KQT_SSE
+        comb_l->filter_store = undenormalise(comb_l->filter_store);
+        comb_r->filter_store = undenormalise(comb_r->filter_store);
 #endif
-        comb->buffer[comb->buffer_pos] = in_buf[i] + (comb->filter_store * refls[i]);
+        comb_l->buffer[comb_l->buffer_pos] = *in + (comb_l->filter_store * refl);
+        comb_r->buffer[comb_r->buffer_pos] = *in + (comb_r->filter_store * refl);
 
-        out_buf[i] += output;
+        ++in;
 
-        ++comb->buffer_pos;
-        if (comb->buffer_pos >= comb->buffer_size)
-            comb->buffer_pos = 0;
+        *out++ += output_l;
+        *out++ += output_r;
+
+        ++comb_l->buffer_pos;
+        if (comb_l->buffer_pos >= comb_l->buffer_size)
+            comb_l->buffer_pos = 0;
+
+        ++comb_r->buffer_pos;
+        if (comb_r->buffer_pos >= comb_r->buffer_size)
+            comb_r->buffer_pos = 0;
     }
 
     return;

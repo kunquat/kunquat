@@ -31,6 +31,7 @@
 #include <player/Position.h>
 #include <player/Tuning_state.h>
 #include <player/Voice_group.h>
+#include <player/Voice_signal_plan.h>
 #include <player/Work_buffer.h>
 #include <player/Work_buffers.h>
 #include <string/common.h>
@@ -51,6 +52,9 @@ static void* render_thread_func(void* arg);
 #endif
 
 
+static bool Player_prepare_mixing_with_thread_count(Player* player, int thread_count);
+
+
 static void Player_thread_params_init(
         Player_thread_params* tp, Player* player, int thread_id)
 {
@@ -64,8 +68,7 @@ static void Player_thread_params_init(
     tp->active_voices = 0;
     tp->active_vgroups = 0;
     tp->work_buffers = NULL;
-    for (int i = 0; i < TEST_VOICE_OUTPUTS_MAX; ++i)
-        tp->test_voice_outputs[i] = NULL;
+    tp->test_voice_output = NULL;
 
     return;
 }
@@ -77,11 +80,8 @@ static void Player_thread_params_deinit(Player_thread_params* tp)
 
     del_Work_buffers(tp->work_buffers);
     tp->work_buffers = NULL;
-    for (int i = 0; i < TEST_VOICE_OUTPUTS_MAX; ++i)
-    {
-        del_Work_buffer(tp->test_voice_outputs[i]);
-        tp->test_voice_outputs[i] = NULL;
-    }
+    del_Work_buffer(tp->test_voice_output);
+    tp->test_voice_output = NULL;
 
     return;
 }
@@ -129,8 +129,7 @@ Player* new_Player(
 
     player->audio_rate = audio_rate;
     player->audio_buffer_size = audio_buffer_size;
-    for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
-        player->audio_buffers[i] = NULL;
+    player->audio_buffer = NULL;
     player->audio_frames_available = 0;
 
     player->thread_count = 0;
@@ -146,8 +145,7 @@ Player* new_Player(
     player->ok_to_start = false;
     player->early_exit_threads = false;
     player->stop_threads = false;
-    player->render_start = 0;
-    player->render_stop = 0;
+    player->render_frame_count = 0;
 
     player->device_states = NULL;
     player->estate = NULL;
@@ -242,15 +240,12 @@ Player* new_Player(
 
     if (player->audio_buffer_size > 0)
     {
-        for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
+        player->audio_buffer =
+            memory_alloc_items(float, player->audio_buffer_size * KQT_BUFFERS_MAX);
+        if (player->audio_buffer == NULL)
         {
-            player->audio_buffers[i] = memory_alloc_items(
-                    float, player->audio_buffer_size);
-            if (player->audio_buffers[i] == NULL)
-            {
-                del_Player(player);
-                return NULL;
-            }
+            del_Player(player);
+            return NULL;
         }
     }
 
@@ -292,12 +287,11 @@ static bool Player_thread_params_create_buffers(
         return false;
     }
 
-
-    for (int i = 0; i < TEST_VOICE_OUTPUTS_MAX; ++i)
+    rassert(tp->test_voice_output == NULL);
+    if (audio_buffer_size > 0)
     {
-        rassert(tp->test_voice_outputs[i] == NULL);
-        tp->test_voice_outputs[i] = new_Work_buffer(audio_buffer_size);
-        if (tp->test_voice_outputs[i] == NULL)
+        tp->test_voice_output = new_Work_buffer(audio_buffer_size, 2);
+        if (tp->test_voice_output == NULL)
         {
             Player_thread_params_deinit(tp);
             return false;
@@ -350,7 +344,7 @@ bool Player_set_thread_count(Player* player, int new_count, Error* error)
 
     // (De)allocate Work buffers of Device states as needed
     if (!Device_states_set_thread_count(player->device_states, new_count) ||
-            !Player_prepare_mixing(player))
+            !Player_prepare_mixing_with_thread_count(player, new_count))
     {
         Error_set(
                 error,
@@ -484,9 +478,11 @@ bool Player_reserve_voice_work_buffer_space(Player* player, int32_t size)
 }
 
 
-bool Player_prepare_mixing(Player* player)
+static bool Player_prepare_mixing_with_thread_count(Player* player, int thread_count)
 {
     rassert(player != NULL);
+    rassert(thread_count > 0);
+    rassert(thread_count <= KQT_THREADS_MAX);
 
     del_Mixed_signal_plan(player->mixed_signal_plan);
     player->mixed_signal_plan = NULL;
@@ -498,11 +494,44 @@ bool Player_prepare_mixing(Player* player)
     if (!Device_states_prepare(player->device_states, conns))
         return false;
 
+    {
+        Au_table* au_table = Module_get_au_table(player->module);
+        for (int i = 0; i < KQT_AUDIO_UNITS_MAX; ++i)
+        {
+            const Audio_unit* au = Au_table_get(au_table, i);
+            if ((au != NULL) &&
+                    Device_is_existent((const Device*)au) &&
+                    (Audio_unit_get_type(au) == AU_TYPE_INSTRUMENT))
+            {
+                const Connections* au_conns = Audio_unit_get_connections(au);
+                if (au_conns != NULL)
+                {
+                    const uint32_t au_id = Device_get_id((const Device*)au);
+                    Au_state* au_state =
+                        (Au_state*)Device_states_get_state(player->device_states, au_id);
+
+                    Voice_signal_plan* plan = new_Voice_signal_plan(
+                            player->device_states, thread_count, au_conns);
+                    if (plan == NULL)
+                        return false;
+                    Au_state_set_voice_signal_plan(au_state, plan);
+                }
+            }
+        }
+    }
+
     player->mixed_signal_plan = new_Mixed_signal_plan(player->device_states, conns);
     if (player->mixed_signal_plan == NULL)
         return false;
 
     return true;
+}
+
+
+bool Player_prepare_mixing(Player* player)
+{
+    rassert(player != NULL);
+    return Player_prepare_mixing_with_thread_count(player, player->thread_count);
 }
 
 
@@ -699,12 +728,9 @@ static bool Player_thread_params_set_audio_buffer_size(
             !Work_buffers_resize(tp->work_buffers, audio_buffer_size))
         return false;
 
-    for (int i = 0; i < TEST_VOICE_OUTPUTS_MAX; ++i)
-    {
-        if ((tp->test_voice_outputs[i] != NULL) &&
-                !Work_buffer_resize(tp->test_voice_outputs[i], audio_buffer_size))
-            return false;
-    }
+    if ((tp->test_voice_output != NULL) &&
+            !Work_buffer_resize(tp->test_voice_output, audio_buffer_size))
+        return false;
 
     return true;
 }
@@ -724,23 +750,16 @@ bool Player_set_audio_buffer_size(Player* player, int32_t size)
     // Handle empty buffers
     if (player->audio_buffer_size == 0)
     {
-        for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
-        {
-            memory_free(player->audio_buffers[i]);
-            player->audio_buffers[i] = NULL;
-        }
+        memory_free(player->audio_buffer);
     }
     else
     {
-        for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
-        {
-            float* new_buffer =
-                memory_realloc_items(float, size, player->audio_buffers[i]);
-            if (new_buffer == NULL)
-                return false;
+        float* new_buffer =
+            memory_realloc_items(float, size * KQT_BUFFERS_MAX, player->audio_buffer);
+        if (new_buffer == NULL)
+            return false;
 
-            player->audio_buffers[i] = new_buffer;
-        }
+        player->audio_buffer = new_buffer;
     }
 
     // Update device state buffers
@@ -799,15 +818,13 @@ static void Player_process_voice_group(
         Player* player,
         Player_thread_params* tparams,
         Voice_group* vgroup,
-        int32_t render_start,
-        int32_t render_stop,
+        int32_t frame_count,
         Render_stats* stats)
 {
     rassert(player != NULL);
     rassert(tparams != NULL);
     rassert(vgroup != NULL);
-    rassert(render_start >= 0);
-    rassert(render_stop >= render_start);
+    rassert(frame_count >= 0);
     rassert(stats != NULL);
 
     // Find the connections that contain the processors
@@ -815,46 +832,38 @@ static void Player_process_voice_group(
     const Processor* first_proc = Voice_get_proc(first_voice);
     const Au_params* first_au_params = Processor_get_au_params(first_proc);
     const uint32_t au_id = first_au_params->device_id;
-    const Device_state* au_state =
-        Device_states_get_state(player->device_states, au_id);
-    const Audio_unit* au = (const Audio_unit*)Device_state_get_device(au_state);
-    const Connections* conns = Audio_unit_get_connections(au);
+    Au_state* au_state =
+        (Au_state*)Device_states_get_state(player->device_states, au_id);
+    //const Connections* conns = Audio_unit_get_connections(au);
 
     const bool use_test_output = Voice_is_using_test_output(first_voice);
-    int32_t test_output_stop = render_stop;
+    int32_t test_output_stop = frame_count;
 
-    if (conns != NULL)
+    Voice_signal_plan* plan = au_state->voice_signal_plan;
+
+    if (plan != NULL)
     {
-        const int32_t process_stop = Voice_group_render(
-                vgroup,
-                player->device_states,
-                tparams->thread_id,
-                conns,
-                tparams->work_buffers,
-                render_start,
-                render_stop,
-                player->audio_rate,
-                player->master_params.tempo);
-
-        test_output_stop = process_stop;
-
         const int ch_num = Voice_group_get_ch_num(vgroup);
         const bool is_muted =
             (ch_num >= 0) ? Channel_is_muted(player->channels[ch_num]) : false;
+        const bool enable_mixing = !is_muted && !use_test_output;
 
-        if (!is_muted && !use_test_output)
-            Voice_group_mix(
-                    vgroup,
-                    player->device_states,
-                    tparams->thread_id,
-                    conns,
-                    render_start,
-                    process_stop);
+        const int32_t process_stop = Voice_signal_plan_execute(
+                plan,
+                player->device_states,
+                tparams->thread_id,
+                vgroup,
+                tparams->work_buffers,
+                frame_count,
+                player->master_params.tempo,
+                enable_mixing);
 
-        if (process_stop < render_stop)
+        test_output_stop = process_stop;
+
+        if (process_stop < frame_count)
             Voice_group_deactivate_all(vgroup);
-        else
-            Voice_group_deactivate_unreachable(vgroup);
+        //else
+        //    Voice_group_deactivate_unreachable(vgroup);
 
         const int active_voice_count = Voice_group_get_active_count(vgroup);
         stats->voice_count += active_voice_count;
@@ -869,6 +878,8 @@ static void Player_process_voice_group(
     if (use_test_output)
     {
         // Mix output signal of our test processor
+        const Audio_unit* au =
+            (const Audio_unit*)Device_state_get_device((const Device_state*)au_state);
         const Processor* test_proc =
             Audio_unit_get_proc(au, Voice_get_test_proc_index(first_voice));
         const uint32_t test_proc_id = Device_get_id((const Device*)test_proc);
@@ -876,26 +887,45 @@ static void Player_process_voice_group(
                 player->device_states, tparams->thread_id, test_proc_id);
 
         // Don't feel like figuring out a generic solution right now, TODO
-        rassert(TEST_VOICE_OUTPUTS_MAX == 2);
 
-        const Work_buffer* in_wbs[TEST_VOICE_OUTPUTS_MAX] =
+        const Work_buffer* in_wb = Device_thread_state_get_voice_buffer(
+                test_ts, DEVICE_PORT_TYPE_SEND, 0, NULL);
+        if ((in_wb != NULL) && Work_buffer_is_valid(in_wb, 0))
         {
-            Device_thread_state_get_voice_buffer(test_ts, DEVICE_PORT_TYPE_SEND, 0),
-            Device_thread_state_get_voice_buffer(test_ts, DEVICE_PORT_TYPE_SEND, 1),
-        };
+            const int sub_count = Work_buffer_get_sub_count(in_wb);
+            if (sub_count == 1)
+            {
+                const Work_buffer* in_wbs[] =
+                {
+                    in_wb,
+                    Device_thread_state_get_voice_buffer(
+                            test_ts, DEVICE_PORT_TYPE_SEND, 1, NULL),
+                };
+                if ((in_wbs[1] == NULL) || !Work_buffer_is_valid(in_wbs[1], 0))
+                    in_wbs[1] = in_wbs[0];
 
-        if ((in_wbs[0] != NULL) || (in_wbs[1] != NULL))
-        {
-            if (in_wbs[0] == NULL)
-                in_wbs[0] = in_wbs[1];
-            else if (in_wbs[1] == NULL)
-                in_wbs[1] = in_wbs[0];
+                for (int si = 0; si < 2; ++si)
+                    Work_buffer_mix(
+                            tparams->test_voice_output,
+                            si,
+                            in_wbs[si],
+                            0,
+                            0,
+                            test_output_stop);
+            }
+            else if (sub_count == 2)
+            {
+                const uint8_t mask = (uint8_t)((1 << sub_count) - 1);
+                Work_buffer_mix_all(
+                        tparams->test_voice_output,
+                        in_wb,
+                        0,
+                        test_output_stop,
+                        mask);
+            }
 
-            for (int port = 0; port < TEST_VOICE_OUTPUTS_MAX; ++port)
-                Work_buffer_mix(
-                        tparams->test_voice_outputs[port],
-                        in_wbs[port],
-                        render_start, test_output_stop);
+            Work_buffer_clear_all(
+                    tparams->test_voice_output, test_output_stop, frame_count);
         }
     }
 
@@ -905,15 +935,11 @@ static void Player_process_voice_group(
 
 #ifdef ENABLE_THREADS
 static void Player_process_voice_groups_synced(
-        Player* player,
-        Player_thread_params* tparams,
-        int32_t render_start,
-        int32_t render_stop)
+        Player* player, Player_thread_params* tparams, int32_t frame_count)
 {
     rassert(player != NULL);
     rassert(tparams != NULL);
-    rassert(render_start >= 0);
-    rassert(render_stop >= render_start);
+    rassert(frame_count >= 0);
 
     Voice_group* vgroup = VOICE_GROUP_AUTO;
 
@@ -922,8 +948,7 @@ static void Player_process_voice_groups_synced(
     Voice_group* vg = Voice_pool_get_next_group_synced(player->voices, vgroup);
     while (vg != NULL)
     {
-        Player_process_voice_group(
-                player, tparams, vg, render_start, render_stop, stats);
+        Player_process_voice_group(player, tparams, vg, frame_count, stats);
 
         vg = Voice_pool_get_next_group_synced(player->voices, vgroup);
     }
@@ -936,15 +961,11 @@ static void Player_process_voice_groups_synced(
 
 
 static void Player_execute_mixed_signal_tasks_synced(
-        Player* player,
-        Player_thread_params* tparams,
-        int32_t render_start,
-        int32_t render_stop)
+        Player* player, Player_thread_params* tparams, int32_t frame_count)
 {
     rassert(player != NULL);
     rassert(tparams != NULL);
-    rassert(render_start >= 0);
-    rassert(render_stop > render_start);
+    rassert(frame_count > 0);
 
     const int level_count = Mixed_signal_plan_get_level_count(player->mixed_signal_plan);
 
@@ -954,8 +975,7 @@ static void Player_execute_mixed_signal_tasks_synced(
                 player->mixed_signal_plan,
                 level_index,
                 tparams->work_buffers,
-                render_start,
-                render_stop,
+                frame_count,
                 player->master_params.tempo))
             ;
 
@@ -995,8 +1015,7 @@ static void* render_thread_func(void* arg)
 
         rassert(params->thread_id < player->thread_count);
 
-        Player_process_voice_groups_synced(
-                player, params, player->render_start, player->render_stop);
+        Player_process_voice_groups_synced(player, params, player->render_frame_count);
 
         // Wait to indicate that we have finished processing voice groups
         Barrier_wait(&player->vgroups_finished_barrier);
@@ -1005,7 +1024,7 @@ static void* render_thread_func(void* arg)
         Barrier_wait(&player->mixed_start_barrier);
 
         Player_execute_mixed_signal_tasks_synced(
-                player, params, player->render_start, player->render_stop);
+                player, params, player->render_frame_count);
     }
 
     return NULL;
@@ -1013,11 +1032,9 @@ static void* render_thread_func(void* arg)
 #endif
 
 
-static void Player_process_voices(
-        Player* player, int32_t render_start, int32_t frame_count)
+static void Player_process_voices(Player* player, int32_t frame_count)
 {
     rassert(player != NULL);
-    rassert(render_start >= 0);
     rassert(frame_count >= 0);
 
     if (frame_count == 0)
@@ -1040,7 +1057,6 @@ static void Player_process_voices(
     }
 
     // Process active Voice groups
-    const int32_t render_stop = render_start + frame_count;
     int active_voice_count = 0;
     int active_vgroup_count = 0;
 
@@ -1050,8 +1066,7 @@ static void Player_process_voices(
     if (player->thread_count > 1)
     {
         // Pass render start and stop parameters to threads
-        player->render_start = render_start;
-        player->render_stop = render_stop;
+        player->render_frame_count = frame_count;
 
         // Synchronise with all threads to start voice group processing
         Barrier_wait(&player->vgroups_start_barrier);
@@ -1079,8 +1094,7 @@ static void Player_process_voices(
                     player,
                     &player->thread_params[0],
                     vg,
-                    render_start,
-                    render_stop,
+                    frame_count,
                     stats);
 
             vg = Voice_pool_get_next_group(player->voices);
@@ -1091,8 +1105,7 @@ static void Player_process_voices(
     }
 
     if (player->thread_count > 1)
-        Device_states_mix_thread_states(
-                player->device_states, render_start, render_stop);
+        Device_states_mix_thread_states(player->device_states, 0, frame_count);
 
     player->master_params.active_voices =
         max(player->master_params.active_voices, active_voice_count);
@@ -1103,11 +1116,9 @@ static void Player_process_voices(
 }
 
 
-static void Player_process_mixed_signals(
-        Player* player, int32_t render_start, int32_t frame_count)
+static void Player_process_mixed_signals(Player* player, int32_t frame_count)
 {
     rassert(player != NULL);
-    rassert(render_start >= 0);
     rassert(frame_count >= 0);
 
     if (frame_count == 0)
@@ -1117,8 +1128,7 @@ static void Player_process_mixed_signals(
 #ifdef ENABLE_THREADS
     if (player->thread_count > 1)
     {
-        player->render_start = render_start;
-        player->render_stop = render_start + frame_count;
+        player->render_frame_count = frame_count;
 
         // Synchronise with all threads to start mixed task execution
         Barrier_wait(&player->mixed_start_barrier);
@@ -1144,9 +1154,26 @@ static void Player_process_mixed_signals(
             Mixed_signal_plan_execute_all_tasks(
                     player->mixed_signal_plan,
                     player->thread_params[0].work_buffers,
-                    render_start,
-                    render_start + frame_count,
+                    frame_count,
                     player->master_params.tempo);
+        }
+    }
+
+    // Fill invalid buffer areas with silence
+    {
+        Device_thread_state* master_ts = Device_states_get_thread_state(
+                player->device_states, 0, Device_get_id((const Device*)player->module));
+        rassert(master_ts != NULL);
+
+        Work_buffer* master_wb = Device_thread_state_get_mixed_buffer(
+                master_ts, DEVICE_PORT_TYPE_RECV, 0, NULL);
+        if (master_wb != NULL)
+        {
+            for (int ch = 0; ch < KQT_BUFFERS_MAX; ++ch)
+            {
+                if (!Work_buffer_is_valid(master_wb, ch))
+                    Work_buffer_clear(master_wb, ch, 0, frame_count);
+            }
         }
     }
 
@@ -1229,12 +1256,13 @@ static void Player_flush_receive(Player* player)
 }
 
 
-static void Player_mix_test_voice_signals(
-        Player* player, int32_t buf_start, int32_t buf_stop)
+static void Player_mix_test_voice_signals(Player* player, int32_t frame_count)
 {
     rassert(player != NULL);
-    rassert(buf_start >= 0);
-    rassert(buf_stop >= 0);
+    rassert(frame_count >= 0);
+
+    if (frame_count == 0)
+        return;
 
     Device_thread_state* master_ts = Device_states_get_thread_state(
             player->device_states, 0, Device_get_id((const Device*)player->module));
@@ -1244,33 +1272,40 @@ static void Player_mix_test_voice_signals(
     {
         Player_thread_params* tp = &player->thread_params[thread_id];
 
-        for (int port = 0; port < TEST_VOICE_OUTPUTS_MAX; ++port)
+        Work_buffer* master_wb = Device_thread_state_get_mixed_buffer(
+                master_ts, DEVICE_PORT_TYPE_RECV, 0, NULL);
+        if (master_wb == NULL)
+            continue;
+
+        const Work_buffer* wb = tp->test_voice_output;
+        if (wb == NULL)
+            continue;
+
+        float first_vals[2] = { 0.0f, 0.0f };
+        for (int ch = 0; ch < 2; ++ch)
         {
-            Work_buffer* master_wb = Device_thread_state_get_mixed_buffer(
-                    master_ts, DEVICE_PORT_TYPE_RECV, port);
-            if (master_wb == NULL)
-                continue;
-
-            const Work_buffer* wb = tp->test_voice_outputs[port];
-            if (wb == NULL)
-                continue;
-
-            const float first_val = Work_buffer_get_contents(wb)[buf_start];
-            if ((Work_buffer_get_const_start(wb) > buf_start) || (first_val != 0.0f))
-                Work_buffer_mix(master_wb, wb, buf_start, buf_stop);
+            if (Work_buffer_is_valid(wb, ch))
+                first_vals[ch] = Work_buffer_get_contents(wb, ch)[0];
         }
+
+        if ((Work_buffer_get_const_start(wb, 0) > 0) ||
+                (first_vals[0] != 0.0f) ||
+                (Work_buffer_get_const_start(wb, 1) > 0) ||
+                (first_vals[1] != 0.0f))
+            Work_buffer_mix_all(master_wb, wb, 0, frame_count, (1 << 2) - 1);
     }
 
     return;
 }
 
 
-static void Player_apply_dc_blocker(
-        Player* player, int32_t buf_start, int32_t buf_stop)
+static void Player_apply_dc_blocker(Player* player, int32_t frame_count)
 {
     rassert(player != NULL);
-    rassert(buf_start >= 0);
-    rassert(buf_stop >= 0);
+    rassert(frame_count >= 0);
+
+    if (frame_count == 0)
+        return;
 
     // Get access to mixed output
     Device_thread_state* master_ts = Device_states_get_thread_state(
@@ -1283,78 +1318,85 @@ static void Player_apply_dc_blocker(
     const float R = (float)((adapt_time_frames - 1) / adapt_time_frames);
     const float gain = (1 + R) / 2;
 
-    for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
+    Work_buffer* buffer = Device_thread_state_get_mixed_buffer(
+            master_ts, DEVICE_PORT_TYPE_RECV, 0, NULL);
+    if (buffer != NULL)
     {
-        Work_buffer* buffer =
-            Device_thread_state_get_mixed_buffer(master_ts, DEVICE_PORT_TYPE_RECV, port);
-        if (buffer != NULL)
+        rassert(Work_buffer_get_sub_count(buffer) == 2);
+
+        float feedforward_l = player->master_params.dc_block_state[0].feedforward;
+        float feedforward_r = player->master_params.dc_block_state[1].feedforward;
+        float feedback_l = player->master_params.dc_block_state[0].feedback;
+        float feedback_r = player->master_params.dc_block_state[1].feedback;
+
+        float* buf = Work_buffer_get_contents_mut(buffer, 0);
+        for (int32_t i = 0; i < frame_count; ++i)
         {
-            float feedforward = player->master_params.dc_block_state[port].feedforward;
-            float feedback = player->master_params.dc_block_state[port].feedback;
+            const float in_l = *buf;
+            const float in_r = *(buf + 1);
 
-            float* buf = Work_buffer_get_contents_mut(buffer);
-            for (int32_t i = buf_start; i < buf_stop; ++i)
-            {
-                const float in = buf[i];
-                const float out = gain * (in - feedforward) + R * feedback;
-                feedforward = in;
-                feedback = out;
-                buf[i] = out;
-            }
+            const float out_l = gain * (in_l - feedforward_l) + R * feedback_l;
+            *buf++ = out_l;
+            feedforward_l = in_l;
+            feedback_l = out_l;
 
-            player->master_params.dc_block_state[port].feedforward = feedforward;
-            player->master_params.dc_block_state[port].feedback = feedback;
+            const float out_r = gain * (in_r - feedforward_r) + R * feedback_r;
+            *buf++ = out_r;
+            feedforward_r = in_r;
+            feedback_r = out_r;
         }
+
+        player->master_params.dc_block_state[0].feedforward = feedforward_l;
+        player->master_params.dc_block_state[1].feedforward = feedforward_r;
+        player->master_params.dc_block_state[0].feedback = feedback_l;
+        player->master_params.dc_block_state[1].feedback = feedback_r;
     }
 
     return;
 }
 
 
-static void Player_apply_master_volume(
-        Player* player, int32_t buf_start, int32_t buf_stop)
+static void Player_apply_master_volume(Player* player, int32_t frame_count)
 {
     rassert(player != NULL);
-    rassert(buf_start >= 0);
-    rassert(buf_stop >= 0);
+    rassert(frame_count >= 0);
 
-    static const int CONTROL_WB_MASTER_VOLUME = WORK_BUFFER_IMPL_1;
-
-    float* volumes = Work_buffers_get_buffer_contents_mut(
-            player->thread_params[0].work_buffers, CONTROL_WB_MASTER_VOLUME);
-
-    if (Slider_in_progress(&player->master_params.volume_slider))
-    {
-        double final_volume = player->master_params.volume;
-        for (int32_t i = buf_start; i < buf_stop; ++i)
-        {
-            final_volume = Slider_step(&player->master_params.volume_slider);
-            volumes[i] = (float)final_volume;
-        }
-        player->master_params.volume = final_volume;
-    }
-    else
-    {
-        const float cur_volume = (float)player->master_params.volume;
-        for (int32_t i = buf_start; i < buf_stop; ++i)
-            volumes[i] = cur_volume;
-    }
-
-    // Get access to mixed output
     Device_thread_state* master_ts = Device_states_get_thread_state(
             player->device_states, 0, Device_get_id((const Device*)player->module));
     rassert(master_ts != NULL);
 
-    for (int32_t port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
+    Work_buffer* buffer = Device_thread_state_get_mixed_buffer(
+            master_ts, DEVICE_PORT_TYPE_RECV, 0, NULL);
+    if (buffer != NULL)
     {
-        Work_buffer* buffer = Device_thread_state_get_mixed_buffer(
-                master_ts, DEVICE_PORT_TYPE_RECV, port);
-        if (buffer != NULL)
+        const int sub_count = Work_buffer_get_sub_count(buffer);
+        rassert(sub_count == 2);
+        const int stride = Work_buffer_get_stride(buffer);
+
+        float* buf = Work_buffer_get_contents_mut(buffer, 0);
+
+        if (Slider_in_progress(&player->master_params.volume_slider))
         {
-            float* buf = Work_buffer_get_contents_mut(buffer);
-            for (int32_t i = buf_start; i < buf_stop; ++i)
-                buf[i] *= volumes[i];
+            double final_volume = player->master_params.volume;
+            for (int32_t i = 0; i < frame_count; ++i)
+            {
+                final_volume = Slider_step(&player->master_params.volume_slider);
+                *buf++ *= (float)final_volume;
+                *buf++ *= (float)final_volume;
+            }
+            player->master_params.volume = final_volume;
         }
+        else
+        {
+            const float cur_volume = (float)player->master_params.volume;
+            const int32_t item_count = frame_count * stride;
+            for (int32_t i = 0; i < item_count; ++i)
+                *buf++ *= cur_volume;
+        }
+    }
+    else
+    {
+        Slider_skip(&player->master_params.volume_slider, frame_count);
     }
 
     return;
@@ -1393,18 +1435,6 @@ void Player_play(Player* player, int32_t nframes)
     const Connections* connections = Module_get_connections(player->module);
     rassert(connections != NULL);
 
-    // Clear mixed signal buffers
-    Device_states_clear_audio_buffers(player->device_states, 0, nframes);
-    for (int thread_id = 0; thread_id < KQT_THREADS_MAX; ++thread_id)
-    {
-        Player_thread_params* tp = &player->thread_params[thread_id];
-        for (int i = 0; i < TEST_VOICE_OUTPUTS_MAX; ++i)
-        {
-            if (tp->test_voice_outputs[i] != NULL)
-                Work_buffer_clear(tp->test_voice_outputs[i], 0, nframes);
-        }
-    }
-
     // TODO: check if song or pattern instance location has changed
 
     // Composition-level progress
@@ -1412,6 +1442,15 @@ void Player_play(Player* player, int32_t nframes)
     int32_t rendered = 0;
     while (rendered < nframes && !Event_buffer_is_full(player->event_buffer))
     {
+        // Invalidate mixed signal buffers
+        Device_states_invalidate_mixed_buffers(player->device_states);
+        for (int thread_id = 0; thread_id < player->thread_count; ++thread_id)
+        {
+            Player_thread_params* tp = &player->thread_params[thread_id];
+            rassert(tp->test_voice_output != NULL);
+            Work_buffer_invalidate(tp->test_voice_output);
+        }
+
         // Move forwards in composition
         int32_t to_be_rendered = nframes - rendered;
         if (!player->master_params.parent.pause && !Player_has_stopped(player))
@@ -1433,7 +1472,7 @@ void Player_play(Player* player, int32_t nframes)
         }
 
         // Process voices
-        Player_process_voices(player, rendered, to_be_rendered);
+        Player_process_voices(player, to_be_rendered);
 
         // Update carried controls
         for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
@@ -1465,52 +1504,48 @@ void Player_play(Player* player, int32_t nframes)
 
         // Process signals in the connection graph
         {
-            Player_process_mixed_signals(player, rendered, to_be_rendered);
+            Player_process_mixed_signals(player, to_be_rendered);
 
-            const int32_t buf_start = rendered;
-            const int32_t buf_stop = rendered + to_be_rendered;
+            Player_apply_master_volume(player, to_be_rendered);
 
-            Player_apply_master_volume(player, buf_start, buf_stop);
-
-            Player_mix_test_voice_signals(player, buf_start, buf_stop);
+            Player_mix_test_voice_signals(player, to_be_rendered);
 
             if (player->module->is_dc_blocker_enabled)
-                Player_apply_dc_blocker(player, buf_start, buf_stop);
+                Player_apply_dc_blocker(player, to_be_rendered);
+
+            // Apply global parameters to the mixed signal
+            {
+                Device_thread_state* master_ts = Device_states_get_thread_state(
+                        player->device_states,
+                        0,
+                        Device_get_id((const Device*)player->module));
+                rassert(master_ts != NULL);
+
+                const int32_t buf_stop_item = to_be_rendered * KQT_BUFFERS_MAX;
+
+                Work_buffer* buffer = Device_thread_state_get_mixed_buffer(
+                        master_ts, DEVICE_PORT_TYPE_RECV, 0, NULL);
+                if (buffer != NULL)
+                {
+                    // Apply render volume and copy to output
+                    const float mix_vol = (float)player->module->mix_vol;
+
+                    float* out = player->audio_buffer + rendered * KQT_BUFFERS_MAX;
+                    const float* buf = Work_buffer_get_contents(buffer, 0);
+                    for (int32_t i = 0; i < buf_stop_item; ++i)
+                        *out++ = *buf++ * mix_vol;
+                }
+                else
+                {
+                    // Fill with zeroes if we haven't produced any sound
+                    float* out = player->audio_buffer + rendered * KQT_BUFFERS_MAX;
+                    for (int32_t i = 0; i < buf_stop_item; ++i)
+                        *out++ = 0;
+                }
+            }
         }
 
         rendered += to_be_rendered;
-    }
-
-    // Apply global parameters to the mixed signal
-    {
-        Device_thread_state* master_ts = Device_states_get_thread_state(
-                player->device_states, 0, Device_get_id((const Device*)player->module));
-        rassert(master_ts != NULL);
-
-        // Note: we only access as many ports as we can output
-        for (int32_t port = 0; port < KQT_BUFFERS_MAX; ++port)
-        {
-            float* out_buf = player->audio_buffers[port];
-
-            Work_buffer* buffer = Device_thread_state_get_mixed_buffer(
-                    master_ts, DEVICE_PORT_TYPE_RECV, port);
-
-            if (buffer != NULL)
-            {
-                // Apply render volume
-                const float* buf = Work_buffer_get_contents(buffer);
-
-                const float mix_vol = (float)player->module->mix_vol;
-                for (int32_t i = 0; i < rendered; ++i)
-                    out_buf[i] = buf[i] * mix_vol;
-            }
-            else
-            {
-                // Fill with zeroes if we haven't produced any sound
-                for (int32_t i = 0; i < rendered; ++i)
-                    player->audio_buffers[port][i] = 0;
-            }
-        }
     }
 
     player->audio_frames_available = rendered;
@@ -1582,11 +1617,10 @@ int32_t Player_get_frames_available(const Player* player)
 }
 
 
-const float* Player_get_audio(const Player* player, int channel)
+const float* Player_get_audio(const Player* player)
 {
     rassert(player != NULL);
-    rassert(channel == 0 || channel == 1);
-    return player->audio_buffers[channel];
+    return player->audio_buffer;
 }
 
 
@@ -1789,8 +1823,7 @@ void del_Player(Player* player)
     del_Env_state(player->estate);
     del_Device_states(player->device_states);
 
-    for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
-        memory_free(player->audio_buffers[i]);
+    memory_free(player->audio_buffer);
 
     memory_free(player);
     return;

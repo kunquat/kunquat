@@ -35,19 +35,17 @@ START_TEST(Complete_debug_note_renders_correctly)
     kqt_Handle_fire_event(handle, 0, Note_On_55_Hz);
     check_unexpected_error();
 
-    float expected_buf[buf_len] = { 0.0f };
-    const float seq[] = { 1.0f, 0.5f, 0.5f, 0.5f };
+    float expected_buf[buf_len * 2] = { 0.0f };
+    const float seq[] = { 1.0f, 1.0f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, };
     repeat_seq_local(expected_buf, 10, seq);
 
     kqt_Handle_play(handle, buf_len);
     check_unexpected_error();
 
-    const float* buf_l = kqt_Handle_get_audio(handle, 0);
-    const float* buf_r = kqt_Handle_get_audio(handle, 1);
+    const float* buf = kqt_Handle_get_audio(handle);
     check_unexpected_error();
 
-    check_buffers_equal(expected_buf, buf_l, buf_len, 0.0f);
-    check_buffers_equal(expected_buf, buf_r, buf_len, 0.0f);
+    check_buffers_equal(expected_buf, buf, buf_len * 2, 0.0f);
 }
 END_TEST
 
@@ -225,17 +223,12 @@ START_TEST(Empty_pattern_contains_silence)
         // Don't want to spend too much time on this...
         if (_i == MIXING_RATE_LOW)
         {
-            const float* bufs[] =
-            {
-                kqt_Handle_get_audio(handle, 0),
-                kqt_Handle_get_audio(handle, 1),
-            };
+            const float* buf = kqt_Handle_get_audio(handle);
             check_unexpected_error();
 
-            float expected_buf[128] = { 0.0f };
+            float expected_buf[256] = { 0.0f };
             assert(nframes <= 128);
-            check_buffers_equal(expected_buf, bufs[0], nframes, 0.0f);
-            check_buffers_equal(expected_buf, bufs[1], nframes, 0.0f);
+            check_buffers_equal(expected_buf, buf, nframes * 2, 0.0f);
         }
 
         kqt_Handle_play(handle, 4096);
@@ -442,11 +435,11 @@ START_TEST(Pattern_playback_pauses_zero_length_pattern)
         kqt_Handle_play(handle, frames_left);
         check_unexpected_error();
         const long frames_available = kqt_Handle_get_frames_available(handle);
-        const float* ret_buf = kqt_Handle_get_audio(handle, 0);
+        const float* ret_buf = kqt_Handle_get_audio(handle);
         check_unexpected_error();
         memcpy(actual_buf + buf_offset,
                 ret_buf,
-                (size_t)frames_available * sizeof(float));
+                (size_t)frames_available * 2 * sizeof(float));
 
         buf_offset += frames_available;
         frames_left -= frames_available;
@@ -455,8 +448,7 @@ START_TEST(Pattern_playback_pauses_zero_length_pattern)
     fail_if(frames_left == buf_len,
             "Pattern playback of zero-length pattern produces no audio");
 
-    float expected_buf[buf_len] = { 0.0f };
-    expected_buf[0] = 1.0f;
+    float expected_buf[buf_len] = { 1.0f, 1.0f };
 
     check_buffers_equal(expected_buf, actual_buf, buf_len, 0.0f);
 }
@@ -490,16 +482,11 @@ START_TEST(Paused_empty_composition_contains_silence)
             "kqt_Handle_play rendered %ld instead of %d frames",
             frames_available, buf_len);
 
-    const float* ret_bufs[] =
-    {
-        kqt_Handle_get_audio(handle, 0),
-        kqt_Handle_get_audio(handle, 1),
-    };
+    const float* ret_buf = kqt_Handle_get_audio(handle);
 
-    float expected_buf[buf_len] = { 0.0f };
+    float expected_buf[buf_len * 2] = { 0.0f };
 
-    check_buffers_equal(expected_buf, ret_bufs[0], buf_len, 0.0f);
-    check_buffers_equal(expected_buf, ret_bufs[1], buf_len, 0.0f);
+    check_buffers_equal(expected_buf, ret_buf, buf_len * 2, 0.0f);
 }
 END_TEST
 
@@ -1014,9 +1001,9 @@ START_TEST(Events_from_many_triggers_can_be_retrieved_with_multiple_receives)
             "Kunquat handle rendered %ld instead of 10 frames",
             kqt_Handle_get_frames_available(handle));
 
-    const float expected_buf[10] = { (float)note_count };
-    const float* actual_buf = kqt_Handle_get_audio(handle, 0);
-    check_buffers_equal(expected_buf, actual_buf, 10, 0.0f);
+    const float expected_buf[20] = { (float)note_count, (float)note_count };
+    const float* actual_buf = kqt_Handle_get_audio(handle);
+    check_buffers_equal(expected_buf, actual_buf, 20, 0.0f);
 }
 END_TEST
 
@@ -1172,9 +1159,10 @@ START_TEST(Events_from_complex_bind_can_be_retrieved_with_multiple_receives)
             kqt_Handle_get_frames_available(handle));
 
     // FIXME: We can only check for 512 notes as we run out of voices :-P
-    const float expected_buf[10] = { min((float)event_count, 512) };
-    const float* actual_buf = kqt_Handle_get_audio(handle, 0);
-    check_buffers_equal(expected_buf, actual_buf, 10, 0.0f);
+    float expected_buf[20] = { min((float)event_count, 512) };
+    expected_buf[1] = expected_buf[0];
+    const float* actual_buf = kqt_Handle_get_audio(handle);
+    check_buffers_equal(expected_buf, actual_buf, 20, 0.0f);
 }
 END_TEST
 
@@ -1221,8 +1209,9 @@ START_TEST(Fire_with_complex_bind_can_be_processed_with_multiple_receives)
             kqt_Handle_get_frames_available(handle));
 
     // FIXME: We can only check for 512 notes as we run out of voices :-P
-    const float expected_buf[10] = { min((float)event_count, 512) };
-    const float* actual_buf = kqt_Handle_get_audio(handle, 0);
+    float expected_buf[10] = { min((float)event_count, 512) };
+    expected_buf[1] = expected_buf[0];
+    const float* actual_buf = kqt_Handle_get_audio(handle);
     check_buffers_equal(expected_buf, actual_buf, 10, 0.0f);
 }
 END_TEST

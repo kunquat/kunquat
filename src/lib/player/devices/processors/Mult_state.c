@@ -27,6 +27,26 @@
 #include <stdlib.h>
 
 
+void Mult_get_port_groups(
+        const Device_impl* dimpl, Device_port_type port_type, Device_port_groups groups)
+{
+    rassert(dimpl != NULL);
+    rassert(groups != NULL);
+
+    switch (port_type)
+    {
+        case DEVICE_PORT_TYPE_RECV: Device_port_groups_init(groups, 2, 2, 0); break;
+
+        case DEVICE_PORT_TYPE_SEND: Device_port_groups_init(groups, 2, 0); break;
+
+        default:
+            rassert(false);
+    }
+
+    return;
+}
+
+
 enum
 {
     PORT_IN_SIGNAL_1_L = 0,
@@ -48,38 +68,37 @@ enum
 
 
 static void multiply_signals(
-        Work_buffer* in1_buffers[2],
-        Work_buffer* in2_buffers[2],
-        float* out_buffers[2],
-        int32_t buf_start,
-        int32_t buf_stop)
+        Work_buffer* in1_wb,
+        Work_buffer* in2_wb,
+        float* out_buffer,
+        int32_t frame_count)
 {
-    rassert(in1_buffers != NULL);
-    rassert(in2_buffers != NULL);
-    rassert(out_buffers != NULL);
-    rassert(buf_start >= 0);
-    rassert(buf_stop >= 0);
+    rassert(out_buffer != NULL);
+    rassert(frame_count > 0);
 
-    for (int ch = 0; ch < 2; ++ch)
+    const int32_t item_count = frame_count * 2;
+
+    if ((in1_wb != NULL) && (in2_wb != NULL))
     {
-        Work_buffer* in1_wb = in1_buffers[ch];
-        Work_buffer* in2_wb = in2_buffers[ch];
-        float* out_values = out_buffers[ch];
+        const float* in1_buf = Work_buffer_get_contents(in1_wb, 0);
+        const float* in2_buf = Work_buffer_get_contents(in2_wb, 0);
 
-        if ((in1_wb != NULL) && (in2_wb != NULL) && (out_values != NULL))
+        for (int32_t i = 0; i < item_count; ++i)
         {
-            float* in1_values = Work_buffer_get_contents_mut(in1_wb);
-            float* in2_values = Work_buffer_get_contents_mut(in2_wb);
+            float in1 = in1_buf[i];
+            float in2 = in2_buf[i];
 
             // Clamp inputs to finite range (so that we don't accidentally produce NaNs)
-            for (int32_t i = buf_start; i < buf_stop; ++i)
-                in1_values[i] = clamp(in1_values[i], -FLT_MAX, FLT_MAX);
-            for (int32_t i = buf_start; i < buf_stop; ++i)
-                in2_values[i] = clamp(in2_values[i], -FLT_MAX, FLT_MAX);
+            in1 = clamp(in1, -FLT_MAX, FLT_MAX);
+            in2 = clamp(in2, -FLT_MAX, FLT_MAX);
 
-            for (int32_t i = buf_start; i < buf_stop; ++i)
-                out_values[i] = in1_values[i] * in2_values[i];
+            out_buffer[i] = in1 * in2;
         }
+    }
+    else
+    {
+        for (int32_t i = 0; i < item_count; ++i)
+            out_buffer[i] = 0;
     }
 
     return;
@@ -90,8 +109,7 @@ static void Mult_pstate_render_mixed(
         Device_state* dstate,
         Device_thread_state* proc_ts,
         const Work_buffers* wbs,
-        int32_t buf_start,
-        int32_t buf_stop,
+        int32_t frame_count,
         double tempo)
 {
     rassert(dstate != NULL);
@@ -101,29 +119,19 @@ static void Mult_pstate_render_mixed(
     rassert(tempo > 0);
 
     // Get inputs
-    Work_buffer* in1_buffers[2] =
-    {
-        Device_thread_state_get_mixed_buffer(
-                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_SIGNAL_1_L),
-        Device_thread_state_get_mixed_buffer(
-                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_SIGNAL_1_R),
-    };
+    Work_buffer* in1_wb =
+        Proc_get_mixed_input_2ch(proc_ts, PORT_IN_SIGNAL_1_L, frame_count);
 
-    Work_buffer* in2_buffers[2] =
-    {
-        Device_thread_state_get_mixed_buffer(
-                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_SIGNAL_2_L),
-        Device_thread_state_get_mixed_buffer(
-                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_SIGNAL_2_R),
-    };
+    Work_buffer* in2_wb =
+        Proc_get_mixed_input_2ch(proc_ts, PORT_IN_SIGNAL_2_L, frame_count);
 
-    // Get outputs
-    float* out_buffers[2] = { NULL };
-    Proc_state_get_mixed_audio_out_buffers(
-            proc_ts, PORT_OUT_SIGNAL_L, PORT_OUT_COUNT, out_buffers);
+    // Get output
+    Work_buffer* out_wb = Proc_get_mixed_output_2ch(proc_ts, PORT_OUT_SIGNAL_L);
+    rassert(out_wb != NULL);
+    float* out_buf = Work_buffer_get_contents_mut(out_wb, 0);
 
     // Multiply the signals
-    multiply_signals(in1_buffers, in2_buffers, out_buffers, buf_start, buf_stop);
+    multiply_signals(in1_wb, in2_wb, out_buf, frame_count);
 
     return;
 }
@@ -153,13 +161,12 @@ int32_t Mult_vstate_get_size(void)
 }
 
 
-static bool is_final_zero(const Work_buffer* in_wb, int32_t buf_start)
+static bool is_final_zero(const Work_buffer* in_wb, int ch)
 {
-    rassert(buf_start >= 0);
     return ((in_wb == NULL) ||
-            (Work_buffer_is_final(in_wb) &&
-             (Work_buffer_get_const_start(in_wb) <= buf_start) &&
-             (Work_buffer_get_contents(in_wb)[buf_start] == 0.0f)));
+            (Work_buffer_is_final(in_wb, ch) &&
+             (Work_buffer_get_const_start(in_wb, ch) == 0) &&
+             (Work_buffer_get_contents(in_wb, ch)[0] == 0.0f)));
 }
 
 
@@ -169,8 +176,7 @@ int32_t Mult_vstate_render_voice(
         const Device_thread_state* proc_ts,
         const Au_state* au_state,
         const Work_buffers* wbs,
-        int32_t buf_start,
-        int32_t buf_stop,
+        int32_t frame_count,
         double tempo)
 {
     rassert(vstate == NULL);
@@ -178,67 +184,46 @@ int32_t Mult_vstate_render_voice(
     rassert(proc_ts != NULL);
     rassert(au_state != NULL);
     rassert(wbs != NULL);
-    rassert(buf_start >= 0);
-    rassert(buf_stop >= 0);
+    rassert(frame_count > 0);
     rassert(isfinite(tempo));
     rassert(tempo > 0);
 
     // Get inputs
-    Work_buffer* in1_buffers[2] =
-    {
-        Device_thread_state_get_voice_buffer(
-                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_SIGNAL_1_L),
-        Device_thread_state_get_voice_buffer(
-                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_SIGNAL_1_R),
-    };
+    Work_buffer* in1_wb =
+        Proc_get_voice_input_2ch(proc_ts, PORT_IN_SIGNAL_1_L, frame_count);
 
-    Work_buffer* in2_buffers[2] =
-    {
-        Device_thread_state_get_voice_buffer(
-                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_SIGNAL_2_L),
-        Device_thread_state_get_voice_buffer(
-                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_SIGNAL_2_R),
-    };
+    Work_buffer* in2_wb =
+        Proc_get_voice_input_2ch(proc_ts, PORT_IN_SIGNAL_2_L, frame_count);
 
-    const bool is_out1_final_zero = (is_final_zero(in1_buffers[0], buf_start) ||
-            is_final_zero(in2_buffers[0], buf_start));
-    const bool is_out2_final_zero = (is_final_zero(in1_buffers[1], buf_start) ||
-            is_final_zero(in2_buffers[1], buf_start));
+    const bool is_out1_final_zero =
+        (is_final_zero(in1_wb, 0) || is_final_zero(in2_wb, 0));
+    const bool is_out2_final_zero =
+        (is_final_zero(in1_wb, 1) || is_final_zero(in2_wb, 1));
 
     if (is_out1_final_zero && is_out2_final_zero)
-        return buf_start;
+        return 0;
 
     // Get outputs
-    Work_buffer* out_wbs[2] =
-    {
-        Device_thread_state_get_voice_buffer(
-                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_SIGNAL_L),
-        Device_thread_state_get_voice_buffer(
-                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_SIGNAL_R),
-    };
-
-    float* out_buffers[2] = { NULL };
-    Proc_state_get_voice_audio_out_buffers(
-            proc_ts, PORT_OUT_SIGNAL_L, PORT_OUT_COUNT, out_buffers);
+    Work_buffer* out_wb = Proc_get_voice_output_2ch(proc_ts, PORT_OUT_SIGNAL_L);
+    rassert(out_wb != NULL);
+    float* out_buf = Work_buffer_get_contents_mut(out_wb, 0);
 
     // Multiply the signals
-    multiply_signals(in1_buffers, in2_buffers, out_buffers, buf_start, buf_stop);
+    multiply_signals(in1_wb, in2_wb, out_buf, frame_count);
 
-    if (is_out1_final_zero && (out_wbs[0] != NULL))
+    if (is_out1_final_zero)
     {
-        rassert(out_buffers[0][buf_start] == 0);
-        Work_buffer_set_const_start(out_wbs[0], buf_start);
-        Work_buffer_set_final(out_wbs[0], true);
+        Work_buffer_set_const_start(out_wb, 0, 0);
+        Work_buffer_set_final(out_wb, 0, true);
     }
 
-    if (is_out2_final_zero && (out_wbs[1] != NULL))
+    if (is_out2_final_zero)
     {
-        rassert(out_buffers[1][buf_start] == 0);
-        Work_buffer_set_const_start(out_wbs[1], buf_start);
-        Work_buffer_set_final(out_wbs[1], true);
+        Work_buffer_set_const_start(out_wb, 1, 0);
+        Work_buffer_set_final(out_wb, 1, true);
     }
 
-    return buf_stop;
+    return frame_count;
 }
 
 

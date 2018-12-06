@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2018
  *
  * This file is part of Kunquat.
  *
@@ -50,6 +50,7 @@ Device_impl* new_Proc_volume(void)
         return NULL;
     }
 
+    volume->parent.get_port_groups = Volume_get_port_groups;
     volume->parent.create_pstate = new_Volume_pstate;
     volume->parent.get_vstate_size = Volume_vstate_get_size;
     volume->parent.render_voice = Volume_vstate_render_voice;

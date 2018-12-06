@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2018
  *
  * This file is part of Kunquat.
  *
@@ -18,6 +18,8 @@
 
 #include <player/Voice.h>
 
+#include <decl.h>
+
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -25,11 +27,11 @@
 /**
  * A temporary reference of interdependent Voices sent to an Audio unit.
  */
-typedef struct Voice_group
+struct Voice_group
 {
     int size;
     Voice** voices;
-} Voice_group;
+};
 
 
 #define VOICE_GROUP_AUTO (&(Voice_group){ .size = 0, .voices = NULL })
@@ -113,6 +115,7 @@ Voice* Voice_group_get_voice_by_proc(Voice_group* vg, uint32_t proc_id);
  *           is always within range [\a buf_start, \a buf_stop]. If the stop
  *           index is < \a buf_stop, the note has ended.
  */
+/*
 int32_t Voice_group_render(
         Voice_group* vgroup,
         Device_states* dstates,
@@ -123,6 +126,7 @@ int32_t Voice_group_render(
         int32_t buf_stop,
         int32_t audio_rate,
         double tempo);
+*/
 
 
 /**
@@ -145,6 +149,7 @@ int Voice_group_get_ch_num(const Voice_group* vg);
  * \param buf_start   The start index of the buffer area to be processed.
  * \param buf_stop    The stop index of the buffer area to be processed.
  */
+/*
 void Voice_group_mix(
         Voice_group* vgroup,
         Device_states* dstates,
@@ -152,6 +157,7 @@ void Voice_group_mix(
         const Connections* conns,
         int32_t buf_start,
         int32_t buf_stop);
+*/
 
 
 /**

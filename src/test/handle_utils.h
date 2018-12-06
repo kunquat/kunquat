@@ -182,7 +182,7 @@ void check_buffers_equal(
 
     for (long i = 0; i < len; ++i)
     {
-        if (fabs(expected[i] - actual[i]) > eps)
+        if (!(fabs(expected[i] - actual[i]) <= eps))
         {
             fail_buffers(expected, actual, i, len);
             break;
@@ -261,9 +261,10 @@ long mix_and_fill(float* buf, long nframes)
     kqt_Handle_play(handle, nframes);
     check_unexpected_error();
     const long frames_available = kqt_Handle_get_frames_available(handle);
-    const float* ret_buf = kqt_Handle_get_audio(handle, 0);
+    const float* ret_buf = kqt_Handle_get_audio(handle);
     check_unexpected_error();
-    memcpy(buf, ret_buf, (size_t)frames_available * sizeof(float));
+    for (long i = 0; i < frames_available; ++i)
+        buf[i] = ret_buf[i * 2];
 
     return frames_available;
 }

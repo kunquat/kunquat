@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2018
  *
  * This file is part of Kunquat.
  *
@@ -20,6 +20,8 @@
 #include <player/devices/Device_state.h>
 #include <player/devices/Voice_state.h>
 
+
+Device_impl_get_port_groups_func Panning_get_port_groups;
 
 Device_state_create_func new_Panning_pstate;
 Set_state_float_func Panning_pstate_set_panning;

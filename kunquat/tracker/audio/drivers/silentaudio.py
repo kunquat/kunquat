@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013
-#          Tomi Jylhä-Ollila, Finland 2013
+#          Tomi Jylhä-Ollila, Finland 2013-2018
 #
 # This file is part of Kunquat.
 #
@@ -25,8 +25,7 @@ class Silentaudio():
 
     def put_audio(self, audio_data):
         assert self._started
-        (l, r) = audio_data
-        frames = len(l)
+        frames = len(audio_data) // 2
         play_time = frames / 48000.0
         time.sleep(play_time)
         self._audio_source.acknowledge_audio()

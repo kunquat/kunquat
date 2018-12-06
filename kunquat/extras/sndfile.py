@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2012-2016
+# Author: Tomi Jylhä-Ollila, Finland 2012-2018
 #
 # This file is part of Kunquat.
 #
@@ -311,20 +311,29 @@ class _SndFileWBase(_SndFileBase):
         """Write audio data.
 
         Arguments:
-        data -- The output buffers, each channel as a separate
-                argument.
+        data -- The output, either as a single buffer with interleaved
+                channels, or each channel as a separate argument.
 
         """
-        if len(data) != self._channels:
-            raise ValueError('Expected {} output channels, got {}'.format(
-                self._channels, len(data)))
+        if len(data) == 1:
+            buf = data[0]
+            if len(buf) % self._channels != 0:
+                raise ValueError('Data length {} is not divisible by expected'
+                        ' number of channels {}'.format(len(data), self._channels))
+            frame_count = len(buf) // self._channels
+            cdata = (ctypes.c_float * len(buf))()
+            cdata[:] = buf
 
-        frame_count = len(data[0])
-        cdata = (ctypes.c_float * (frame_count * self._channels))()
-        for ch in range(self._channels):
-            if len(data[ch]) != frame_count:
-                raise ValueError('Output channel buffer lengths do not match')
-            cdata[ch::self._channels] = data[ch]
+        else:
+            if len(data) != self._channels:
+                raise ValueError('Expected {} output channels, got {}'.format(
+                    self._channels, len(data)))
+            frame_count = len(data[0])
+            cdata = (ctypes.c_float * (frame_count * self._channels))()
+            for ch in range(self._channels):
+                if len(data[ch]) != frame_count:
+                    raise ValueError('Output channel buffer lengths do not match')
+                cdata[ch::self._channels] = data[ch]
 
         _sndfile.sf_writef_float(self._sf, cdata, frame_count)
 

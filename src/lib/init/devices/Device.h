@@ -18,6 +18,7 @@
 
 #include <decl.h>
 #include <init/devices/Device_params.h>
+#include <init/devices/Device_port_groups.h>
 #include <kunquat/limits.h>
 #include <mathnum/Random.h>
 #include <mathnum/Tstamp.h>
@@ -44,7 +45,8 @@ struct Device
 
     Device_state_create_func* create_state;
 
-    bool existence[DEVICE_PORT_TYPES][KQT_DEVICE_PORTS_MAX];
+    Bit_array* existence[DEVICE_PORT_TYPES];
+    int last_existence_set[DEVICE_PORT_TYPES];
 };
 
 
@@ -110,8 +112,6 @@ bool Device_is_existent(const Device* device);
  * \param device       The Device -- must not be \c NULL.
  * \param dimpl        The Device implementation, or \c NULL.
  * \param bkg_loader   The Background loader -- must not be \c NULL.
- *
- * \return   \c true if successful, or \c false if memory allocation failed.
  */
 void Device_set_impl(Device* device, Device_impl* dimpl, Background_loader* bkg_loader);
 
@@ -197,6 +197,29 @@ void Device_set_port_existence(
  * \return   \c true if the port exists, otherwise \c false.
  */
 bool Device_get_port_existence(const Device* device, Device_port_type type, int port);
+
+
+/**
+ * Validate Device ports.
+ *
+ * \param device   The Device -- must not be \c NULL.
+ * \param error    The address of error information -- must not be \c NULL.
+ *
+ * \return   \c true if successful, or \c false if ports are not valid.
+ */
+bool Device_validate_ports(const Device* device, Error* error);
+
+
+/**
+ * Get Device port group information.
+ *
+ * \param device   The Device -- must not be \c NULL.
+ * \param type     The port type -- must be a valid type.
+ * \param groups   Destination where the port groups will be stored -- must not
+ *                 be \c NULL.
+ */
+void Device_get_port_groups(
+        const Device* device, Device_port_type type, Device_port_groups groups);
 
 
 /**

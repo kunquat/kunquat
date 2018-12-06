@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2018
  *
  * This file is part of Kunquat.
  *
@@ -59,6 +59,7 @@ Device_impl* new_Proc_freeverb(void)
         return NULL;
     }
 
+    freeverb->parent.get_port_groups = Freeverb_get_port_groups;
     freeverb->parent.create_pstate = new_Freeverb_pstate;
 
     // Register key set handlers

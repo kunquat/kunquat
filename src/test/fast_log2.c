@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2018
  *
  * This file is part of Kunquat.
  *
@@ -19,6 +19,13 @@
 #include <math.h>
 #include <stdint.h>
 #include <stdio.h>
+
+
+#if defined(__GNUC__) && KQT_SSE2
+#define ENABLE_F4_TEST 1
+#else
+#define ENABLE_F4_TEST 0
+#endif
 
 
 START_TEST(Maximum_absolute_error_is_small)
@@ -41,6 +48,41 @@ START_TEST(Maximum_absolute_error_is_small)
 END_TEST
 
 
+#if ENABLE_F4_TEST
+START_TEST(Maximum_absolute_error_is_small_f4)
+{
+    static const float small = 0.001f;
+    static const int32_t test_count = 1048574;
+
+    for (int32_t i = 1; i < test_count + 1; i += 4)
+    {
+        const float x_data[4] __attribute__((aligned(16))) =
+        {
+            (float)(i / (double)test_count),
+            (float)((i + 1) / (double)test_count),
+            (float)((i + 2) / (double)test_count),
+            (float)((i + 3) / (double)test_count),
+        };
+        const __m128 x = _mm_load_ps(x_data);
+        const __m128 result = fast_log2_f4(x);
+        float result_data[4] __attribute__((aligned(16)));
+        _mm_store_ps(result_data, result);
+
+        for (int k = 0; k < 4; ++k)
+        {
+            const float std_log2 = log2f(x_data[k]);
+            const float abs_error = fabsf(result_data[k] - std_log2);
+
+            fail_unless(abs_error <= small,
+                    "fast_log2_f4(%.7g) yields %.7g, which is %.7g from %.7g",
+                    x_data[k], result_data[k], abs_error, std_log2);
+        }
+    }
+}
+END_TEST
+#endif // ENABLE_F4_TEST
+
+
 static Suite* Fast_log2_suite(void)
 {
     Suite* s = suite_create("Fast_log2");
@@ -52,6 +94,9 @@ static Suite* Fast_log2_suite(void)
     tcase_set_timeout(tc_correctness, timeout);
 
     tcase_add_test(tc_correctness, Maximum_absolute_error_is_small);
+#if ENABLE_F4_TEST
+    tcase_add_test(tc_correctness, Maximum_absolute_error_is_small_f4);
+#endif
 
     return s;
 }

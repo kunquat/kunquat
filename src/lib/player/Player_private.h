@@ -38,9 +38,6 @@
 #include <stdint.h>
 
 
-#define TEST_VOICE_OUTPUTS_MAX 2
-
-
 typedef struct Player_thread_params
 {
     Player* player;
@@ -48,7 +45,7 @@ typedef struct Player_thread_params
     int active_voices;
     int active_vgroups;
     Work_buffers* work_buffers;
-    Work_buffer* test_voice_outputs[TEST_VOICE_OUTPUTS_MAX];
+    Work_buffer* test_voice_output;
 } Player_thread_params;
 
 
@@ -58,7 +55,7 @@ struct Player
 
     int32_t audio_rate;
     int32_t audio_buffer_size;
-    float*  audio_buffers[KQT_BUFFERS_MAX];
+    float*  audio_buffer;
     int32_t audio_frames_available;
 
     int thread_count;
@@ -72,8 +69,7 @@ struct Player
     bool ok_to_start;
     bool early_exit_threads;
     bool stop_threads;
-    int32_t render_start;
-    int32_t render_stop;
+    int32_t render_frame_count;
 
     Device_states* device_states;
     Env_state*     estate;

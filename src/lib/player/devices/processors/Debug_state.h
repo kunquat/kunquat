@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2018
  *
  * This file is part of Kunquat.
  *
@@ -16,9 +16,11 @@
 #define KQT_DEBUG_STATE_H
 
 
+#include <init/devices/Device_impl.h>
 #include <player/devices/Voice_state.h>
 
 
+Device_impl_get_port_groups_func Debug_get_port_groups;
 Voice_state_init_func Debug_vstate_init;
 Voice_state_render_voice_func Debug_vstate_render_voice;
 

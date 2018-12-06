@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2018
  *
  * This file is part of Kunquat.
  *
@@ -38,80 +38,20 @@ Proc_state* new_Proc_state_default(
         const Device* device, int32_t audio_rate, int32_t audio_buffer_size);
 
 
-/**
- * Retrieve mixed audio input buffers.
- *
- * \param proc_ts      The Device thread state -- must not be \c NULL.
- * \param port_start   The first port index -- must be >= \c 0 and
- *                     < \c KQT_DEVICE_PORTS_MAX.
- * \param port_stop    The index after the last port index -- must be
- *                     >= \c port_start and <= \c KQT_DEVICE_PORTS_MAX.
- * \param in_bufs      The destination buffer array -- must not be \c NULL and
- *                     must have space for \a port_stop - \a port_start buffers.
- *                     Any of the stored pointers may be \c NULL.
- */
-void Proc_state_get_mixed_audio_in_buffers(
-        Device_thread_state* proc_ts,
-        int32_t port_start,
-        int32_t port_stop,
-        float* in_bufs[]);
+Work_buffer* Proc_get_mixed_input_2ch(
+        const Device_thread_state* proc_ts, int first_port, int32_t frame_count);
 
 
-/**
- * Retrieve mixed audio output buffers.
- *
- * \param proc_ts      The Device thread state -- must not be \c NULL.
- * \param port_start   The first port index -- must be >= \c 0 and
- *                     < \c KQT_DEVICE_PORTS_MAX.
- * \param port_stop    The index after the last port index -- must be
- *                     >= \c port_start and <= \c KQT_DEVICE_PORTS_MAX.
- * \param out_bufs     The destination buffer array -- must not be \c NULL and
- *                     must have space for \a port_stop - \a port_start buffers.
- *                     Any of the stored pointers may be \c NULL.
- */
-void Proc_state_get_mixed_audio_out_buffers(
-        Device_thread_state* proc_ts,
-        int32_t port_start,
-        int32_t port_stop,
-        float* out_bufs[]);
+Work_buffer* Proc_get_mixed_output_2ch(
+        const Device_thread_state* proc_ts, int first_port);
 
 
-/**
- * Retrieve voice audio input buffers.
- *
- * \param proc_ts      The Device thread state -- must not be \c NULL.
- * \param port_start   The first port index -- must be >= \c 0 and
- *                     < \c KQT_DEVICE_PORTS_MAX.
- * \param port_stop    The index after the last port index -- must be
- *                     >= \c port_start and <= \c KQT_DEVICE_PORTS_MAX.
- * \param in_bufs      The destination buffer array -- must not be \c NULL and
- *                     must have space for \a port_stop - \a port_start buffers.
- *                     Any of the stored pointers may be \c NULL.
- */
-void Proc_state_get_voice_audio_in_buffers(
-        const Device_thread_state* proc_ts,
-        int32_t port_start,
-        int32_t port_stop,
-        float* in_bufs[]);
+Work_buffer* Proc_get_voice_input_2ch(
+        const Device_thread_state* proc_ts, int first_port, int32_t frame_count);
 
 
-/**
- * Retrieve voice audio output buffers.
- *
- * \param proc_ts      The Device thread state -- must not be \c NULL.
- * \param port_start   The first port index -- must be >= \c 0 and
- *                     < \c KQT_DEVICE_PORTS_MAX.
- * \param port_stop    The index after the last port index -- must be
- *                     >= \c port_start and <= \c KQT_DEVICE_PORTS_MAX.
- * \param out_bufs     The destination buffer array -- must not be \c NULL and
- *                     must have space for \a port_stop - \a port_start buffers.
- *                     Any of the stored pointers may be \c NULL.
- */
-void Proc_state_get_voice_audio_out_buffers(
-        const Device_thread_state* proc_ts,
-        int32_t port_start,
-        int32_t port_stop,
-        float* out_bufs[]);
+Work_buffer* Proc_get_voice_output_2ch(
+        const Device_thread_state* proc_ts, int first_port);
 
 
 /**
@@ -120,20 +60,16 @@ void Proc_state_get_voice_audio_out_buffers(
  * This function should be called by processor implementations (that need it)
  * before returning from their process function.
  *
- * \param vstate       The Voice state -- must not be \c NULL.
- * \param buf_count    The number of output buffers -- must be > \c 0.
- * \param out_bufs     The signal output buffers -- must not be \c NULL and
- *                     must contain at least \a buf_count buffers.
- * \param buf_start    The start index of the buffer area to be processed.
- * \param buf_stop     The stop index of the buffer area to be processed.
- * \param audio_rate   The audio rate -- must be positive.
+ * \param vstate        The Voice state -- must not be \c NULL.
+ * \param out_wb        The output Work buffer -- must not be \c NULL and must
+ *                      contain either 1 or 2 interleaved areas.
+ * \param frame_count   Number of frames to be processed -- must be > \c 0.
+ * \param audio_rate    The audio rate -- must be positive.
  */
 void Proc_ramp_attack(
         Voice_state* vstate,
-        int buf_count,
-        float* out_bufs[buf_count],
-        int32_t buf_start,
-        int32_t buf_stop,
+        Work_buffer* out_wb,
+        int32_t frame_count,
         int32_t audio_rate);
 
 
@@ -166,17 +102,13 @@ void Proc_fill_freq_buffer(
  *       If that is not the case, the const start value of \a scales may be
  *       incorrect.
  *
- * \param scales      The destination buffer -- must not be \c NULL.
- * \param dBs         The decibel buffer -- must not be \c NULL. This buffer
- *                    may be the same as \a scales.
- * \param buf_start   The start index of the buffer area to be processed.
- * \param buf_stop    The stop index of the buffer area to be processed.
+ * \param scales        The destination buffer -- must not be \c NULL.
+ * \param dBs           The decibel buffer -- must not be \c NULL. This buffer
+ *                      may be the same as \a scales.
+ * \param frame_count   Number of frames to be processed -- must be > \c 0 and
+ *                      not be greater than the buffer size.
  */
-void Proc_fill_scale_buffer(
-        Work_buffer* scales,
-        Work_buffer* dBs,
-        int32_t buf_start,
-        int32_t buf_stop);
+void Proc_fill_scale_buffer(Work_buffer* scales, Work_buffer* dBs, int32_t frame_count);
 
 
 /**

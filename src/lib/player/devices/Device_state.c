@@ -43,7 +43,6 @@ bool Device_state_init(
     ds->audio_rate = audio_rate;
     ds->audio_buffer_size = audio_buffer_size;
 
-    ds->add_buffer = NULL;
     ds->set_audio_rate = NULL;
     ds->set_audio_buffer_size = NULL;
     ds->set_tempo = NULL;
@@ -123,20 +122,6 @@ bool Device_state_set_audio_buffer_size(Device_state* ds, int32_t size)
 }
 
 
-bool Device_state_add_audio_buffer(Device_state* ds, Device_port_type type, int port)
-{
-    rassert(ds != NULL);
-    rassert(type == DEVICE_PORT_TYPE_RECV || type == DEVICE_PORT_TYPE_SEND);
-    rassert(port >= 0);
-    rassert(port < KQT_DEVICE_PORTS_MAX);
-
-    if ((ds->add_buffer != NULL) && !ds->add_buffer(ds, type, port))
-        return false;
-
-    return true;
-}
-
-
 void Device_state_set_tempo(Device_state* ds, double tempo)
 {
     rassert(ds != NULL);
@@ -165,19 +150,18 @@ void Device_state_render_mixed(
         Device_state* ds,
         Device_thread_state* ts,
         const Work_buffers* wbs,
-        int32_t buf_start,
-        int32_t buf_stop,
+        int32_t frame_count,
         double tempo)
 {
     rassert(ds != NULL);
     rassert(ts != NULL);
     rassert(wbs != NULL);
-    rassert(buf_start >= 0);
+    rassert(frame_count >= 0);
     rassert(isfinite(tempo));
     rassert(tempo > 0);
 
     if (Device_get_mixed_signals(ds->device) && (ds->render_mixed != NULL))
-        ds->render_mixed(ds, ts, wbs, buf_start, buf_stop, tempo);
+        ds->render_mixed(ds, ts, wbs, frame_count, tempo);
 
     return;
 }
@@ -203,6 +187,7 @@ void del_Device_state(Device_state* ds)
     if (ds == NULL)
         return;
 
+    // FIXME: Sharing of responsibilities is unclear here
     if (ds->destroy != NULL)
         ds->destroy(ds);
     else

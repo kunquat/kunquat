@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2018
  *
  * This file is part of Kunquat.
  *
@@ -34,11 +34,14 @@
 #define memory_realloc_items(type, n, ptr) \
     memory_realloc((ptr), (int64_t)sizeof(type) * (n))
 
+#define memory_alloc_items_aligned(type, n, alignment) \
+    memory_alloc_aligned((int64_t)sizeof(type) * (n), (alignment))
+
 
 /**
  * Allocate a contiguous block of memory.
  *
- * \param size   The amount of bytes to be allocated -- must be >= 0.
+ * \param size   The amount of bytes to be allocated -- must be >= \c 0.
  *
  * \return   The starting address of the allocated memory block, or \c NULL if
  *           memory allocation failed or \a size was \c 0.
@@ -62,6 +65,8 @@ void* memory_calloc(int64_t item_count, int64_t item_size);
  * Resize a memory block.
  *
  * \param ptr    The starting address of the memory block, or \c NULL.
+ *               NOTE: \a ptr must not point to a memory block allocated with
+ *               \a memory_alloc_aligned.
  * \param size   The new size of the memory block -- must be >= \c 0.
  *
  * \return   The starting address of the resized memory block, or \c NULL if
@@ -71,11 +76,37 @@ void* memory_realloc(void* ptr, int64_t size);
 
 
 /**
+ * Allocate an contiguous block of memory with specified alignment.
+ *
+ * \param size        The amount of bytes to be allocated -- must be >= \c 0.
+ * \param alignment   The aligment in bytes -- must be >= \c 2 and <= \c 64.
+ *
+ * \return   The starting address of the allocated memory block, or \c NULL if
+ *           memory allocation failed or \a size was \c 0.
+ */
+void* memory_alloc_aligned(int64_t size, uint8_t alignment);
+
+
+/**
  * Free a block of memory.
+ *
+ * NOTE: This function must not be used to free memory allocated with
+ *       \a memory_alloc_aligned.
  *
  * \param ptr   The starting address of the memory block, or \c NULL.
  */
 void memory_free(void* ptr);
+
+
+/**
+ * Free an aligned block of memory.
+ *
+ * NOTE: This function must only be used to free memory allocated with
+ *       \a memory_alloc_aligned.
+ *
+ * \param ptr   The starting address of the memory block, or \c NULL.
+ */
+void memory_free_aligned(void* ptr);
 
 
 /**

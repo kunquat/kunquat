@@ -116,6 +116,14 @@ bool Device_states_set_audio_buffer_size(Device_states* states, int32_t size);
 
 
 /**
+ * Invalidate mixed audio buffers in the Device states.
+ *
+ * \param states   The Device states -- must not be \c NULL.
+ */
+void Device_states_invalidate_mixed_buffers(Device_states* states);
+
+
+/**
  * Clear audio buffers in the Device states.
  *
  * \param states   The Device states -- must not be \c NULL.

@@ -1,7 +1,7 @@
 
 
 /*
- * Authors: Tomi Jylhä-Ollila, Finland 2010-2017
+ * Authors: Tomi Jylhä-Ollila, Finland 2010-2018
  *          Ossi Saresoja, Finland 2010
  *
  * This file is part of Kunquat.
@@ -45,6 +45,7 @@ Device_impl* new_Proc_noise(void)
         return NULL;
     }
 
+    noise->parent.get_port_groups = Noise_get_port_groups;
     noise->parent.create_pstate = new_Noise_pstate;
     noise->parent.get_vstate_size = Noise_vstate_get_size;
     noise->parent.init_vstate = Noise_vstate_init;

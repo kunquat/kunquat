@@ -38,8 +38,7 @@ typedef void Device_state_render_mixed_func(
         Device_state*,
         Device_thread_state*,
         const Work_buffers*,
-        int32_t buf_start,
-        int32_t buf_stop,
+        int32_t frame_count,
         double tempo);
 
 typedef void Device_state_fire_event_func(
@@ -60,7 +59,6 @@ struct Device_state
     int32_t audio_buffer_size;
 
     // Protected interface
-    bool (*add_buffer)(struct Device_state*, Device_port_type, int port);
     Device_state_set_audio_rate_func* set_audio_rate;
     Device_state_set_audio_buffer_size_func* set_audio_buffer_size;
     Device_state_set_tempo_func* set_tempo;
@@ -151,19 +149,6 @@ bool Device_state_set_audio_buffer_size(Device_state* ds, int32_t size);
 
 
 /**
- * Add an audio buffer into the Device state.
- *
- * \param ds     The Device state -- must not be \c NULL.
- * \param type   The port type -- must be valid.
- * \param port   The port number -- must be >= \c 0 and
- *               < \c KQT_DEVICE_PORTS_MAX.
- *
- * \return   \c true if successful, or \c false if memory allocation failed.
- */
-bool Device_state_add_audio_buffer(Device_state* ds, Device_port_type type, int port);
-
-
-/**
  * Set the tempo of the Device state.
  *
  * \param ds      The Device state -- must not be \c NULL.
@@ -183,20 +168,18 @@ void Device_state_reset(Device_state* ds);
 /**
  * Render mixed signal in the Device state.
  *
- * \param ds          The Device state -- must not be \c NULL.
- * \param ts          The Device thread state -- must not be \c NULL.
- * \param wbs         The Work buffers -- must not be \c NULL.
- * \param buf_start   The start index of rendering -- must be >= \c 0.
- * \param buf_stop    The stop index of rendering -- must be less than or equal
- *                    to the audio buffer size.
- * \param tempo       The current tempo -- must be finite and > \c 0.
+ * \param ds            The Device state -- must not be \c NULL.
+ * \param ts            The Device thread state -- must not be \c NULL.
+ * \param wbs           The Work buffers -- must not be \c NULL.
+ * \param frame_count   Number of frames to be processed -- must be less than or equal
+ *                      to the audio buffer size.
+ * \param tempo         The current tempo -- must be finite and > \c 0.
  */
 void Device_state_render_mixed(
         Device_state* ds,
         Device_thread_state* ts,
         const Work_buffers* wbs,
-        int32_t buf_start,
-        int32_t buf_stop,
+        int32_t frame_count,
         double tempo);
 
 

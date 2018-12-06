@@ -81,6 +81,7 @@ class GccCommand():
                 '-Wmissing-prototypes',
                 '-Wshadow',
                 '-Wstrict-prototypes',
+                '-Wundef',
                 '-Wunused-macros',
                 '-Wwrite-strings',
             ]
@@ -112,6 +113,9 @@ class GccCommand():
     def set_pic(self, enabled):
         if enabled:
             self._compile_flags.append('-fPIC')
+
+    def set_native_arch(self):
+        self._compile_flags.append('-march=native')
 
     def add_define(self, name, value=None):
         if value == None:
@@ -219,6 +223,9 @@ class ClangCommand():
     def set_pic(self, enabled):
         if enabled:
             self._compile_flags.append('-fPIC')
+
+    def set_native_arch(self):
+        self._compile_flags.append('-march=native')
 
     def add_define(self, name, value=None):
         if value == None:

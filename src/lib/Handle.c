@@ -499,6 +499,67 @@ int kqt_Handle_validate(kqt_Handle handle)
                 "Control map uses nonexistent controls");
     }
 
+    // Check that all device ports are aligned properly
+    {
+        Error* port_error = ERROR_AUTO;
+
+        // Audio units
+        Au_table* au_table = Module_get_au_table(h->module);
+        for (int au_index = 0; au_index < KQT_AUDIO_UNITS_MAX; ++au_index)
+        {
+            const Audio_unit* au = Au_table_get(au_table, au_index);
+            if ((au != NULL) && Device_is_existent((const Device*)au))
+            {
+                set_invalid_if(
+                        !Device_validate_ports((const Device*)au, port_error),
+                        "%s",
+                        Error_get_message(port_error));
+
+                Proc_table* procs = Audio_unit_get_procs(au);
+                for (int proc_index = 0; proc_index < KQT_PROCESSORS_MAX; ++proc_index)
+                {
+                    const Processor* proc = Proc_table_get_proc(procs, proc_index);
+                    if (proc != NULL)
+                    {
+                        set_invalid_if(
+                                !Device_validate_ports((const Device*)proc, port_error),
+                                "%s",
+                                Error_get_message(port_error));
+                    }
+                }
+
+                for (int sub_au_index = 0; sub_au_index < KQT_AUDIO_UNITS_MAX; ++sub_au_index)
+                {
+                    const Audio_unit* sub_au = Audio_unit_get_au(au, sub_au_index);
+                    if ((sub_au != NULL) && Device_is_existent((const Device*)sub_au))
+                    {
+                        set_invalid_if(
+                                !Device_validate_ports((const Device*)au, port_error),
+                                "%s",
+                                Error_get_message(port_error));
+
+                        Proc_table* sub_procs = Audio_unit_get_procs(sub_au);
+                        for (int proc_index = 0;
+                                proc_index < KQT_PROCESSORS_MAX;
+                                ++proc_index)
+                        {
+                            const Processor* proc =
+                                Proc_table_get_proc(sub_procs, proc_index);
+                            if (proc != NULL)
+                            {
+                                set_invalid_if(
+                                        !Device_validate_ports(
+                                            (const Device*)proc, port_error),
+                                        "%s",
+                                        Error_get_message(port_error));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     // Check that all connections are between existing ports
     {
         char err_msg[DEVICE_CONNECTION_ERROR_LENGTH_MAX] = "";

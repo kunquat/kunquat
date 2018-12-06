@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2018
  *
  * This file is part of Kunquat.
  *
@@ -17,6 +17,7 @@
 #include <debug/assert.h>
 
 #include <stdbool.h>
+#include <stdint.h>
 
 
 static int32_t out_of_memory_error_steps = -1;
@@ -37,6 +38,9 @@ static int32_t out_of_memory_error_steps = -1;
 
 
 static int32_t total_alloc_count = 0;
+
+
+#define ALIGNED_HEADER_SIZE 1
 
 
 void* memory_alloc(int64_t size)
@@ -93,9 +97,67 @@ void* memory_realloc(void* ptr, int64_t size)
 }
 
 
+void* memory_alloc_aligned(int64_t size, uint8_t alignment)
+{
+    rassert(size >= 0);
+    rassert(alignment >= 2);
+    rassert(alignment <= 64);
+
+    if (size == 0)
+        return NULL;
+
+    update_out_of_memory_error();
+
+    const int64_t min_size = size + alignment + ALIGNED_HEADER_SIZE;
+
+    char* block = malloc((size_t)min_size);
+    if (block == NULL)
+        return NULL;
+
+    ++total_alloc_count;
+
+    const intptr_t header_addr = (intptr_t)block;
+
+    const intptr_t min_user_addr = header_addr + ALIGNED_HEADER_SIZE + 1;
+    const intptr_t min_user_rem = min_user_addr % alignment;
+    const intptr_t user_addr =
+        (min_user_rem == 0) ? min_user_addr : min_user_addr + alignment - min_user_rem;
+    rassert(user_addr >= header_addr + ALIGNED_HEADER_SIZE + 1);
+    rassert(user_addr <= header_addr + alignment + ALIGNED_HEADER_SIZE + 1);
+    rassert(user_addr % alignment == 0);
+
+    const uint8_t offset = (uint8_t)(user_addr - header_addr);
+    rassert(offset >= ALIGNED_HEADER_SIZE + 1);
+    rassert(min_size - offset >= size);
+
+    block[0] = *(char*)&alignment;
+
+    char* user_block = (char*)user_addr;
+    user_block[-1] = *(const char*)&offset;
+
+    return user_block;
+}
+
+
 void memory_free(void* ptr)
 {
     free(ptr);
+    return;
+}
+
+
+void memory_free_aligned(void* ptr)
+{
+    if (ptr == NULL)
+        return;
+
+    char* block = ptr;
+    const uint8_t offset = *(uint8_t*)(&block[-1]);
+    rassert(offset >= ALIGNED_HEADER_SIZE + 1);
+
+    char* header = block - offset;
+    memory_free(header);
+
     return;
 }
 

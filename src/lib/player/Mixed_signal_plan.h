@@ -66,10 +66,8 @@ void Mixed_signal_plan_reset(Mixed_signal_plan* plan);
  *                      \a level must decrease by \c 1 after each time this function
  *                      returns \c false.
  * \param wbs           The Work buffers -- must not be \c NULL.
- * \param buf_start     The start index of buffer areas to be processed
- *                      -- must be less than the buffer size.
- * \param buf_stop      The stop index of buffer areas to be processed
- *                      -- must not be greater than the buffer size.
+ * \param frame_count   Number of frames to be processed -- must not be greater than
+ *                      the buffer size.
  * \param tempo         The current tempo -- must be > \c 0.
  *
  * \return   \c true if there may be more tasks left to be executed in
@@ -79,8 +77,7 @@ bool Mixed_signal_plan_execute_next_task(
         Mixed_signal_plan* plan,
         int level_index,
         Work_buffers* wbs,
-        int32_t buf_start,
-        int32_t buf_stop,
+        int32_t frame_count,
         double tempo);
 #endif
 
@@ -88,20 +85,14 @@ bool Mixed_signal_plan_execute_next_task(
 /**
  * Execute all tasks in the Mixed signal plan using a single thread.
  *
- * \param plan        The Mixed signal plan -- must not be \c NULL.
- * \param wbs         The Work buffers -- must not be \c NULL.
- * \param buf_start   The start index of buffer areas to be processed
- *                    -- must be less than the buffer size.
- * \param buf_stop    The stop index of buffer areas to be processed
- *                    -- must not be greater than the buffer size.
- * \param tempo       The current tempo -- must be > \c 0.
+ * \param plan          The Mixed signal plan -- must not be \c NULL.
+ * \param wbs           The Work buffers -- must not be \c NULL.
+ * \param frame_count   Number of frames to be processed -- must not be greater than
+ *                      the buffer size.
+ * \param tempo         The current tempo -- must be > \c 0.
  */
 void Mixed_signal_plan_execute_all_tasks(
-        Mixed_signal_plan* plan,
-        Work_buffers* wbs,
-        int32_t buf_start,
-        int32_t buf_stop,
-        double tempo);
+        Mixed_signal_plan* plan, Work_buffers* wbs, int32_t frame_count, double tempo);
 
 
 /**

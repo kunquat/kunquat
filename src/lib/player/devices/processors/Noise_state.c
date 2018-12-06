@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2018
  *
  * This file is part of Kunquat.
  *
@@ -32,6 +32,26 @@
 
 
 #define NOISE_MAX 8
+
+
+void Noise_get_port_groups(
+        const Device_impl* dimpl, Device_port_type port_type, Device_port_groups groups)
+{
+    rassert(dimpl != NULL);
+    rassert(groups != NULL);
+
+    switch (port_type)
+    {
+        case DEVICE_PORT_TYPE_RECV: Device_port_groups_init(groups, 0); break;
+
+        case DEVICE_PORT_TYPE_SEND: Device_port_groups_init(groups, 2, 0); break;
+
+        default:
+            rassert(false);
+    }
+
+    return;
+}
 
 
 typedef struct Noise_pstate
@@ -101,8 +121,7 @@ int32_t Noise_vstate_render_voice(
         const Device_thread_state* proc_ts,
         const Au_state* au_state,
         const Work_buffers* wbs,
-        int32_t buf_start,
-        int32_t buf_stop,
+        int32_t frame_count,
         double tempo)
 {
     rassert(vstate != NULL);
@@ -110,6 +129,7 @@ int32_t Noise_vstate_render_voice(
     rassert(proc_ts != NULL);
     rassert(au_state != NULL);
     rassert(wbs != NULL);
+    rassert(frame_count > 0);
     rassert(tempo > 0);
 
 //    double max_amp = 0;
@@ -117,31 +137,67 @@ int32_t Noise_vstate_render_voice(
 
     // Get volume scales
     Work_buffer* scales_wb = Device_thread_state_get_voice_buffer(
-            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_FORCE);
+            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_FORCE, NULL);
     Work_buffer* dBs_wb = scales_wb;
     if ((dBs_wb != NULL) &&
-            Work_buffer_is_final(dBs_wb) &&
-            (Work_buffer_get_const_start(dBs_wb) <= buf_start) &&
-            (Work_buffer_get_contents(dBs_wb)[buf_start] == -INFINITY))
+            Work_buffer_is_valid(dBs_wb, 0) &&
+            Work_buffer_is_final(dBs_wb, 0) &&
+            (Work_buffer_get_const_start(dBs_wb, 0) == 0) &&
+            (Work_buffer_get_contents(dBs_wb, 0)[0] == -INFINITY))
     {
         // We are only getting silent force from this point onwards
         vstate->active = false;
-        return buf_start;
+        return 0;
     }
 
-    if (scales_wb == NULL)
-        scales_wb = Work_buffers_get_buffer_mut(wbs, NOISE_WB_FIXED_FORCE);
-    Proc_fill_scale_buffer(scales_wb, dBs_wb, buf_start, buf_stop);
-    const float* scales = Work_buffer_get_contents(scales_wb);
+    if ((scales_wb == NULL) || !Work_buffer_is_valid(scales_wb, 0))
+        scales_wb = Work_buffers_get_buffer_mut(wbs, NOISE_WB_FIXED_FORCE, 1);
+    Proc_fill_scale_buffer(scales_wb, dBs_wb, frame_count);
+    const float* scales = Work_buffer_get_contents(scales_wb, 0);
 
     Noise_pstate* noise_state = (Noise_pstate*)proc_state;
     Noise_vstate* noise_vstate = (Noise_vstate*)vstate;
 
-    // Get output buffer for writing
-    float* out_buffers[2] = { NULL };
-    Proc_state_get_voice_audio_out_buffers(
-            proc_ts, PORT_OUT_AUDIO_L, PORT_OUT_COUNT, out_buffers);
+    // Get output buffer
+    Work_buffer* out_wb = Proc_get_voice_output_2ch(proc_ts, PORT_OUT_AUDIO_L);
+    rassert(out_wb != NULL);
+    float* out_buffer = Work_buffer_get_contents_mut(out_wb, 0);
 
+    const int order = noise_state->order;
+    if (order >= 0)
+    {
+        float* out = out_buffer;
+        for (int32_t i = 0; i < frame_count; ++i)
+        {
+            *out++ = scales[i] * (float)dc_zero_filter(
+                    order,
+                    noise_vstate->buf[0],
+                    Random_get_float_signal(&noise_vstate->rands[0]));
+
+            *out++ = scales[i] * (float)dc_zero_filter(
+                    order,
+                    noise_vstate->buf[1],
+                    Random_get_float_signal(&noise_vstate->rands[1]));
+        }
+    }
+    else
+    {
+        float* out = out_buffer;
+        for (int32_t i = 0; i < frame_count; ++i)
+        {
+            *out++ = scales[i] * (float)dc_pole_filter(
+                    -order,
+                    noise_vstate->buf[0],
+                    Random_get_float_signal(&noise_vstate->rands[0]));
+
+            *out++ = scales[i] * (float)dc_pole_filter(
+                    -order,
+                    noise_vstate->buf[1],
+                    Random_get_float_signal(&noise_vstate->rands[1]));
+        }
+    }
+
+#if 0
     for (int ch = 0; ch < 2; ++ch)
     {
         float* out_buffer = out_buffers[ch];
@@ -150,7 +206,7 @@ int32_t Noise_vstate_render_voice(
 
         if (noise_state->order >= 0)
         {
-            for (int32_t i = buf_start; i < buf_stop; ++i)
+            for (int32_t i = 0; i < frame_count; ++i)
             {
                 const double val = dc_zero_filter(
                         noise_state->order,
@@ -161,7 +217,7 @@ int32_t Noise_vstate_render_voice(
         }
         else
         {
-            for (int32_t i = buf_start; i < buf_stop; ++i)
+            for (int32_t i = 0; i < frame_count; ++i)
             {
                 const double val = dc_pole_filter(
                         -noise_state->order,
@@ -171,12 +227,13 @@ int32_t Noise_vstate_render_voice(
             }
         }
     }
+#endif
 
     const int32_t audio_rate = proc_state->parent.audio_rate;
-    Proc_ramp_attack(vstate, 2, out_buffers, buf_start, buf_stop, audio_rate);
+    Proc_ramp_attack(vstate, out_wb, frame_count, audio_rate);
 
 //  fprintf(stderr, "max_amp is %lf\n", max_amp);
-    return buf_stop;
+    return frame_count;
 }
 
 

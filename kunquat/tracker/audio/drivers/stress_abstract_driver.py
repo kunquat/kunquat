@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013
-#          Tomi Jylhä-Ollila, Finland 2013-2016
+#          Tomi Jylhä-Ollila, Finland 2013-2018
 #
 # This file is part of Kunquat.
 #
@@ -22,7 +22,7 @@ class SilentAudioSource():
         self._audio_output = audio_output
 
     def generate_audio(self, nframes):
-        silence = ([0.1] * nframes, [0.1] * nframes)
+        silence = [0.1] * (nframes * 2)
         self._audio_output.put_audio(silence)
 
 
@@ -33,7 +33,7 @@ class StressTestAbstractDriver():
         self._cls_args = tuple()
 
     def test_rapid_reboot(self):
-        for _ in range(100):
+        for _ in range(10):
             driver = self._DriverClass(*self._cls_args)
             audio_source = SilentAudioSource()
             audio_source.set_audio_output(driver)

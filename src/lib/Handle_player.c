@@ -222,7 +222,7 @@ int kqt_Handle_get_buffer_count(kqt_Handle handle)
 #endif
 
 
-const float* kqt_Handle_get_audio(kqt_Handle handle, int index)
+const float* kqt_Handle_get_audio(kqt_Handle handle)
 {
     check_handle(handle, NULL);
 
@@ -230,13 +230,7 @@ const float* kqt_Handle_get_audio(kqt_Handle handle, int index)
     check_data_is_valid(h, NULL);
     check_data_is_validated(h, NULL);
 
-    if (index < 0 || index >= KQT_BUFFERS_MAX)
-    {
-        Handle_set_error(h, ERROR_ARGUMENT, "Buffer #%d does not exist", index);
-        return NULL;
-    }
-
-    return Player_get_audio(h->player, index);
+    return Player_get_audio(h->player);
 }
 
 

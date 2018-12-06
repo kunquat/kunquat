@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2018
  *
  * This file is part of Kunquat.
  *
@@ -63,8 +63,7 @@ int32_t Pitch_vstate_render_voice(
         const Device_thread_state* proc_ts,
         const Au_state* au_state,
         const Work_buffers* wbs,
-        int32_t buf_start,
-        int32_t buf_stop,
+        int32_t frame_count,
         double tempo)
 {
     rassert(vstate != NULL);
@@ -72,8 +71,7 @@ int32_t Pitch_vstate_render_voice(
     rassert(proc_ts != NULL);
     rassert(au_state != NULL);
     rassert(wbs != NULL);
-    rassert(buf_start >= 0);
-    rassert(buf_stop >= 0);
+    rassert(frame_count > 0);
     rassert(isfinite(tempo));
     rassert(tempo > 0);
 
@@ -81,13 +79,13 @@ int32_t Pitch_vstate_render_voice(
 
     // Get output
     Work_buffer* out_wb = Device_thread_state_get_voice_buffer(
-            proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_PITCH);
+            proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_PITCH, NULL);
     if (out_wb == NULL)
     {
         vstate->active = false;
-        return buf_start;
+        return 0;
     }
-    float* out_buf = Work_buffer_get_contents_mut(out_wb);
+    float* out_buf = Work_buffer_get_contents_mut(out_wb, 0);
 
     Pitch_vstate* pvstate = (Pitch_vstate*)vstate;
 
@@ -95,27 +93,26 @@ int32_t Pitch_vstate_render_voice(
     if (!isfinite(pc->pitch))
     {
         vstate->active = false;
-        return buf_start;
+        Work_buffer_invalidate(out_wb);
+        return 0;
     }
 
     Pitch_controls_set_audio_rate(pc, dstate->audio_rate);
     Pitch_controls_set_tempo(pc, tempo);
 
-    out_buf[buf_start - 1] = (float)pc->pitch;
-
-    int32_t const_start = buf_start;
+    int32_t const_start = 0;
 
     // Apply pitch slide
     {
-        int32_t cur_pos = buf_start;
-        while (cur_pos < buf_stop)
+        int32_t cur_pos = 0;
+        while (cur_pos < frame_count)
         {
             const int32_t estimated_steps =
                 Slider_estimate_active_steps_left(&pc->slider);
             if (estimated_steps > 0)
             {
-                int32_t slide_stop = buf_stop;
-                if (estimated_steps < buf_stop - cur_pos)
+                int32_t slide_stop = frame_count;
+                if (estimated_steps < frame_count - cur_pos)
                     slide_stop = cur_pos + estimated_steps;
 
                 double new_pitch = pc->pitch;
@@ -132,10 +129,10 @@ int32_t Pitch_vstate_render_voice(
             else
             {
                 const float pitch = (float)pc->pitch;
-                for (int32_t i = cur_pos; i < buf_stop; ++i)
+                for (int32_t i = cur_pos; i < frame_count; ++i)
                     out_buf[i] = pitch;
 
-                cur_pos = buf_stop;
+                cur_pos = frame_count;
             }
         }
     }
@@ -143,22 +140,22 @@ int32_t Pitch_vstate_render_voice(
     // Adjust carried pitch
     if (pc->pitch_add != 0)
     {
-        for (int32_t i = buf_start; i < buf_stop; ++i)
+        for (int32_t i = 0; i < frame_count; ++i)
             out_buf[i] += (float)pc->pitch_add;
     }
 
     // Apply vibrato
     {
-        int32_t cur_pos = buf_start;
-        int32_t final_lfo_stop = buf_start;
-        while (cur_pos < buf_stop)
+        int32_t cur_pos = 0;
+        int32_t final_lfo_stop = 0;
+        while (cur_pos < frame_count)
         {
             const int32_t estimated_steps =
                 LFO_estimate_active_steps_left(&pc->vibrato);
             if (estimated_steps > 0)
             {
-                int32_t lfo_stop = buf_stop;
-                if (estimated_steps < buf_stop - cur_pos)
+                int32_t lfo_stop = frame_count;
+                if (estimated_steps < frame_count - cur_pos)
                     lfo_stop = cur_pos + estimated_steps;
 
                 for (int32_t i = cur_pos; i < lfo_stop; ++i)
@@ -180,12 +177,12 @@ int32_t Pitch_vstate_render_voice(
     // Apply arpeggio
     if (pvstate->is_arpeggio_enabled)
     {
-        const_start = buf_stop;
+        const_start = frame_count;
 
         const double progress_update =
             (pvstate->arpeggio_speed / dstate->audio_rate) * (tempo / 60.0);
 
-        for (int32_t i = buf_start; i < buf_stop; ++i)
+        for (int32_t i = 0; i < frame_count; ++i)
         {
             // Adjust actual pitch according to the current arpeggio state
             rassert(!isnan(pvstate->arpeggio_tones[0]));
@@ -207,12 +204,12 @@ int32_t Pitch_vstate_render_voice(
     }
 
     // Update pitch for next iteration
-    pvstate->pitch = out_buf[buf_stop - 1];
+    pvstate->pitch = out_buf[frame_count - 1];
 
     // Mark constant region of the buffer
-    Work_buffer_set_const_start(out_wb, const_start);
+    Work_buffer_set_const_start(out_wb, 0, const_start);
 
-    return buf_stop;
+    return frame_count;
 }
 
 

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2018
  *
  * This file is part of Kunquat.
  *
@@ -16,6 +16,7 @@
 
 #include <debug/assert.h>
 #include <init/devices/Processor.h>
+#include <intrinsics.h>
 #include <kunquat/limits.h>
 #include <mathnum/common.h>
 #include <mathnum/conversions.h>
@@ -50,150 +51,180 @@ Proc_state* new_Proc_state_default(
 }
 
 
-static void get_mixed_audio_buffers(
-        Device_thread_state* proc_ts,
+static Work_buffer* try_get_valid_wb_2ch(Work_buffer* wb, int32_t frame_count)
+{
+    rassert(wb != NULL);
+    rassert(Work_buffer_get_sub_count(wb) == 2);
+    rassert(frame_count >= 0);
+
+    const uint8_t all_valid_mask = (1 << 2) - 1;
+    uint8_t valid_mask =
+        (uint8_t)(Work_buffer_is_valid(wb, 0) | (Work_buffer_is_valid(wb, 1) << 1));
+
+    if (valid_mask != 0)
+    {
+        if (valid_mask != all_valid_mask)
+        {
+            const int clear_index = (valid_mask == 1) ? 1 : 0;
+            Work_buffer_clear(wb, clear_index, 0, frame_count);
+        }
+
+        rassert(Work_buffer_is_valid(wb, 0));
+        rassert(Work_buffer_is_valid(wb, 1));
+
+        return wb;
+    }
+
+    return NULL;
+}
+
+
+static Work_buffer* get_mixed_buffer_2ch(
+        const Device_thread_state* proc_ts,
         Device_port_type port_type,
-        int32_t port_start,
-        int32_t port_stop,
-        float* bufs[])
+        int first_port,
+        int32_t frame_count)
 {
     rassert(proc_ts != NULL);
     rassert(port_type < DEVICE_PORT_TYPES);
-    rassert(port_start >= 0);
-    rassert(port_start < KQT_DEVICE_PORTS_MAX);
-    rassert(port_stop >= port_start);
-    rassert(port_stop <= KQT_DEVICE_PORTS_MAX);
-    rassert(bufs != NULL);
+    rassert(first_port >= 0);
+    rassert(first_port + 1 < KQT_DEVICE_PORTS_MAX);
+    rassert(frame_count >= 0);
 
-    for (int32_t i = 0, port = port_start; port < port_stop; ++i, ++port)
-        bufs[i] = Device_thread_state_get_mixed_buffer_contents_mut(
-                proc_ts, port_type, port);
+    int sub_index = 0;
+    Work_buffer* wb =
+        Device_thread_state_get_mixed_buffer(proc_ts, port_type, first_port, &sub_index);
+    if (wb == NULL)
+        return NULL;
 
-    return;
+    rassert(Work_buffer_get_sub_count(wb) == 2);
+    rassert(sub_index == 0);
+
+    if (port_type == DEVICE_PORT_TYPE_RECV)
+        return try_get_valid_wb_2ch(wb, frame_count);
+
+    Work_buffer_mark_valid(wb, 0);
+    Work_buffer_mark_valid(wb, 1);
+
+    return wb;
 }
 
 
-void Proc_state_get_mixed_audio_in_buffers(
-        Device_thread_state* proc_ts,
-        int32_t port_start,
-        int32_t port_stop,
-        float* in_bufs[])
-{
-    rassert(proc_ts != NULL);
-    rassert(port_start >= 0);
-    rassert(port_start < KQT_DEVICE_PORTS_MAX);
-    rassert(port_stop >= port_start);
-    rassert(port_stop <= KQT_DEVICE_PORTS_MAX);
-    rassert(in_bufs != NULL);
-
-    get_mixed_audio_buffers(
-            proc_ts, DEVICE_PORT_TYPE_RECV, port_start, port_stop, in_bufs);
-
-    return;
-}
-
-
-void Proc_state_get_mixed_audio_out_buffers(
-        Device_thread_state* proc_ts,
-        int32_t port_start,
-        int32_t port_stop,
-        float* out_bufs[])
-{
-    rassert(proc_ts != NULL);
-    rassert(port_start >= 0);
-    rassert(port_start < KQT_DEVICE_PORTS_MAX);
-    rassert(port_stop >= port_start);
-    rassert(port_stop <= KQT_DEVICE_PORTS_MAX);
-    rassert(out_bufs != NULL);
-
-    get_mixed_audio_buffers(
-            proc_ts, DEVICE_PORT_TYPE_SEND, port_start, port_stop, out_bufs);
-
-    return;
-}
-
-
-static void get_voice_audio_buffers(
+static Work_buffer* get_voice_buffer_2ch(
         const Device_thread_state* proc_ts,
         Device_port_type port_type,
-        int32_t port_start,
-        int32_t port_stop,
-        float* bufs[])
+        int first_port,
+        int32_t frame_count)
 {
     rassert(proc_ts != NULL);
     rassert(port_type < DEVICE_PORT_TYPES);
-    rassert(port_start >= 0);
-    rassert(port_start < KQT_DEVICE_PORTS_MAX);
-    rassert(port_stop >= port_start);
-    rassert(port_stop <= KQT_DEVICE_PORTS_MAX);
-    rassert(bufs != NULL);
+    rassert(first_port >= 0);
+    rassert(first_port + 1 < KQT_DEVICE_PORTS_MAX);
+    rassert(frame_count >= 0);
 
-    for (int32_t i = 0, port = port_start; port < port_stop; ++i, ++port)
-        bufs[i] =
-            Device_thread_state_get_voice_buffer_contents(proc_ts, port_type, port);
+    int sub_index = 0;
+    Work_buffer* wb =
+        Device_thread_state_get_voice_buffer(proc_ts, port_type, first_port, &sub_index);
+    if (wb == NULL)
+        return NULL;
 
-    return;
+    rassert(Work_buffer_get_sub_count(wb) == 2);
+    rassert(sub_index == 0);
+
+    if (port_type == DEVICE_PORT_TYPE_RECV)
+        return try_get_valid_wb_2ch(wb, frame_count);
+
+    Work_buffer_mark_valid(wb, 0);
+    Work_buffer_mark_valid(wb, 1);
+
+    return wb;
 }
 
 
-void Proc_state_get_voice_audio_in_buffers(
-        const Device_thread_state* proc_ts,
-        int32_t port_start,
-        int32_t port_stop,
-        float* in_bufs[])
+Work_buffer* Proc_get_mixed_input_2ch(
+        const Device_thread_state* proc_ts, int first_port, int32_t frame_count)
 {
     rassert(proc_ts != NULL);
-    rassert(port_start >= 0);
-    rassert(port_start < KQT_DEVICE_PORTS_MAX);
-    rassert(port_stop >= port_start);
-    rassert(port_stop <= KQT_DEVICE_PORTS_MAX);
-    rassert(in_bufs != NULL);
+    rassert(first_port >= 0);
+    rassert(first_port + 1 < KQT_DEVICE_PORTS_MAX);
+    rassert(frame_count >= 0);
 
-    get_voice_audio_buffers(
-            proc_ts, DEVICE_PORT_TYPE_RECV, port_start, port_stop, in_bufs);
-
-    return;
+    return get_mixed_buffer_2ch(proc_ts, DEVICE_PORT_TYPE_RECV, first_port, frame_count);
 }
 
 
-void Proc_state_get_voice_audio_out_buffers(
-        const Device_thread_state* proc_ts,
-        int32_t port_start,
-        int32_t port_stop,
-        float* out_bufs[])
+Work_buffer* Proc_get_mixed_output_2ch(
+        const Device_thread_state* proc_ts, int first_port)
 {
     rassert(proc_ts != NULL);
-    rassert(port_start >= 0);
-    rassert(port_start < KQT_DEVICE_PORTS_MAX);
-    rassert(port_stop >= port_start);
-    rassert(port_stop <= KQT_DEVICE_PORTS_MAX);
-    rassert(out_bufs != NULL);
+    rassert(first_port >= 0);
+    rassert(first_port + 1 < KQT_DEVICE_PORTS_MAX);
 
-    get_voice_audio_buffers(
-            proc_ts, DEVICE_PORT_TYPE_SEND, port_start, port_stop, out_bufs);
+    return get_mixed_buffer_2ch(proc_ts, DEVICE_PORT_TYPE_SEND, first_port, 0);
+}
 
-    return;
+
+Work_buffer* Proc_get_voice_input_2ch(
+        const Device_thread_state* proc_ts, int first_port, int32_t frame_count)
+{
+    rassert(proc_ts != NULL);
+    rassert(first_port >= 0);
+    rassert(first_port + 1 < KQT_DEVICE_PORTS_MAX);
+    rassert(frame_count >= 0);
+
+    return get_voice_buffer_2ch(proc_ts, DEVICE_PORT_TYPE_RECV, first_port, frame_count);
+}
+
+
+Work_buffer* Proc_get_voice_output_2ch(
+        const Device_thread_state* proc_ts, int first_port)
+{
+    rassert(proc_ts != NULL);
+    rassert(first_port >= 0);
+    rassert(first_port + 1 < KQT_DEVICE_PORTS_MAX);
+
+    return get_voice_buffer_2ch(proc_ts, DEVICE_PORT_TYPE_SEND, first_port, 0);
 }
 
 
 void Proc_ramp_attack(
         Voice_state* vstate,
-        int buf_count,
-        float* out_bufs[buf_count],
-        int32_t buf_start,
-        int32_t buf_stop,
+        Work_buffer* out_wb,
+        int32_t frame_count,
         int32_t audio_rate)
 {
     rassert(vstate != NULL);
-    rassert(buf_count > 0);
-    rassert(out_bufs != NULL);
-    rassert(buf_start >= 0);
-    rassert(buf_stop >= 0);
+    rassert(out_wb != NULL);
+    rassert(Work_buffer_get_sub_count(out_wb) <= 2);
+    rassert(frame_count > 0);
     rassert(audio_rate > 0);
 
-    const float start_ramp_attack = (float)vstate->ramp_attack;
+    float ramp_attack = (float)vstate->ramp_attack;
     const float inc = (float)(RAMP_ATTACK_TIME / audio_rate);
 
+    float* out = Work_buffer_get_contents_mut(out_wb, 0);
+
+    if (Work_buffer_get_sub_count(out_wb) == 1)
+    {
+        for (int32_t i = 0; (i < frame_count) && (ramp_attack < 1); ++i)
+        {
+            *out++ *= ramp_attack;
+            ramp_attack += inc;
+        }
+    }
+    else
+    {
+        for (int32_t i = 0; (i < frame_count) && (ramp_attack < 1); ++i)
+        {
+            *out++ *= ramp_attack;
+            *out++ *= ramp_attack;
+            ramp_attack += inc;
+        }
+    }
+
+    vstate->ramp_attack = ramp_attack;
+
+#if 0
     for (int ch = 0; ch < buf_count; ++ch)
     {
         if (out_bufs[ch] == NULL)
@@ -209,6 +240,7 @@ void Proc_ramp_attack(
 
         vstate->ramp_attack = ramp_attack;
     }
+#endif
 
     return;
 }
@@ -224,14 +256,14 @@ void Proc_fill_freq_buffer(
     rassert(buf_start >= 0);
     rassert(buf_stop >= 0);
 
-    if (pitches != NULL)
+    if ((pitches != NULL) && Work_buffer_is_valid(pitches, 0))
     {
         Proc_clamp_pitch_values(pitches, buf_start, buf_stop);
 
-        const int32_t const_start = Work_buffer_get_const_start(pitches);
-        float* freqs_data = Work_buffer_get_contents_mut(freqs);
+        const int32_t const_start = Work_buffer_get_const_start(pitches, 0);
+        float* freqs_data = Work_buffer_get_contents_mut(freqs, 0);
 
-        float* pitches_data = Work_buffer_get_contents_mut(pitches);
+        float* pitches_data = Work_buffer_get_contents_mut(pitches, 0);
 
         const int32_t fast_stop = clamp(const_start, buf_start, buf_stop);
 
@@ -248,78 +280,90 @@ void Proc_fill_freq_buffer(
                 freqs_data[i] = freq;
         }
 
-        Work_buffer_set_const_start(freqs, const_start);
+        Work_buffer_set_const_start(freqs, 0, const_start);
     }
     else
     {
-        float* freqs_data = Work_buffer_get_contents_mut(freqs);
+        float* freqs_data = Work_buffer_get_contents_mut(freqs, 0);
 
         for (int32_t i = buf_start; i < buf_stop; ++i)
             freqs_data[i] = 440;
 
-        Work_buffer_set_const_start(freqs, buf_start);
+        Work_buffer_set_const_start(freqs, 0, buf_start);
     }
 
     return;
 }
 
 
-void Proc_fill_scale_buffer(
-        Work_buffer* scales,
-        Work_buffer* dBs,
-        int32_t buf_start,
-        int32_t buf_stop)
+void Proc_fill_scale_buffer(Work_buffer* scales, Work_buffer* dBs, int32_t frame_count)
 {
     rassert(scales != NULL);
-    rassert(buf_start >= 0);
-    rassert(buf_stop >= 0);
+    rassert(frame_count > 0);
 
-    if (dBs != NULL)
+    if ((dBs != NULL) && Work_buffer_is_valid(dBs, 0))
     {
-        const int32_t const_start = Work_buffer_get_const_start(dBs);
-        float* scales_data = Work_buffer_get_contents_mut(scales);
+        const int32_t const_start = Work_buffer_get_const_start(dBs, 0);
+        float* scales_data = Work_buffer_get_contents_mut(scales, 0);
 
-        float* dBs_data = Work_buffer_get_contents_mut(dBs);
+        float* dBs_data = Work_buffer_get_contents_mut(dBs, 0);
 
-        const int32_t fast_stop = clamp(const_start, buf_start, buf_stop);
+        const int32_t fast_stop = min(const_start, frame_count);
 
+        float const_dB = -INFINITY;
+
+#if KQT_SSE4_1
+        {
+            if (fast_stop < frame_count)
+                const_dB = clamp(dBs_data[fast_stop], -10000.0f, 10000.0f);
+
+            const __m128 min_dB = _mm_set1_ps(-500);
+            const __m128 max_dB = _mm_set1_ps(500);
+
+            for (int32_t i = 0; i < fast_stop; i += 4)
+            {
+                const __m128 dB = _mm_load_ps(dBs_data + i);
+                const __m128 clamped_dB = _mm_min_ps(_mm_max_ps(min_dB, dB), max_dB);
+                const __m128 scale = fast_dB_to_scale_f4(clamped_dB);
+                _mm_store_ps(scales_data + i, scale);
+            }
+        }
+#else
         // Sanitise input values
         {
             const float bound = 10000.0f;
 
-            for (int32_t i = buf_start; i < fast_stop; ++i)
+            for (int32_t i = 0; i < fast_stop; ++i)
                 dBs_data[i] = clamp(dBs_data[i], -bound, bound);
 
-            if (fast_stop < buf_stop)
-            {
-                const float dB = clamp(dBs_data[fast_stop], -bound, bound);
-                for (int32_t i = fast_stop; i < buf_stop; ++i)
-                    dBs_data[i] = dB;
-            }
+            if (fast_stop < frame_count)
+                const_dB = clamp(dBs_data[fast_stop], -bound, bound);
         }
 
-        for (int32_t i = buf_start; i < fast_stop; ++i)
+        for (int32_t i = 0; i < fast_stop; ++i)
             scales_data[i] = (float)fast_dB_to_scale(dBs_data[i]);
+#endif
 
-        //fprintf(stdout, "%d %d %d\n", (int)buf_start, (int)fast_stop, (int)buf_stop);
+        //fprintf(stdout, "%d %d %d\n", 0, (int)fast_stop, (int)frame_count);
 
-        if (fast_stop < buf_stop)
+        if (fast_stop < frame_count)
         {
-            const float scale = (float)dB_to_scale(dBs_data[fast_stop]);
-            for (int32_t i = fast_stop; i < buf_stop; ++i)
+            rassert(isfinite(const_dB));
+            const float scale = (float)dB_to_scale(const_dB);
+            for (int32_t i = fast_stop; i < frame_count; ++i)
                 scales_data[i] = scale;
         }
 
-        Work_buffer_set_const_start(scales, const_start);
+        Work_buffer_set_const_start(scales, 0, const_start);
     }
     else
     {
-        float* scales_data = Work_buffer_get_contents_mut(scales);
+        float* scales_data = Work_buffer_get_contents_mut(scales, 0);
 
-        for (int32_t i = buf_start; i < buf_stop; ++i)
+        for (int32_t i = 0; i < frame_count; ++i)
             scales_data[i] = 1;
 
-        Work_buffer_set_const_start(scales, buf_start);
+        Work_buffer_set_const_start(scales, 0, 0);
     }
 
     return;
@@ -332,12 +376,12 @@ void Proc_clamp_pitch_values(Work_buffer* pitches, int32_t buf_start, int32_t bu
     rassert(buf_start >= 0);
     rassert(buf_stop >= 0);
 
-    const int32_t const_start = Work_buffer_get_const_start(pitches);
+    const int32_t const_start = Work_buffer_get_const_start(pitches, 0);
     const int32_t fast_stop = clamp(const_start, buf_start, buf_stop);
 
     const float bound = 2000000.0f;
 
-    float* pitches_data = Work_buffer_get_contents_mut(pitches);
+    float* pitches_data = Work_buffer_get_contents_mut(pitches, 0);
 
     for (int32_t i = buf_start; i < fast_stop; ++i)
         pitches_data[i] = clamp(pitches_data[i], -bound, bound);
@@ -349,7 +393,7 @@ void Proc_clamp_pitch_values(Work_buffer* pitches, int32_t buf_start, int32_t bu
             pitches_data[i] = pitch;
     }
 
-    Work_buffer_set_const_start(pitches, const_start);
+    Work_buffer_set_const_start(pitches, 0, const_start);
 
     return;
 }
@@ -364,10 +408,10 @@ Cond_work_buffer* Cond_work_buffer_init(
     cwb->def_value = def_value;
     cwb->wb_contents = &cwb->def_value;
 
-    if (wb != NULL)
+    if ((wb != NULL) && Work_buffer_is_valid(wb, 0))
     {
         cwb->index_mask = ~(int32_t)0;
-        cwb->wb_contents = Work_buffer_get_contents(wb);
+        cwb->wb_contents = Work_buffer_get_contents(wb, 0);
     }
 
     return cwb;

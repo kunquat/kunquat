@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2018
  *
  * This file is part of Kunquat.
  *
@@ -15,6 +15,7 @@
 #include <player/Work_buffers.h>
 
 #include <debug/assert.h>
+#include <mathnum/common.h>
 #include <memory.h>
 #include <player/Work_buffer.h>
 
@@ -43,13 +44,16 @@ Work_buffers* new_Work_buffers(int32_t buf_size)
         buffers->buffers[i] = NULL;
 
     // Allocate buffers
-    for (int i = 0; i < WORK_BUFFER_COUNT_; ++i)
+    if (buf_size > 0)
     {
-        buffers->buffers[i] = new_Work_buffer(buf_size);
-        if (buffers->buffers[i] == NULL)
+        for (int i = 0; i < WORK_BUFFER_COUNT_; ++i)
         {
-            del_Work_buffers(buffers);
-            return NULL;
+            buffers->buffers[i] = new_Work_buffer(buf_size, WORK_BUFFER_SUB_COUNT_MAX);
+            if (buffers->buffers[i] == NULL)
+            {
+                del_Work_buffers(buffers);
+                return NULL;
+            }
         }
     }
 
@@ -65,41 +69,37 @@ bool Work_buffers_resize(Work_buffers* buffers, int32_t new_size)
 
     for (int i = 0; i < WORK_BUFFER_COUNT_; ++i)
     {
-        if (!Work_buffer_resize(buffers->buffers[i], new_size))
-            return false;
+        if (buffers->buffers[i] == NULL)
+        {
+            buffers->buffers[i] = new_Work_buffer(new_size, WORK_BUFFER_SUB_COUNT_MAX);
+            if (buffers->buffers[i] == NULL)
+                return false;
+        }
+        else
+        {
+            if (!Work_buffer_resize(buffers->buffers[i], new_size))
+                return false;
+        }
     }
 
     return true;
 }
 
 
-const Work_buffer* Work_buffers_get_buffer(
-        const Work_buffers* buffers, Work_buffer_type type)
-{
-    rassert(buffers != NULL);
-    rassert(type < WORK_BUFFER_COUNT_);
-
-    return buffers->buffers[type];
-}
-
-
 Work_buffer* Work_buffers_get_buffer_mut(
-        const Work_buffers* buffers, Work_buffer_type type)
+        const Work_buffers* buffers, Work_buffer_type type, int sub_count)
 {
     rassert(buffers != NULL);
     rassert(type < WORK_BUFFER_COUNT_);
+    rassert(sub_count >= 1);
+    rassert(sub_count <= WORK_BUFFER_SUB_COUNT_MAX);
+    rassert(is_p2(sub_count));
 
-    return buffers->buffers[type];
-}
+    Work_buffer* buffer = buffers->buffers[type];
+    rassert(buffer != NULL);
+    Work_buffer_set_sub_count(buffer, sub_count);
 
-
-const float* Work_buffers_get_buffer_contents(
-        const Work_buffers* buffers, Work_buffer_type type)
-{
-    rassert(buffers != NULL);
-    rassert(type < WORK_BUFFER_COUNT_);
-
-    return Work_buffer_get_contents(buffers->buffers[type]);
+    return buffer;
 }
 
 
@@ -109,7 +109,10 @@ float* Work_buffers_get_buffer_contents_mut(
     rassert(buffers != NULL);
     rassert(type < WORK_BUFFER_COUNT_);
 
-    return Work_buffer_get_contents_mut(buffers->buffers[type]);
+    Work_buffer* buffer = Work_buffers_get_buffer_mut(buffers, type, 1);
+    rassert(buffer != NULL);
+
+    return Work_buffer_get_contents_mut(buffer, 0);
 }
 
 
@@ -119,7 +122,9 @@ int32_t* Work_buffers_get_buffer_contents_int_mut(
     rassert(buffers != NULL);
     rassert(type < WORK_BUFFER_COUNT_);
 
-    return Work_buffer_get_contents_int_mut(buffers->buffers[type]);
+    rassert(buffers->buffers[type] != NULL);
+
+    return Work_buffer_get_contents_int_mut(buffers->buffers[type], 0);
 }
 
 

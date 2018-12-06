@@ -63,6 +63,7 @@ Device_impl* new_Proc_add(void)
         return NULL;
     }
 
+    add->parent.get_port_groups = Add_get_port_groups;
     add->parent.get_vstate_size = Add_vstate_get_size;
     add->parent.init_vstate = Add_vstate_init;
     add->parent.render_voice = Add_vstate_render_voice;

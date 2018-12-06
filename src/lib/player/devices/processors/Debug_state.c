@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2018
  *
  * This file is part of Kunquat.
  *
@@ -15,11 +15,33 @@
 #include <player/devices/processors/Debug_state.h>
 
 #include <debug/assert.h>
+#include <init/devices/Device_impl.h>
+#include <init/devices/Device_port_groups.h>
 #include <init/devices/Processor.h>
 #include <init/devices/processors/Proc_debug.h>
 #include <mathnum/conversions.h>
 #include <player/devices/Device_thread_state.h>
 #include <player/devices/processors/Proc_state_utils.h>
+
+
+void Debug_get_port_groups(
+        const Device_impl* dimpl, Device_port_type port_type, Device_port_groups groups)
+{
+    rassert(dimpl != NULL);
+    rassert(groups != NULL);
+
+    switch (port_type)
+    {
+        case DEVICE_PORT_TYPE_RECV: Device_port_groups_init(groups, 0); break;
+
+        case DEVICE_PORT_TYPE_SEND: Device_port_groups_init(groups, 2, 0); break;
+
+        default:
+            rassert(false);
+    }
+
+    return;
+}
 
 
 int32_t Debug_vstate_render_voice(
@@ -28,8 +50,7 @@ int32_t Debug_vstate_render_voice(
         const Device_thread_state* proc_ts,
         const Au_state* au_state,
         const Work_buffers* wbs,
-        int32_t buf_start,
-        int32_t buf_stop,
+        int32_t frame_count,
         double tempo)
 {
     rassert(vstate != NULL);
@@ -37,6 +58,7 @@ int32_t Debug_vstate_render_voice(
     rassert(proc_ts != NULL);
     rassert(au_state != NULL);
     rassert(wbs != NULL);
+    rassert(frame_count > 0);
     rassert(tempo > 0);
 
     const Processor* proc = (const Processor*)proc_state->parent.device;
@@ -44,50 +66,60 @@ int32_t Debug_vstate_render_voice(
     // Get pitches
     const Cond_work_buffer* actual_pitches = Cond_work_buffer_init(
             COND_WORK_BUFFER_AUTO,
-            Device_thread_state_get_voice_buffer(proc_ts, DEVICE_PORT_TYPE_RECV, 0),
+            Device_thread_state_get_voice_buffer(
+                proc_ts, DEVICE_PORT_TYPE_RECV, 0, NULL),
             0);
 
     // Get output buffers for writing
-    float* out_buffers[2] = { NULL };
-    Proc_state_get_voice_audio_out_buffers(proc_ts, 0, 2, out_buffers);
+    float* out_buffer = NULL;
+    {
+        Work_buffer* out_wb = Device_thread_state_get_voice_buffer(
+                proc_ts, DEVICE_PORT_TYPE_SEND, 0, NULL);
+        if (out_wb != NULL)
+        {
+            rassert(Work_buffer_get_sub_count(out_wb) == 2);
+            rassert(Work_buffer_get_stride(out_wb) == 2);
+
+            out_buffer = Work_buffer_get_contents_mut(out_wb, 0);
+            Work_buffer_mark_valid(out_wb, 0);
+            Work_buffer_mark_valid(out_wb, 1);
+        }
+    }
 
     Proc_debug* debug = (Proc_debug*)proc->parent.dimpl;
     if (debug->single_pulse)
     {
-        if (buf_start < buf_stop)
+        if (vstate->pos == 1)
         {
-            if (vstate->pos == 1)
-            {
-                vstate->active = false;
-                return buf_start;
-            }
-
-            const float val = 1.0;
-            if (out_buffers[0] != NULL)
-                out_buffers[0][buf_start] = val;
-            if (out_buffers[1] != NULL)
-                out_buffers[1][buf_start] = val;
-
-            // We want all single pulses to be included in test buffers,
-            // even if another voice replaces us in the channel foreground
-            Voice_state_set_keep_alive_stop(vstate, buf_start + 1);
-
-            vstate->pos = 1;
-
-            return buf_start + 1;
+            vstate->active = false;
+            return 0;
         }
-        return buf_start;
+
+        const float val = 1.0;
+        if (out_buffer != NULL)
+        {
+            out_buffer[0] = val;
+            out_buffer[1] = val;
+        }
+
+        // We want all single pulses to be included in test buffers,
+        // even if another voice replaces us in the channel foreground
+        Voice_state_set_keep_alive_stop(vstate, 1);
+
+        vstate->pos = 1;
+
+        return 1;
     }
 
     if ((vstate->pos >= 10) || (!vstate->note_on && vstate->noff_pos_rem >= 2))
     {
         vstate->active = false;
-        return buf_start;
+        return 0;
     }
 
     const int32_t audio_rate = proc_state->parent.audio_rate;
 
-    for (int32_t i = buf_start; i < buf_stop; ++i)
+    for (int32_t i = 0; i < frame_count; ++i)
     {
         const double freq = cents_to_Hz(
                 Cond_work_buffer_get_value(actual_pitches, i));
@@ -110,10 +142,11 @@ int32_t Debug_vstate_render_voice(
             vals[1] = -vals[1];
         }
 
-        if (out_buffers[0] != NULL)
-            out_buffers[0][i] = (float)vals[0];
-        if (out_buffers[1] != NULL)
-            out_buffers[1][i] = (float)vals[1];
+        if (out_buffer != NULL)
+        {
+            out_buffer[i * 2] = (float)vals[0];
+            out_buffer[i * 2 + 1] = (float)vals[1];
+        }
 
         vstate->rel_pos_rem += freq / audio_rate;
 
@@ -140,9 +173,9 @@ int32_t Debug_vstate_render_voice(
         }
     }
 
-    Voice_state_set_keep_alive_stop(vstate, buf_stop);
+    Voice_state_set_keep_alive_stop(vstate, frame_count);
 
-    return buf_stop;
+    return frame_count;
 }
 
 

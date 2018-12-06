@@ -213,7 +213,7 @@ def play(options, file_name, pa_handle, key_handler, list_pos):
 
     # Play
     handle.play()
-    bufs = handle.get_audio()
+    buf = handle.get_audio()
     rt_cycle_len = float(options['buffer-size']) / options['rate']
     mix_cycle_start = 0
     mix_cycle_end = 0
@@ -223,7 +223,7 @@ def play(options, file_name, pa_handle, key_handler, list_pos):
         mix_loads.append((mix_cycle_end - mix_cycle_start) / rt_cycle_len)
         mix_load = (sum(mix_loads) - min(mix_loads) - max(mix_loads)) / \
                    (len(mix_loads) - 2)
-        pa_handle.write(*bufs)
+        pa_handle.write(buf)
         if not options['quiet']:
             # Update voice count
             voice_count = 0
@@ -235,7 +235,7 @@ def play(options, file_name, pa_handle, key_handler, list_pos):
             except StopIteration:
                 pass
 
-            status_line = status.get_status_line(handle, duration, bufs, mix_load, None)
+            status_line = status.get_status_line(handle, duration, buf, mix_load, None)
             print(status_line, end='')
             status_len = len(status_line)
             if status_len < status_len_max:
@@ -308,7 +308,7 @@ def play(options, file_name, pa_handle, key_handler, list_pos):
                 """
         mix_cycle_start = time.time()
         handle.play()
-        bufs = handle.get_audio()
+        buf = handle.get_audio()
         mix_cycle_end = time.time()
 
     pa_handle.drain()
@@ -584,7 +584,7 @@ class Status():
         seconds = tenths // 10
         return '{:02d}:{:02d}.{:01d}'.format(seconds // 60, seconds % 60, tenths % 10)
 
-    def get_status_line(self, handle, duration, bufs, mix_load, voice_count):
+    def get_status_line(self, handle, duration, buf, mix_load, voice_count):
         components = []
         if handle.track is None:
             components.append('All tracks')
@@ -606,24 +606,24 @@ class Status():
 
         text_info = ', '.join(components)
         if ENABLE_UNICODE_OUTPUT:
-            return self.get_peak_meter(14, -40, 0, bufs) + text_info
+            return self.get_peak_meter(14, -40, 0, buf) + text_info
         return text_info
 
-    def get_peak_meter(self, length, lower, upper, bufs):
+    def get_peak_meter(self, length, lower, upper, buf):
         if lower < Status.SILENCE:
             lower = Status.SILENCE
-        left_vol_linear = max(bufs[0]) - min(bufs[0]) / 2
-        right_vol_linear = max(bufs[1]) - min(bufs[1]) / 2
-        self.left_clipped = (self.left_clipped or
-                             sum(1 for a in bufs[0] if abs(a) > 1.0) > 0)
-        self.right_clipped = (self.right_clipped or
-                              sum(1 for a in bufs[1] if abs(a) > 1.0) > 0)
-        left_bar = self.get_single_meter(length - 3, lower, upper,
-                                         left_vol_linear, self.left_hold)
-        right_bar = self.get_single_meter(length - 3, lower, upper,
-                                          right_vol_linear, self.right_hold)
-        self.left_hold[1] += len(bufs[0])
-        self.right_hold[1] += len(bufs[0])
+        lslice = buf[0::2]
+        rslice = buf[1::2]
+        left_vol_linear = max(lslice) - min(lslice) / 2
+        right_vol_linear = max(rslice) - min(rslice) / 2
+        self.left_clipped = self.left_clipped or any(abs(a) > 1.0 for a in lslice)
+        self.right_clipped = self.right_clipped or any(abs(a) > 1.0 for a in rslice)
+        left_bar = self.get_single_meter(
+                length - 3, lower, upper, left_vol_linear, self.left_hold)
+        right_bar = self.get_single_meter(
+                length - 3, lower, upper, right_vol_linear, self.right_hold)
+        self.left_hold[1] += len(lslice)
+        self.right_hold[1] += len(lslice)
         return '{}{}  '.format(self.combine_meters(left_bar, right_bar),
                 Status.clip_map[(self.left_clipped, self.right_clipped)])
 

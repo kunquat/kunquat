@@ -87,6 +87,18 @@ bool Vector_append(Vector* v, const void* elem);
 
 
 /**
+ * Remove an element at a specified index in the Vector.
+ *
+ * This function shifts the elements following the removed element.
+ *
+ * \param v       The Vector -- must not be \c NULL.
+ * \param index   The index of the element to be removed -- must be >= \c 0 and
+ *                < Vector_size(\a v).
+ */
+void Vector_remove_at(Vector* v, int64_t index);
+
+
+/**
  * Clear the Vector.
  *
  * Note that this function might silently fail to shrink its internal memory block, in

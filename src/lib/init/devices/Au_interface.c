@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2015
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2018
  *
  * This file is part of Kunquat.
  *
@@ -35,6 +35,7 @@ Au_interface* new_Au_interface(void)
     }
 
     Device_set_existent(&iface->parent, true);
+    Device_set_mixed_signals(&iface->parent, true);
 
     return iface;
 }

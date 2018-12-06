@@ -132,7 +132,7 @@ def build():
 
     process_cmd_line()
 
-    if options.enable_long_tests:
+    if options.enable_python_tests and options.enable_long_tests:
         python_modules = ['scripts', 'kunquat']
         fabricate.run('pylint', *python_modules)
         fabricate.run('flake8', *python_modules)
@@ -147,6 +147,9 @@ def build():
     #if options.enable_profiling:
     #    compile_flags.append('-pg')
     #    link_flags.append('-pg')
+
+    if options.enable_native_arch:
+        cc.set_native_arch()
 
     if options.optimise not in range(5):
         print('Unsupported optimisation level: {}'.format(options.optimise),

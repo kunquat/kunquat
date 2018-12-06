@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2017
+ * Author: Tomi Jylhä-Ollila, Finland 2017-2018
  *
  * This file is part of Kunquat.
  *
@@ -30,6 +30,7 @@
 #include <player/devices/Device_thread_state.h>
 #include <player/Mixed_signal_plan.h>
 #include <player/Work_buffer.h>
+#include <player/Work_buffer_conn_rules.h>
 #include <threads/Mutex.h>
 
 #include <stdbool.h>
@@ -44,10 +45,9 @@
 
 struct Mixed_signal_plan
 {
-    bool is_finalised;
     int level_count;
     Etable* levels;
-    AAtree* build_task_infos;
+    AAtree* build_task_infos; // TODO: remove; this is only used during initialisation
 
     Device_states* dstates;
 
@@ -63,17 +63,6 @@ typedef struct Level
     int task_count;
     Etable* tasks;
 } Level;
-
-
-typedef struct Mixed_signal_connection
-{
-    Work_buffer* recv_buf;
-    const Work_buffer* send_buf;
-} Mixed_signal_connection;
-
-
-#define MIXED_SIGNAL_CONNECTION_AUTO(rb, sb) \
-    (&(Mixed_signal_connection){ .recv_buf = (rb), .send_buf = (sb) })
 
 
 typedef struct Mixed_signal_task_info
@@ -129,7 +118,7 @@ static Mixed_signal_task_info* new_Mixed_signal_task_info(
     task_info->container_id = 0;
     task_info->bypass_conns = NULL;
 
-    task_info->conns = new_Vector(sizeof(Mixed_signal_connection));
+    task_info->conns = new_Vector(sizeof(Work_buffer_conn_rules));
     if (task_info->conns == NULL)
     {
         del_Mixed_signal_task_info(task_info);
@@ -150,32 +139,91 @@ static bool Mixed_signal_task_info_is_empty(const Mixed_signal_task_info* task_i
 static bool Mixed_signal_task_info_add_input(
         Mixed_signal_task_info* task_info,
         Work_buffer* recv_buf,
-        const Work_buffer* send_buf)
+        int recv_sub_index,
+        const Work_buffer* send_buf,
+        int send_sub_index)
 {
     rassert(task_info != NULL);
     rassert(recv_buf != NULL);
+    rassert(recv_sub_index >= 0);
+    rassert(recv_sub_index < Work_buffer_get_sub_count(recv_buf));
     rassert(send_buf != NULL);
+    rassert(send_sub_index >= 0);
+    rassert(send_sub_index < Work_buffer_get_sub_count(send_buf));
 
-    Mixed_signal_connection* conn = MIXED_SIGNAL_CONNECTION_AUTO(recv_buf, send_buf);
+    const Work_buffer_conn_rules* rules = Work_buffer_conn_rules_init(
+            WORK_BUFFER_CONN_RULES_AUTO,
+            recv_buf,
+            recv_sub_index,
+            send_buf,
+            send_sub_index);
 
-    return Vector_append(task_info->conns, conn);
+    return Vector_append(task_info->conns, rules);
 }
 
 
 static bool Mixed_signal_task_info_add_bypass_input(
         Mixed_signal_task_info* task_info,
         Work_buffer* recv_buf,
-        const Work_buffer* send_buf)
+        int recv_sub_index,
+        const Work_buffer* send_buf,
+        int send_sub_index)
 {
     rassert(task_info != NULL);
     rassert(recv_buf != NULL);
+    rassert(recv_sub_index >= 0);
+    rassert(recv_sub_index < Work_buffer_get_sub_count(recv_buf));
     rassert(send_buf != NULL);
+    rassert(send_sub_index >= 0);
+    rassert(send_sub_index < Work_buffer_get_sub_count(send_buf));
 
     rassert(task_info->bypass_conns != NULL);
 
-    Mixed_signal_connection* conn = MIXED_SIGNAL_CONNECTION_AUTO(recv_buf, send_buf);
+    const Work_buffer_conn_rules* rules = Work_buffer_conn_rules_init(
+            WORK_BUFFER_CONN_RULES_AUTO,
+            recv_buf,
+            recv_sub_index,
+            send_buf,
+            send_sub_index);
 
-    return Vector_append(task_info->bypass_conns, conn);
+    return Vector_append(task_info->bypass_conns, rules);
+}
+
+
+static void Mixed_signal_task_info_merge_connections(Mixed_signal_task_info* task_info)
+{
+    rassert(task_info != NULL);
+
+    Vector* conn_group[] = { task_info->conns, task_info->bypass_conns };
+
+    for (int ci = 0; ci < 2; ++ci)
+    {
+        Vector* conns = conn_group[ci];
+        if (conns == NULL)
+        {
+            rassert(ci == 1);
+            continue;
+        }
+
+        int cur_size = (int)Vector_size(conns);
+        for (int di = 0; di < cur_size - 1; ++di)
+        {
+            Work_buffer_conn_rules* dest_rules = Vector_get_ref(conns, di);
+
+            for (int si = di + 1; si < cur_size; ++si)
+            {
+                const Work_buffer_conn_rules* src_rules = Vector_get_ref(conns, si);
+                if (Work_buffer_conn_rules_try_merge(dest_rules, dest_rules, src_rules))
+                {
+                    Vector_remove_at(conns, si);
+                    --cur_size;
+                    break;
+                }
+            }
+        }
+    }
+
+    return;
 }
 
 
@@ -183,16 +231,17 @@ static void Mixed_signal_task_info_execute(
         const Mixed_signal_task_info* task_info,
         Device_states* dstates,
         Work_buffers* wbs,
-        int32_t buf_start,
-        int32_t buf_stop,
+        int32_t frame_count,
         double tempo)
 {
     rassert(task_info != NULL);
     rassert(dstates != NULL);
     rassert(wbs != NULL);
-    rassert(buf_start >= 0);
-    rassert(buf_stop >= buf_start);
+    rassert(frame_count >= 0);
     rassert(tempo > 0);
+
+    if (frame_count == 0)
+        return;
 
     if (task_info->container_id != 0)
     {
@@ -206,14 +255,9 @@ static void Mixed_signal_task_info_execute(
             {
                 for (int i = 0; i < Vector_size(task_info->bypass_conns); ++i)
                 {
-                    const Mixed_signal_connection* conn =
+                    const Work_buffer_conn_rules* rules =
                         Vector_get_ref(task_info->bypass_conns, i);
-                    /*
-                    fprintf(stdout, "mix bypass %p -> %p\n",
-                            (const void*)conn->send_buf,
-                            (const void*)conn->recv_buf);
-                    // */
-                    Work_buffer_mix(conn->recv_buf, conn->send_buf, buf_start, buf_stop);
+                    Work_buffer_conn_rules_mix(rules, frame_count);
                 }
             }
             //fflush(stdout);
@@ -225,15 +269,15 @@ static void Mixed_signal_task_info_execute(
     // Copy signals between buffers
     for (int i = 0; i < Vector_size(task_info->conns); ++i)
     {
-        const Mixed_signal_connection* conn = Vector_get_ref(task_info->conns, i);
-        Work_buffer_mix(conn->recv_buf, conn->send_buf, buf_start, buf_stop);
+        const Work_buffer_conn_rules* rules = Vector_get_ref(task_info->conns, i);
+        Work_buffer_conn_rules_mix(rules, frame_count);
     }
 
     // Process current device state
     Device_thread_state* target_ts =
         Device_states_get_thread_state(dstates, 0, task_info->device_id);
     Device_state* target_dstate = Device_states_get_state(dstates, task_info->device_id);
-    Device_state_render_mixed(target_dstate, target_ts, wbs, buf_start, buf_stop, tempo);
+    Device_state_render_mixed(target_dstate, target_ts, wbs, frame_count, tempo);
 
     return;
 }
@@ -306,7 +350,6 @@ static Mixed_signal_task_info* Mixed_signal_create_or_get_task_info(
         Mixed_signal_plan* plan, uint32_t device_id, int level_index, bool* is_new)
 {
     rassert(plan != NULL);
-    rassert(!plan->is_finalised);
     rassert(level_index >= 0);
     rassert(level_index < MAX_LEVELS);
     rassert(is_new != NULL);
@@ -343,20 +386,22 @@ static bool Mixed_signal_task_info_add_au_interface(
 
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
-        Work_buffer* out_buf =
-            Device_thread_state_get_mixed_buffer(target_ts, DEVICE_PORT_TYPE_SEND, port);
+        int out_sub_index = 0;
+        Work_buffer* out_buf = Device_thread_state_get_mixed_buffer(
+                target_ts, DEVICE_PORT_TYPE_SEND, port, &out_sub_index);
 
         if (out_buf != NULL)
         {
             Device_thread_state_mark_input_port_connected(source_ts, port);
 
+            int in_sub_index = 0;
             const Work_buffer* in_buf = Device_thread_state_get_mixed_buffer(
-                    source_ts, DEVICE_PORT_TYPE_RECV, port);
+                    source_ts, DEVICE_PORT_TYPE_RECV, port, &in_sub_index);
 
             if (in_buf != NULL)
             {
-                //fprintf(stdout, "interface %p -> %p", (const void*)in_buf, (void*)out_buf);
-                if (!Mixed_signal_task_info_add_input(task_info, out_buf, in_buf))
+                if (!Mixed_signal_task_info_add_input(
+                            task_info, out_buf, out_sub_index, in_buf, in_sub_index))
                     return false;
             }
         }
@@ -374,7 +419,6 @@ static bool Mixed_signal_plan_build_from_node(
         uint32_t container_id)
 {
     rassert(plan != NULL);
-    rassert(!plan->is_finalised);
     rassert(dstates != NULL);
     rassert(node != NULL);
     rassert(level_index >= 0);
@@ -476,24 +520,31 @@ static bool Mixed_signal_plan_build_from_node(
             if (is_new_task_info && (container_id == 0))
             {
                 // Set up bypass connections
-                task_info->bypass_conns = new_Vector(sizeof(Mixed_signal_connection));
+                task_info->bypass_conns = new_Vector(sizeof(Work_buffer_conn_rules));
+                //task_info->bypass_conns = new_Vector(sizeof(Mixed_signal_connection));
                 if (task_info->bypass_conns == NULL)
                     return false;
 
                 for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
                 {
+                    int out_sub_index = 0;
                     Work_buffer* out_buf = Device_thread_state_get_mixed_buffer(
-                            recv_ts, DEVICE_PORT_TYPE_SEND, port);
+                            recv_ts, DEVICE_PORT_TYPE_SEND, port, &out_sub_index);
 
                     if (out_buf != NULL)
                     {
+                        int in_sub_index = 0;
                         const Work_buffer* in_buf = Device_thread_state_get_mixed_buffer(
-                                in_iface_ts, DEVICE_PORT_TYPE_SEND, port);
+                                in_iface_ts, DEVICE_PORT_TYPE_SEND, port, &in_sub_index);
 
                         if (in_buf != NULL)
                         {
                             if (!Mixed_signal_task_info_add_bypass_input(
-                                        task_info, out_buf, in_buf))
+                                        task_info,
+                                        out_buf,
+                                        out_sub_index,
+                                        in_buf,
+                                        in_sub_index))
                                 return false;
                         }
                     }
@@ -536,15 +587,21 @@ static bool Mixed_signal_plan_build_from_node(
             Device_thread_state* send_ts =
                 Device_states_get_thread_state(dstates, 0, Device_get_id(send_device));
 
+            int send_sub_index = 0;
             const Work_buffer* send_buf = Device_thread_state_get_mixed_buffer(
-                    send_ts, DEVICE_PORT_TYPE_SEND, edge->port);
+                    send_ts, DEVICE_PORT_TYPE_SEND, edge->port, &send_sub_index);
+            int recv_sub_index = 0;
             Work_buffer* recv_buf = Device_thread_state_get_mixed_buffer(
-                    recv_ts, recv_port_type, port);
+                    recv_ts, recv_port_type, port, &recv_sub_index);
 
             if ((send_buf != NULL) && (recv_buf != NULL))
             {
-                if (is_new_task_info &&
-                        !Mixed_signal_task_info_add_input(task_info, recv_buf, send_buf))
+                if (is_new_task_info && !Mixed_signal_task_info_add_input(
+                            task_info,
+                            recv_buf,
+                            recv_sub_index,
+                            send_buf,
+                            send_sub_index))
                     return false;
             }
 
@@ -559,44 +616,45 @@ static bool Mixed_signal_plan_build_from_node(
 static bool Mixed_signal_plan_finalise(Mixed_signal_plan* plan)
 {
     rassert(plan != NULL);
-    rassert(!plan->is_finalised);
 
     // Move task info contexts from plan->build_task_infos to plan->levels
-    AAiter* iter = AAiter_init(AAITER_AUTO, plan->build_task_infos);
-    const Mixed_signal_task_info* key = MIXED_SIGNAL_TASK_INFO_KEY(0);
-    Mixed_signal_task_info* task_info = AAiter_get_at_least(iter, key);
-    while (task_info != NULL)
     {
-        if (Mixed_signal_task_info_is_empty(task_info))
+        AAiter* iter = AAiter_init(AAITER_AUTO, plan->build_task_infos);
+        const Mixed_signal_task_info* key = MIXED_SIGNAL_TASK_INFO_KEY(0);
+        Mixed_signal_task_info* task_info = AAiter_get_at_least(iter, key);
+        while (task_info != NULL)
         {
-            AAtree_remove(plan->build_task_infos, task_info);
-            del_Mixed_signal_task_info(task_info);
-        }
-        else
-        {
-            Level* level = Etable_get(plan->levels, task_info->level_index);
-            if (level == NULL)
+            if (Mixed_signal_task_info_is_empty(task_info))
             {
-                level = new_Level();
-                if ((level == NULL) ||
-                        !Etable_set(plan->levels, task_info->level_index, level))
+                AAtree_remove(plan->build_task_infos, task_info);
+                del_Mixed_signal_task_info(task_info);
+            }
+            else
+            {
+                Level* level = Etable_get(plan->levels, task_info->level_index);
+                if (level == NULL)
                 {
-                    del_Level(level);
-                    return false;
+                    level = new_Level();
+                    if ((level == NULL) ||
+                            !Etable_set(plan->levels, task_info->level_index, level))
+                    {
+                        del_Level(level);
+                        return false;
+                    }
+
+                    plan->level_count = max(plan->level_count, task_info->level_index + 1);
                 }
 
-                plan->level_count = max(plan->level_count, task_info->level_index + 1);
+                if (!Level_add_task_info(level, task_info))
+                    return false;
+
+                AAtree_remove(plan->build_task_infos, task_info);
             }
 
-            if (!Level_add_task_info(level, task_info))
-                return false;
-
-            AAtree_remove(plan->build_task_infos, task_info);
+            // Reinitialise iterator as it is no longer valid
+            AAiter_init(iter, plan->build_task_infos);
+            task_info = AAiter_get_at_least(iter, key);
         }
-
-        // Reinitialise iterator as it is no longer valid
-        AAiter_init(iter, plan->build_task_infos);
-        task_info = AAiter_get_at_least(iter, key);
     }
 
     del_AAtree(plan->build_task_infos);
@@ -612,7 +670,7 @@ static bool Mixed_signal_plan_finalise(Mixed_signal_plan* plan)
         {
             if (write_pos < read_pos)
             {
-                rassert(Etable_pop(plan->levels, write_pos) == NULL);
+                rassert(Etable_get(plan->levels, write_pos) == NULL);
                 Etable_pop(plan->levels, read_pos);
                 Etable_set(plan->levels, write_pos, level);
             }
@@ -624,6 +682,16 @@ static bool Mixed_signal_plan_finalise(Mixed_signal_plan* plan)
     }
 
     plan->level_count = write_pos;
+
+    for (int i = 0; i < plan->level_count; ++i)
+    {
+        Level* level = Etable_get(plan->levels, i);
+        for (int k = 0; k < level->task_count; ++k)
+        {
+            Mixed_signal_task_info* task_info = Etable_get(level->tasks, k);
+            Mixed_signal_task_info_merge_connections(task_info);
+        }
+    }
 
 #if 0
     for (int li = plan->level_count - 1; li >= 0; --li)
@@ -654,8 +722,6 @@ static bool Mixed_signal_plan_finalise(Mixed_signal_plan* plan)
         fflush(stdout);
     }
 #endif
-
-    plan->is_finalised = true;
 
     Mixed_signal_plan_reset(plan);
 
@@ -692,7 +758,6 @@ Mixed_signal_plan* new_Mixed_signal_plan(
         return NULL;
 
     // Sanitise fields
-    plan->is_finalised = false;
     plan->level_count = 0;
     plan->levels = NULL;
     plan->build_task_infos = NULL;
@@ -745,15 +810,13 @@ bool Mixed_signal_plan_execute_next_task(
         Mixed_signal_plan* plan,
         int level_index,
         Work_buffers* wbs,
-        int32_t buf_start,
-        int32_t buf_stop,
+        int32_t frame_count,
         double tempo)
 {
     rassert(plan != NULL);
     rassert(level_index >= 0);
     rassert(level_index < plan->level_count);
-    rassert(buf_start >= 0);
-    rassert(buf_stop >= buf_start);
+    rassert(frame_count >= 0);
     rassert(tempo > 0);
 
     Mutex_lock(&plan->iter_lock);
@@ -791,8 +854,7 @@ bool Mixed_signal_plan_execute_next_task(
     // Iterators are now updated for the next caller
     Mutex_unlock(&plan->iter_lock);
 
-    Mixed_signal_task_info_execute(
-            task_info, plan->dstates, wbs, buf_start, buf_stop, tempo);
+    Mixed_signal_task_info_execute(task_info, plan->dstates, wbs, frame_count, tempo);
 
     return any_tasks_left_this_level;
 }
@@ -802,14 +864,12 @@ bool Mixed_signal_plan_execute_next_task(
 void Mixed_signal_plan_execute_all_tasks(
         Mixed_signal_plan* plan,
         Work_buffers* wbs,
-        int32_t buf_start,
-        int32_t buf_stop,
+        int32_t frame_count,
         double tempo)
 {
     rassert(plan != NULL);
     rassert(wbs != NULL);
-    rassert(buf_start >= 0);
-    rassert(buf_stop > buf_start);
+    rassert(frame_count >= 0);
     rassert(tempo > 0);
 
     for (int level_index = plan->level_count - 1; level_index >= 0; --level_index)
@@ -824,7 +884,7 @@ void Mixed_signal_plan_execute_all_tasks(
             rassert(task_info != NULL);
 
             Mixed_signal_task_info_execute(
-                    task_info, plan->dstates, wbs, buf_start, buf_stop, tempo);
+                    task_info, plan->dstates, wbs, frame_count, tempo);
         }
     }
 

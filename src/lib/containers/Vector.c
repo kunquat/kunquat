@@ -104,6 +104,24 @@ bool Vector_append(Vector* v, const void* elem)
 }
 
 
+void Vector_remove_at(Vector* v, int64_t index)
+{
+    rassert(v != NULL);
+    rassert(index >= 0);
+    rassert(index < v->size);
+
+    if (index + 1 < v->size)
+    {
+        char* dest = v->elems + (v->elem_size * index);
+        const char* src = dest + v->elem_size;
+        memmove(dest, src, (size_t)(v->elem_size * (v->size - (index + 1))));
+    }
+
+    --v->size;
+    return;
+}
+
+
 void Vector_clear(Vector* v)
 {
     rassert(v != NULL);

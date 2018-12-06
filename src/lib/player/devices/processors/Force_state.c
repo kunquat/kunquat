@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2018
  *
  * This file is part of Kunquat.
  *
@@ -77,8 +77,7 @@ int32_t Force_vstate_render_voice(
         const Device_thread_state* proc_ts,
         const Au_state* au_state,
         const Work_buffers* wbs,
-        int32_t buf_start,
-        int32_t buf_stop,
+        int32_t frame_count,
         double tempo)
 {
     rassert(vstate != NULL);
@@ -86,8 +85,7 @@ int32_t Force_vstate_render_voice(
     rassert(proc_ts != NULL);
     rassert(au_state != NULL);
     rassert(wbs != NULL);
-    rassert(buf_start >= 0);
-    rassert(buf_stop >= 0);
+    rassert(frame_count > 0);
     rassert(isfinite(tempo));
     rassert(tempo > 0);
 
@@ -95,45 +93,45 @@ int32_t Force_vstate_render_voice(
 
     // Get envelope time stretch inputs
     Work_buffer* stretch_wb = Device_thread_state_get_voice_buffer(
-            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_ENV_STRETCH);
-    if (stretch_wb == NULL)
+            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_ENV_STRETCH, NULL);
+    if ((stretch_wb == NULL) || !Work_buffer_is_valid(stretch_wb, 0))
     {
-        stretch_wb = Work_buffers_get_buffer_mut(wbs, FORCE_WB_FIXED_ENV_STRETCH);
-        float* stretches = Work_buffer_get_contents_mut(stretch_wb);
-        for (int32_t i = buf_start; i < buf_stop; ++i)
+        stretch_wb = Work_buffers_get_buffer_mut(wbs, FORCE_WB_FIXED_ENV_STRETCH, 1);
+        float* stretches = Work_buffer_get_contents_mut(stretch_wb, 0);
+        for (int32_t i = 0; i < frame_count; ++i)
             stretches[i] = 0;
-        Work_buffer_set_const_start(stretch_wb, buf_start);
+        Work_buffer_set_const_start(stretch_wb, 0, 0);
     }
     else
     {
-        Proc_clamp_pitch_values(stretch_wb, buf_start, buf_stop);
+        Proc_clamp_pitch_values(stretch_wb, 0, frame_count);
     }
 
     Work_buffer* rel_stretch_wb = Device_thread_state_get_voice_buffer(
-            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_ENV_REL_STRETCH);
-    if (rel_stretch_wb == NULL)
+            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_ENV_REL_STRETCH, NULL);
+    if ((rel_stretch_wb == NULL) || !Work_buffer_is_valid(rel_stretch_wb, 0))
     {
         rel_stretch_wb =
-            Work_buffers_get_buffer_mut(wbs, FORCE_WB_FIXED_ENV_REL_STRETCH);
-        float* stretches = Work_buffer_get_contents_mut(rel_stretch_wb);
-        for (int32_t i = buf_start; i < buf_stop; ++i)
+            Work_buffers_get_buffer_mut(wbs, FORCE_WB_FIXED_ENV_REL_STRETCH, 1);
+        float* stretches = Work_buffer_get_contents_mut(rel_stretch_wb, 0);
+        for (int32_t i = 0; i < frame_count; ++i)
             stretches[i] = 0;
-        Work_buffer_set_const_start(rel_stretch_wb, buf_start);
+        Work_buffer_set_const_start(rel_stretch_wb, 0, 0);
     }
     else
     {
-        Proc_clamp_pitch_values(rel_stretch_wb, buf_start, buf_stop);
+        Proc_clamp_pitch_values(rel_stretch_wb, 0, frame_count);
     }
 
     // Get output
     Work_buffer* out_wb = Device_thread_state_get_voice_buffer(
-            proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_FORCE);
+            proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_FORCE, NULL);
     if (out_wb == NULL)
     {
         vstate->active = false;
-        return buf_start;
+        return 0;
     }
-    float* out_buf = Work_buffer_get_contents_mut(out_wb);
+    float* out_buf = Work_buffer_get_contents_mut(out_wb, 0);
 
     Force_vstate* fvstate = (Force_vstate*)vstate;
     const Proc_force* force = (const Proc_force*)proc_state->parent.device->dimpl;
@@ -142,23 +140,23 @@ int32_t Force_vstate_render_voice(
     Force_controls_set_audio_rate(fc, dstate->audio_rate);
     Force_controls_set_tempo(fc, tempo);
 
-    int32_t const_start = buf_start;
+    int32_t const_start = 0;
 
-    int32_t new_buf_stop = buf_stop;
+    int32_t new_buf_stop = frame_count;
 
     // Apply force slide & fixed adjust
     {
         const double fixed_adjust = fvstate->fixed_adjust;
 
-        int32_t cur_pos = buf_start;
-        while (cur_pos < buf_stop)
+        int32_t cur_pos = 0;
+        while (cur_pos < frame_count)
         {
             const int32_t estimated_steps =
                 Slider_estimate_active_steps_left(&fc->slider);
             if (estimated_steps > 0)
             {
-                int32_t slide_stop = buf_stop;
-                if (estimated_steps < buf_stop - cur_pos)
+                int32_t slide_stop = frame_count;
+                if (estimated_steps < frame_count - cur_pos)
                     slide_stop = cur_pos + estimated_steps;
 
                 double new_force = fc->force;
@@ -175,26 +173,26 @@ int32_t Force_vstate_render_voice(
             else
             {
                 const float actual_force = (float)(fc->force + fixed_adjust);
-                for (int32_t i = cur_pos; i < buf_stop; ++i)
+                for (int32_t i = cur_pos; i < frame_count; ++i)
                     out_buf[i] = actual_force;
 
-                cur_pos = buf_stop;
+                cur_pos = frame_count;
             }
         }
     }
 
     // Apply tremolo
     {
-        int32_t cur_pos = buf_start;
-        int32_t final_lfo_stop = buf_start;
-        while (cur_pos < buf_stop)
+        int32_t cur_pos = 0;
+        int32_t final_lfo_stop = 0;
+        while (cur_pos < frame_count)
         {
             const int32_t estimated_steps =
                 LFO_estimate_active_steps_left(&fc->tremolo);
             if (estimated_steps > 0)
             {
-                int32_t lfo_stop = buf_stop;
-                if (estimated_steps < buf_stop - cur_pos)
+                int32_t lfo_stop = frame_count;
+                if (estimated_steps < frame_count - cur_pos)
                     lfo_stop = cur_pos + estimated_steps;
 
                 for (int32_t i = cur_pos; i < lfo_stop; ++i)
@@ -213,7 +211,7 @@ int32_t Force_vstate_render_voice(
         const_start = max(const_start, final_lfo_stop);
     }
 
-    int32_t keep_alive_stop = buf_stop;
+    int32_t keep_alive_stop = frame_count;
 
     // Apply force envelope
     if (force->is_force_env_enabled && (force->force_env != NULL))
@@ -228,19 +226,24 @@ int32_t Force_vstate_render_voice(
                 0, 1, // range
                 stretch_wb,
                 Work_buffers_get_buffer_contents_mut(wbs, WORK_BUFFER_TIME_ENV),
-                buf_start,
+                0,
                 new_buf_stop,
                 proc_state->parent.audio_rate);
 
         const_start = max(const_start, env_force_stop);
 
         Work_buffer* wb_time_env =
-            Work_buffers_get_buffer_mut(wbs, WORK_BUFFER_TIME_ENV);
-        float* time_env = Work_buffer_get_contents_mut(wb_time_env);
+            Work_buffers_get_buffer_mut(wbs, WORK_BUFFER_TIME_ENV, 1);
+        float* time_env = Work_buffer_get_contents_mut(wb_time_env, 0);
 
         // Convert envelope data to dB
-        for (int32_t i = buf_start; i < env_force_stop; ++i)
+#if KQT_SSE4_1
+        for (int32_t i = 0; i < env_force_stop; i += 4)
+            _mm_store_ps(time_env + i, fast_scale_to_dB_f4(_mm_load_ps(time_env + i)));
+#else
+        for (int32_t i = 0; i < env_force_stop; ++i)
             time_env[i] = (float)fast_scale_to_dB(time_env[i]);
+#endif // KQT_SSE4_1
 
         // Check the end of envelope processing
         if (fvstate->env_state.is_finished)
@@ -252,7 +255,7 @@ int32_t Force_vstate_render_voice(
             {
                 new_buf_stop = env_force_stop;
 
-                for (int32_t i = new_buf_stop; i < buf_stop; ++i)
+                for (int32_t i = new_buf_stop; i < frame_count; ++i)
                     out_buf[i] = -INFINITY;
 
                 keep_alive_stop = min(keep_alive_stop, new_buf_stop);
@@ -265,14 +268,18 @@ int32_t Force_vstate_render_voice(
                     time_env[i] = last_value_dB;
             }
         }
+        else
+        {
+            rassert(env_force_stop == new_buf_stop);
+        }
 
-        for (int32_t i = buf_start; i < new_buf_stop; ++i)
+        for (int32_t i = 0; i < new_buf_stop; ++i)
             out_buf[i] += time_env[i];
     }
 
     if (!vstate->note_on)
     {
-        const_start = buf_stop;
+        const_start = frame_count;
 
         if (force->is_force_release_env_enabled)
         {
@@ -288,7 +295,7 @@ int32_t Force_vstate_render_voice(
                     0, 1, // range
                     rel_stretch_wb,
                     Work_buffers_get_buffer_contents_mut(wbs, WORK_BUFFER_TIME_ENV),
-                    buf_start,
+                    0,
                     new_buf_stop,
                     proc_state->parent.audio_rate);
 
@@ -296,17 +303,23 @@ int32_t Force_vstate_render_voice(
                 new_buf_stop = env_force_rel_stop;
 
             Work_buffer* wb_time_env =
-                Work_buffers_get_buffer_mut(wbs, WORK_BUFFER_TIME_ENV);
-            float* time_env = Work_buffer_get_contents_mut(wb_time_env);
+                Work_buffers_get_buffer_mut(wbs, WORK_BUFFER_TIME_ENV, 1);
+            float* time_env = Work_buffer_get_contents_mut(wb_time_env, 0);
 
             // Convert envelope data to dB
-            for (int32_t i = buf_start; i < new_buf_stop; ++i)
+#if KQT_SSE4_1
+            for (int32_t i = 0; i < new_buf_stop; i += 4)
+                _mm_store_ps(
+                        time_env + i, fast_scale_to_dB_f4(_mm_load_ps(time_env + i)));
+#else
+            for (int32_t i = 0; i < new_buf_stop; ++i)
                 time_env[i] = (float)fast_scale_to_dB(time_env[i]);
+#endif
 
-            for (int32_t i = buf_start; i < new_buf_stop; ++i)
+            for (int32_t i = 0; i < new_buf_stop; ++i)
                 out_buf[i] += time_env[i];
 
-            for (int32_t i = new_buf_stop; i < buf_stop; ++i)
+            for (int32_t i = new_buf_stop; i < frame_count; ++i)
                 out_buf[i] = -INFINITY;
 
             if (fvstate->release_env_state.is_finished)
@@ -315,7 +328,7 @@ int32_t Force_vstate_render_voice(
         else if (force->is_release_ramping_enabled)
         {
             // Apply release ramping
-            new_buf_stop = buf_stop;
+            new_buf_stop = frame_count;
 
             const float ramp_step =
                 (float)(RAMP_RELEASE_SPEED / proc_state->parent.audio_rate);
@@ -323,9 +336,9 @@ int32_t Force_vstate_render_voice(
             if (au_state->sustain < 0.5)
             {
                 double progress = fvstate->release_ramp_progress;
-                int32_t i = buf_start;
+                int32_t i = 0;
 
-                for (i = buf_start; (i < buf_stop) && (progress < 1); ++i)
+                for (i = 0; (i < frame_count) && (progress < 1); ++i)
                 {
                     out_buf[i] += (float)fast_scale_to_dB(1 - progress);
                     progress += ramp_step;
@@ -336,7 +349,7 @@ int32_t Force_vstate_render_voice(
                 fvstate->release_ramp_progress = progress;
             }
 
-            for (int32_t i = new_buf_stop; i < buf_stop; ++i)
+            for (int32_t i = new_buf_stop; i < frame_count; ++i)
                 out_buf[i] = -INFINITY;
 
             if (fvstate->release_ramp_progress >= 1)
@@ -344,17 +357,17 @@ int32_t Force_vstate_render_voice(
         }
         else
         {
-            keep_alive_stop = buf_start;
+            keep_alive_stop = 0;
         }
     }
 
     // Mark constant region of the buffer
-    Work_buffer_set_const_start(out_wb, const_start);
-    Work_buffer_set_final(out_wb, keep_alive_stop < buf_stop);
+    Work_buffer_set_const_start(out_wb, 0, const_start);
+    Work_buffer_set_final(out_wb, 0, keep_alive_stop < frame_count);
 
     Voice_state_set_keep_alive_stop(vstate, keep_alive_stop);
 
-    return buf_stop;
+    return frame_count;
 }
 
 

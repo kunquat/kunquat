@@ -270,8 +270,7 @@ int32_t Ks_vstate_render_voice(
         const Device_thread_state* proc_ts,
         const Au_state* au_state,
         const Work_buffers* wbs,
-        int32_t buf_start,
-        int32_t buf_stop,
+        int32_t frame_count,
         double tempo)
 {
     rassert(vstate != NULL);
@@ -279,12 +278,8 @@ int32_t Ks_vstate_render_voice(
     rassert(proc_ts != NULL);
     rassert(au_state != NULL);
     rassert(wbs != NULL);
-    rassert(buf_start >= 0);
-    rassert(buf_stop >= buf_start);
+    rassert(frame_count > 0);
     rassert(tempo > 0);
-
-    if (buf_start == buf_stop)
-        return buf_start;
 
     const Device_state* dstate = &proc_state->parent;
     const Proc_ks* ks = (const Proc_ks*)proc_state->parent.device->dimpl;
@@ -294,70 +289,73 @@ int32_t Ks_vstate_render_voice(
     Ks_vstate* ks_vstate = (Ks_vstate*)vstate;
 
     // Get output buffer for writing
-    float* out_buf = Device_thread_state_get_voice_buffer_contents(
-            proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO);
-    if (out_buf == NULL)
-        return buf_start;
+    Work_buffer* out_wb = Device_thread_state_get_voice_buffer(
+            proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO, NULL);
+    if (out_wb == NULL)
+        return 0;
+    float* out_buf = Work_buffer_get_contents_mut(out_wb, 0);
 
     // Get frequencies
     const Work_buffer* pitches_wb = Device_thread_state_get_voice_buffer(
-            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_PITCH);
-    if (pitches_wb == NULL)
+            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_PITCH, NULL);
+    if ((pitches_wb == NULL) || !Work_buffer_is_valid(pitches_wb, 0))
     {
         Work_buffer* fixed_pitches_wb =
-            Work_buffers_get_buffer_mut(wbs, KS_WB_FIXED_PITCH);
-        Work_buffer_clear(fixed_pitches_wb, buf_start, buf_stop);
+            Work_buffers_get_buffer_mut(wbs, KS_WB_FIXED_PITCH, 1);
+        Work_buffer_clear(fixed_pitches_wb, 0, 0, frame_count);
         pitches_wb = fixed_pitches_wb;
     }
-    const float* pitches = Work_buffer_get_contents(pitches_wb);
+    const float* pitches = Work_buffer_get_contents(pitches_wb, 0);
 
     // Get volume scales
     Work_buffer* scales_wb = Device_thread_state_get_voice_buffer(
-            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_FORCE);
+            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_FORCE, NULL);
     Work_buffer* dBs_wb = scales_wb;
     if ((dBs_wb != NULL) &&
-            Work_buffer_is_final(dBs_wb) &&
-            (Work_buffer_get_const_start(dBs_wb) <= buf_start) &&
-            (Work_buffer_get_contents(dBs_wb)[buf_start] == -INFINITY))
+            Work_buffer_is_valid(dBs_wb, 0) &&
+            Work_buffer_is_final(dBs_wb, 0) &&
+            (Work_buffer_get_const_start(dBs_wb, 0) == 0) &&
+            (Work_buffer_get_contents(dBs_wb, 0)[0] == -INFINITY))
     {
         // We are only getting silent force from this point onwards
         vstate->active = false;
-        return buf_start;
+        return 0;
     }
 
-    if (scales_wb == NULL)
-        scales_wb = Work_buffers_get_buffer_mut(wbs, KS_WB_FIXED_FORCE);
-    Proc_fill_scale_buffer(scales_wb, dBs_wb, buf_start, buf_stop);
-    const float* scales = Work_buffer_get_contents(scales_wb);
+    if ((scales_wb == NULL) || !Work_buffer_is_valid(scales_wb, 0))
+        scales_wb = Work_buffers_get_buffer_mut(wbs, KS_WB_FIXED_FORCE, 1);
+    Proc_fill_scale_buffer(scales_wb, dBs_wb, frame_count);
+    const float* scales = Work_buffer_get_contents(scales_wb, 0);
 
     // Get excitation signal
     Work_buffer* excit_wb = Device_thread_state_get_voice_buffer(
-            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_EXCITATION);
-    if (excit_wb == NULL)
+            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_EXCITATION, NULL);
+    if ((excit_wb == NULL) || !Work_buffer_is_valid(excit_wb, 0))
     {
         Work_buffer* fixed_excit_wb =
-            Work_buffers_get_buffer_mut(wbs, KS_WB_FIXED_EXCITATION);
-        Work_buffer_clear(fixed_excit_wb, buf_start, buf_stop);
+            Work_buffers_get_buffer_mut(wbs, KS_WB_FIXED_EXCITATION, 1);
+        Work_buffer_clear(fixed_excit_wb, 0, 0, frame_count);
         excit_wb = fixed_excit_wb;
     }
-    float* excits = Work_buffer_get_contents_mut(excit_wb);
+    float* excits = Work_buffer_get_contents_mut(excit_wb, 0);
 
     // Get damp signal
     const Work_buffer* damps_wb = Device_thread_state_get_voice_buffer(
-            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_DAMP);
-    if (damps_wb == NULL)
+            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_DAMP, NULL);
+    if ((damps_wb == NULL) || !Work_buffer_is_valid(damps_wb, 0))
     {
-        Work_buffer* fixed_damps_wb = Work_buffers_get_buffer_mut(wbs, KS_WB_FIXED_DAMP);
-        float* damps = Work_buffer_get_contents_mut(fixed_damps_wb);
+        Work_buffer* fixed_damps_wb =
+            Work_buffers_get_buffer_mut(wbs, KS_WB_FIXED_DAMP, 1);
+        float* damps = Work_buffer_get_contents_mut(fixed_damps_wb, 0);
 
         const float fixed_damp = (float)ks->damp;
-        for (int32_t i = buf_start; i < buf_stop; ++i)
+        for (int32_t i = 0; i < frame_count; ++i)
             damps[i] = fixed_damp;
 
-        Work_buffer_set_const_start(fixed_damps_wb, buf_start);
+        Work_buffer_set_const_start(fixed_damps_wb, 0, 0);
         damps_wb = fixed_damps_wb;
     }
-    const float* damps = Work_buffer_get_contents(damps_wb);
+    const float* damps = Work_buffer_get_contents(damps_wb, 0);
 
     // Get delay buffer
     Work_buffer* delay_wb = ks_vstate->parent.wb;
@@ -373,20 +371,20 @@ int32_t Ks_vstate_render_voice(
 
         Read_state_init(
                 &ks_vstate->read_states[ks_vstate->primary_read_state],
-                damps[buf_start],
-                pitches[buf_start],
+                damps[0],
+                pitches[0],
                 ks_vstate->write_pos,
                 delay_wb_size,
                 audio_rate);
     }
 
     int32_t write_pos = ks_vstate->write_pos;
-    float* delay_buf = Work_buffer_get_contents_mut(delay_wb);
+    float* delay_buf = Work_buffer_get_contents_mut(delay_wb, 0);
 
     const double xfade_speed = 1000.0;
     const double xfade_step = xfade_speed / audio_rate;
 
-    for (int32_t i = buf_start; i < buf_stop; ++i)
+    for (int32_t i = 0; i < frame_count; ++i)
     {
         const float pitch = pitches[i];
         const float scale = scales[i];
@@ -395,7 +393,7 @@ int32_t Ks_vstate_render_voice(
 
         if (!ks_vstate->is_xfading)
         {
-            const int32_t const_pitch_start = Work_buffer_get_const_start(pitches_wb);
+            const int32_t const_pitch_start = Work_buffer_get_const_start(pitches_wb, 0);
             const float max_pitch_diff = (i < const_pitch_start) ? 0.1f : 0.001f;
 
             const float max_damp_diff = 0.001f;
@@ -468,7 +466,7 @@ int32_t Ks_vstate_render_voice(
 
     ks_vstate->write_pos = write_pos;
 
-    return buf_stop;
+    return frame_count;
 }
 
 
@@ -489,7 +487,7 @@ void Ks_vstate_init(Voice_state* vstate, const Proc_state* proc_state)
 
     Work_buffer* delay_wb = ks_vstate->parent.wb;
     rassert(delay_wb != NULL);
-    Work_buffer_clear(delay_wb, 0, Work_buffer_get_size(delay_wb));
+    Work_buffer_clear(delay_wb, 0, 0, Work_buffer_get_size(delay_wb));
 
     return;
 }

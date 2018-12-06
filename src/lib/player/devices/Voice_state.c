@@ -121,15 +121,14 @@ int32_t Voice_state_render_voice(
         const Device_thread_state* proc_ts,
         const Au_state* au_state,
         const Work_buffers* wbs,
-        int32_t buf_start,
-        int32_t buf_stop,
+        int32_t frame_count,
         double tempo)
 {
     rassert(proc_state != NULL);
     rassert(proc_ts != NULL);
     rassert(au_state != NULL);
     rassert(wbs != NULL);
-    rassert(buf_start >= 0);
+    rassert(frame_count >= 0);
     rassert(isfinite(tempo));
     rassert(tempo > 0);
 
@@ -148,7 +147,7 @@ int32_t Voice_state_render_voice(
     {
         if (vstate != NULL)
             vstate->active = false;
-        return buf_start;
+        return 0;
     }
 
     if ((vstate != NULL) && !vstate->expr_filters_applied)
@@ -162,22 +161,22 @@ int32_t Voice_state_render_voice(
                     is_proc_filtered(proc, ae, vstate->note_expr_name))
             {
                 vstate->active = false;
-                return buf_start;
+                return 0;
             }
         }
 
         vstate->expr_filters_applied = true;
     }
 
-    if (buf_start >= buf_stop)
-        return buf_start;
+    if (frame_count == 0)
+        return 0;
 
     // Call the implementation
-    const int32_t impl_render_stop = dimpl->render_voice(
-            vstate, proc_state, proc_ts, au_state, wbs, buf_start, buf_stop, tempo);
-    rassert(impl_render_stop <= buf_stop);
+    const int32_t impl_rendered_count = dimpl->render_voice(
+            vstate, proc_state, proc_ts, au_state, wbs, frame_count, tempo);
+    rassert(impl_rendered_count <= frame_count);
 
-    return impl_render_stop;
+    return impl_rendered_count;
 }
 
 

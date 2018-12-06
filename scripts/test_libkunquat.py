@@ -56,7 +56,13 @@ def test_libkunquat(builder, options, cc):
     deps = defaultdict(lambda: [], {
             'handle': ['streader', 'tstamp'],
             'filter': ['fast_exp2', 'fast_sin'],
-            'player': ['handle', 'streader', 'fast_sin', 'fast_exp2', 'fast_log2'],
+            'player': [
+                'handle',
+                'work_buffer',
+                'streader',
+                'fast_sin',
+                'fast_exp2',
+                'fast_log2'],
             'memory': ['handle'],
             'fft': ['memory'],
             'connections': ['handle', 'player'],

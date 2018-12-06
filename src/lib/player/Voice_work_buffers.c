@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2018
  *
  * This file is part of Kunquat.
  *
@@ -73,28 +73,36 @@ bool Voice_work_buffers_allocate_space(
         wbs->count = count;
         wbs->buf_size = buf_size;
 
-        memory_free(wbs->wbs);
+        memory_free_aligned(wbs->wbs);
         wbs->wbs = NULL;
-        memory_free(wbs->space);
+        memory_free_aligned(wbs->space);
         wbs->space = NULL;
 
         return true;
     }
 
-    const int32_t actual_buf_size = buf_size + 2;
+    const int32_t req_min_buf_size = buf_size + 3;
+    const uint8_t contents_alignment = 64;
+    const int32_t elems_alignment = contents_alignment / sizeof(float);
+    const int32_t actual_buf_size =
+        (req_min_buf_size + (elems_alignment - 1)) & ~(elems_alignment - 1);
 
     // Allocate memory
-    Work_buffer* new_wbs = memory_realloc_items(Work_buffer, count, wbs->wbs);
+    Work_buffer* new_wbs = memory_alloc_items_aligned(Work_buffer, count, 32);
     if (new_wbs == NULL)
         return false;
+
+    memory_free_aligned(wbs->wbs);
     wbs->wbs = new_wbs;
 
     wbs->count = min(wbs->count, count);
 
     const int32_t total_space_size = count * actual_buf_size;
-    void* new_space = memory_realloc_items(float, total_space_size, wbs->space);
+    void* new_space =
+        memory_alloc_items_aligned(float, total_space_size, contents_alignment);
     if (new_space == NULL)
         return false;
+    memory_free_aligned(wbs->space);
     wbs->space = new_space;
 
     wbs->count = count;
@@ -104,6 +112,7 @@ bool Voice_work_buffers_allocate_space(
     for (int i = 0; i < wbs->count; ++i)
         Work_buffer_init_with_memory(
                 &wbs->wbs[i],
+                1,
                 (float*)wbs->space + (i * actual_buf_size),
                 actual_buf_size);
 
@@ -129,8 +138,8 @@ void del_Voice_work_buffers(Voice_work_buffers* wbs)
     if (wbs == NULL)
         return;
 
-    memory_free(wbs->wbs);
-    memory_free(wbs->space);
+    memory_free_aligned(wbs->wbs);
+    memory_free_aligned(wbs->space);
     memory_free(wbs);
 
     return;

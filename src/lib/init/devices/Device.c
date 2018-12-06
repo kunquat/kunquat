@@ -14,10 +14,12 @@
 
 #include <init/devices/Device.h>
 
+#include <containers/Bit_array.h>
 #include <debug/assert.h>
 #include <decl.h>
 #include <init/Background_loader.h>
 #include <init/devices/Device_impl.h>
+#include <init/devices/Device_port_groups.h>
 #include <mathnum/common.h>
 #include <string/common.h>
 #include <Value.h>
@@ -45,11 +47,20 @@ bool Device_init(Device* device, bool req_impl)
 
     device->create_state = new_Device_state_plain;
 
-    for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
+    for (int port_type = 0; port_type < DEVICE_PORT_TYPES; ++port_type)
     {
-        for (Device_port_type type = DEVICE_PORT_TYPE_RECV;
-                type < DEVICE_PORT_TYPES; ++type)
-            device->existence[type][port] = false;
+        device->existence[port_type] = NULL;
+        device->last_existence_set[port_type] = 0;
+    }
+
+    for (int port_type = 0; port_type < DEVICE_PORT_TYPES; ++port_type)
+    {
+        device->existence[port_type] = new_Bit_array(KQT_DEVICE_PORTS_MAX);
+        if (device->existence[port_type] == NULL)
+        {
+            Device_deinit(device);
+            return false;
+        }
     }
 
     device->dparams = new_Device_params();
@@ -175,8 +186,11 @@ void Device_set_port_existence(
     rassert(type < DEVICE_PORT_TYPES);
     rassert(port >= 0);
     rassert(port < KQT_DEVICE_PORTS_MAX);
+    rassert(device->existence[type] != NULL);
 
-    device->existence[type][port] = exists;
+    Bit_array_set(device->existence[type], port, exists);
+    if (exists)
+        device->last_existence_set[type] = max(device->last_existence_set[type], port);
 
     return;
 }
@@ -188,8 +202,71 @@ bool Device_get_port_existence(const Device* device, Device_port_type type, int 
     rassert(type < DEVICE_PORT_TYPES);
     rassert(port >= 0);
     rassert(port < KQT_DEVICE_PORTS_MAX);
+    rassert(device->existence[type] != NULL);
 
-    return device->existence[type][port];
+    return Bit_array_get(device->existence[type], port);
+}
+
+
+bool Device_validate_ports(const Device* device, Error* error)
+{
+    rassert(device != NULL);
+    rassert(error != NULL);
+
+    static const char* port_type_names[] =
+    {
+        "receive",
+        "send",
+        NULL,
+    };
+
+    for (int port_type = 0; port_type < DEVICE_PORT_TYPES; ++port_type)
+    {
+        const int last_existence_set = device->last_existence_set[port_type];
+        int port = 0;
+        for (; port <= last_existence_set; ++port)
+        {
+            if (!Device_get_port_existence(device, port_type, port))
+                break;
+        }
+        const int gap_start = port;
+        for (++port; port <= last_existence_set; ++port)
+        {
+            if (Device_get_port_existence(device, port_type, port))
+            {
+                Error_set(
+                        error,
+                        ERROR_FORMAT,
+                        "Port gap detected at %s port %d followed by"
+                            " an existing port at %d",
+                        port_type_names[port_type],
+                        gap_start,
+                        port);
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+
+void Device_get_port_groups(
+        const Device* device, Device_port_type type, Device_port_groups groups)
+{
+    rassert(device != NULL);
+    rassert(type < DEVICE_PORT_TYPES);
+    rassert(groups != NULL);
+
+    if (device->dimpl == NULL)
+    {
+        Device_port_groups_init(groups, 2, 2, 0);
+        return;
+    }
+
+    Device_impl_get_port_groups(device->dimpl, type, groups);
+
+    return;
 }
 
 
@@ -306,7 +383,7 @@ void Device_print(const Device* device, FILE* out)
     bool printed = false;
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
-        if (!device->existence[DEVICE_PORT_TYPE_SEND][port])
+        if (!Device_get_port_existence(device, DEVICE_PORT_TYPE_SEND, port))
             continue;
 
         if (!printed)
@@ -321,7 +398,7 @@ void Device_print(const Device* device, FILE* out)
     printed = false;
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
-        if (!device->existence[DEVICE_PORT_TYPE_RECV][port])
+        if (!Device_get_port_existence(device, DEVICE_PORT_TYPE_RECV, port))
             continue;
 
         if (!printed)
@@ -348,10 +425,10 @@ void Device_deinit(Device* device)
     del_Device_params(device->dparams);
     device->dparams = NULL;
 
-    for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
+    for (int port_type = 0; port_type < DEVICE_PORT_TYPES; ++port_type)
     {
-        device->existence[DEVICE_PORT_TYPE_RECV][port] = false;
-        device->existence[DEVICE_PORT_TYPE_SEND][port] = false;
+        del_Bit_array(device->existence[port_type]);
+        device->existence[port_type] = NULL;
     }
 
     return;
