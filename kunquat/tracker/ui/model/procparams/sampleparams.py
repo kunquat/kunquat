@@ -17,6 +17,7 @@ from kunquat.extras.wavpack import WavPackRMem, WavPackWMem
 from kunquat.kunquat.kunquat import Kunquat, KunquatFormatError
 from .procparams import ProcParams
 
+from copy import deepcopy
 import math
 import os.path
 
@@ -441,6 +442,11 @@ class SampleParams(ProcParams):
         self._store.put(transaction, transaction_notifier=notifier)
 
     def get_task_create_xfade_loop_region(self, sample_id, xfade_length, on_complete):
+        free_sample_ids = self.get_free_sample_ids()
+        if not free_sample_ids:
+            raise RuntimeError('No free sample slots left')
+        new_sample_id = free_sample_ids[0]
+
         # Get sample info
         header = self._get_sample_header(sample_id)
         assert header['loop_mode'] == 'uni'
@@ -534,10 +540,20 @@ class SampleParams(ProcParams):
 
         yield from add_step()
 
-        raw_data = new_handle.get_contents()
-        sample_data_key = self._get_full_sample_key(sample_id, 'p_sample.wv')
+        new_name_key = self._get_full_sample_key(new_sample_id, 'm_name.json')
+        new_name = self.get_sample_name(sample_id) + ' – xfade'
 
-        transaction = { sample_data_key: raw_data }
+        new_header = deepcopy(header)
+        new_header_key = self._get_full_sample_key(new_sample_id, 'p_sh_sample.json')
+
+        raw_data = new_handle.get_contents()
+        sample_data_key = self._get_full_sample_key(new_sample_id, 'p_sample.wv')
+
+        transaction = {
+            new_name_key: new_name,
+            new_header_key: new_header,
+            sample_data_key: raw_data,
+        }
 
         def notifier(progress):
             if progress == 1:

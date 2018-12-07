@@ -922,7 +922,8 @@ class NoteRandomList(RandomList):
         return set([
             self._get_selection_signal_type(),
             self._get_random_list_signal_type(),
-            'signal_sample_format_{}'.format(self._proc_id)])
+            'signal_sample_format_{}'.format(self._proc_id),
+            'signal_sample_loop_xfade_{}'.format(self._proc_id)])
 
 
 class HitMapEditor(QWidget, ProcessorUpdater):
@@ -1177,7 +1178,8 @@ class HitRandomList(RandomList):
             self._get_selection_signal_type(),
             self._get_random_list_signal_type(),
             'signal_sample_hit_map_hit_selection_{}'.format(self._proc_id),
-            'signal_sample_format_{}'.format(self._proc_id)])
+            'signal_sample_format_{}'.format(self._proc_id),
+            'signal_sample_loop_xfade_{}'.format(self._proc_id)])
 
 
 class Samples(QSplitter, ProcessorUpdater):
@@ -1484,6 +1486,8 @@ class SampleList(QWidget, ProcessorUpdater):
         self.add_to_updaters(self._toolbar, self._list_view)
         self.register_action(self._get_update_signal_type(), self._update_model)
         self.register_action(self._get_rename_signal_type(), self._update_model)
+        self.register_action(
+                'signal_sample_loop_xfade_{}'.format(self._proc_id), self._update_model)
 
         self.register_action('signal_style_changed', self._update_style)
 
@@ -1769,6 +1773,7 @@ class SampleEditor(QWidget, ProcessorUpdater):
         self._loop_mode.blockSignals(old_block)
 
         self._loop_xfader.setEnabled(
+                sample_params.get_free_sample_ids() and
                 (new_loop_mode == 'uni') and
                 (new_loop_start > 0) and
                 (new_loop_end - new_loop_start >= 2))
