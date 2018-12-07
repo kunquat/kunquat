@@ -754,6 +754,8 @@ class RandomEntryEditor(QWidget, ProcessorUpdater):
 
         self._index = index
 
+        self._should_update = False
+
         self._sample_selector = KqtComboBox()
         self._sample_selector.setSizeAdjustPolicy(QComboBox.AdjustToContents)
 
@@ -798,8 +800,13 @@ class RandomEntryEditor(QWidget, ProcessorUpdater):
         self._volume_shift.valueChanged.connect(self._change_volume_shift)
         self._remove_button.clicked.connect(self._remove_entry)
 
+        self._should_update = True
+
         self._update_style()
         self._update_all()
+
+    def _on_teardown(self):
+        self._should_update = False
 
     def _get_sample_params(self):
         return utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
@@ -816,6 +823,9 @@ class RandomEntryEditor(QWidget, ProcessorUpdater):
                 spacer.changeSize(spacing, 2)
 
     def _update_all(self):
+        if not self._should_update:
+            return
+
         sample_params = self._get_sample_params()
 
         sample_ids = sample_params.get_sample_ids()
