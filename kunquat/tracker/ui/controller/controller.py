@@ -575,6 +575,10 @@ class Controller():
     def notify_libkunquat_error(self, e):
         raise e
 
+    def notify_audio_rendered(self, levels):
+        self._session.set_audio_levels(levels)
+        self._updater.signal_update('signal_audio_rendered')
+
     def update_output_speed(self, fps):
         self._session.set_output_speed(fps)
         self._updater.signal_update()
@@ -585,10 +589,6 @@ class Controller():
 
     def update_render_load(self, load):
         self._session.set_render_load(load)
-        self._updater.signal_update()
-
-    def update_audio_levels(self, levels):
-        self._session.set_audio_levels(levels)
         self._updater.signal_update()
 
     def update_ui_load(self, load):
