@@ -429,8 +429,6 @@ class Module():
         self.set_editor_version()
 
         self._session.set_saving(True)
-        self._store.set_saving(True)
-        self._store.clear_modified_flag()
         self._updater.signal_update('signal_start_save_module')
 
     def flush(self, callback):
@@ -438,6 +436,10 @@ class Module():
 
     def execute_save(self, task_executor):
         assert self.is_saving()
+
+        self._store.set_saving(True)
+        self._store.clear_modified_flag()
+
         module_path = self._session.get_module_path()
         task = self._controller.get_task_save_module(module_path)
         task_executor(task)

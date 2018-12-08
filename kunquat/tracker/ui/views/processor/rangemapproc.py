@@ -57,8 +57,10 @@ class RangeMapProc(QWidget, ProcessorUpdater):
         self.register_action(self._get_update_signal_type(), self._update_all)
         self.register_action('signal_style_changed', self._update_style)
 
-        self._from_min.editingFinished.connect(self._set_from_min)
-        self._from_max.editingFinished.connect(self._set_from_max)
+        self._from_min.editingFinished.connect(
+                self._set_from_min, type=Qt.QueuedConnection)
+        self._from_max.editingFinished.connect(
+                self._set_from_max, type=Qt.QueuedConnection)
         self._min_to.valueChanged.connect(self._set_min_to)
         self._max_to.valueChanged.connect(self._set_max_to)
         self._clamp_dest_min.stateChanged.connect(self._set_clamp_dest_min)
