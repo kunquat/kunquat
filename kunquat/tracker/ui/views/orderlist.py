@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2014
-#          Tomi Jylhä-Ollila, Finland 2014-2017
+#          Tomi Jylhä-Ollila, Finland 2014-2018
 #
 # This file is part of Kunquat.
 #
@@ -332,6 +332,8 @@ class Orderlist(QWidget, Updater):
 
         self._album_tree.selectionModel().currentChanged.connect(self._change_selection)
 
+        self._updater.signal_update_deferred('signal_order_list_updated')
+
     def get_selected_object(self):
         selection_model = self._album_tree.selectionModel()
         index = selection_model.currentIndex()
@@ -357,5 +359,7 @@ class Orderlist(QWidget, Updater):
             album = self._ui_model.get_module().get_album()
             album.set_selected_track_num(song.get_containing_track_number())
             self._updater.signal_update('signal_song')
+
+        self._updater.signal_update('signal_order_list_selection')
 
 
