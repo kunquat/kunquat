@@ -32,8 +32,6 @@ class Updater():
             if self._deferred_update_signals:
                 self._update_signals = self._deferred_update_signals
                 self._deferred_update_signals = []
-            else:
-                self._update_signals.append('signal_change')
 
         for s in signals:
             assert type(s) == str
@@ -41,9 +39,6 @@ class Updater():
                 self._update_signals.append(s)
 
     def signal_update_deferred(self, *signals):
-        if not self._deferred_update_signals:
-            self._deferred_update_signals.append('signal_change')
-
         for s in signals:
             assert type(s) == str
             if s not in self._deferred_update_signals:
@@ -94,9 +89,6 @@ class Updater():
         if self._deferred_update_signals:
             self._update_signals = self._deferred_update_signals + self._update_signals
             self._deferred_update_signals = []
-
-        if not self._update_signals:
-            return
 
         called_action_infos = set()
         for signal in self._update_signals:
