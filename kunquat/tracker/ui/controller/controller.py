@@ -673,7 +673,7 @@ class Controller():
 
     def update_event_log_with(self, channel_number, event_type, event_value, context):
         self._session.log_event(channel_number, event_type, event_value, context)
-        self._updater.signal_update()
+        self._updater.signal_update('signal_event_log_updated')
 
     def update_import_progress(self, progress):
         self._update_progress_step(progress)
