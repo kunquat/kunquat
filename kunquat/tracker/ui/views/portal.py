@@ -288,12 +288,10 @@ class RenderLoadMeter(QWidget):
         return QSize(self._config['width'], self._config['height'])
 
 
-class RenderStatsButton(QToolButton):
+class RenderStatsButton(QToolButton, Updater):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
         self._stat_mgr = None
 
         self._load_meter = RenderLoadMeter()
@@ -307,24 +305,19 @@ class RenderStatsButton(QToolButton):
         h.addWidget(label)
         self.setLayout(h)
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
-        self._stat_mgr = ui_model.get_stat_manager()
+    def _on_setup(self):
+        self._stat_mgr = self._ui_model.get_stat_manager()
+
+        self.register_action('signal_audio_rendered', self._update_load_meter)
+        self.register_action('signal_style_changed', self._update_style)
 
         self.clicked.connect(self._clicked)
 
+        self._update_load_meter()
         self._update_style()
 
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
+    def _update_load_meter(self):
         self._load_meter.set_load_norm(self._stat_mgr.get_render_load())
-
-        if 'signal_style_changed' in signals:
-            self._update_style()
 
     def _update_style(self):
         style_mgr = self._ui_model.get_style_manager()
