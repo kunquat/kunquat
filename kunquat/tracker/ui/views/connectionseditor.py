@@ -14,6 +14,7 @@
 from kunquat.tracker.ui.qt import *
 
 from kunquat.kunquat.limits import *
+from .audiounit.audiounitupdater import AudioUnitUpdater
 from .connections import Connections
 from .processor import proctypeinfo
 from .kqtcombobox import KqtComboBox
@@ -22,13 +23,15 @@ from .saving import get_instrument_save_path, get_effect_save_path
 from .stylecreator import StyleCreator
 
 
-class ConnectionsEditor(QWidget):
+class ConnectionsEditor(QWidget, AudioUnitUpdater):
 
     def __init__(self):
         super().__init__()
 
         self._toolbar = ConnectionsToolBar()
         self._connections = Connections()
+
+        self.add_to_updaters(self._toolbar, self._connections)
 
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
@@ -37,26 +40,11 @@ class ConnectionsEditor(QWidget):
         v.addWidget(self._connections)
         self.setLayout(v)
 
-    def set_au_id(self, au_id):
-        self._toolbar.set_au_id(au_id)
-        self._connections.set_au_id(au_id)
 
-    def set_ui_model(self, ui_model):
-        self._toolbar.set_ui_model(ui_model)
-        self._connections.set_ui_model(ui_model)
-
-    def unregister_updaters(self):
-        self._connections.unregister_updaters()
-        self._toolbar.unregister_updaters()
-
-
-class ConnectionsToolBar(QToolBar):
+class ConnectionsToolBar(QToolBar, AudioUnitUpdater):
 
     def __init__(self):
         super().__init__()
-        self._au_id = None
-        self._ui_model = None
-        self._updater = None
 
         self._add_ins_button = QToolButton()
         self._add_ins_button.setText('Add instrument')
@@ -89,14 +77,7 @@ class ConnectionsToolBar(QToolBar):
         self._export_button = QToolButton()
         self._export_button.setText('Export')
 
-    def set_au_id(self, au_id):
-        assert self._ui_model == None, "Audio unit ID must be set before UI model"
-        self._au_id = au_id
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-
+    def _on_setup(self):
         # Instrument or processor adder
         if self._au_id == None:
             self.addWidget(self._add_ins_button)
@@ -135,41 +116,27 @@ class ConnectionsToolBar(QToolBar):
                 self.addSeparator()
 
                 self._hit_edit = HitEditingToggle()
-                self._hit_edit.set_au_id(self._au_id)
-                self._hit_edit.set_ui_model(self._ui_model)
+                self.add_to_updaters(self._hit_edit)
                 self.addWidget(self._hit_edit)
 
                 self._hit_selector = HitSelector()
-                self._hit_selector.set_au_id(self._au_id)
-                self._hit_selector.set_ui_model(self._ui_model)
+                self.add_to_updaters(self._hit_selector)
                 self.addWidget(self._hit_selector)
 
                 # Expression controls
                 self.addSeparator()
 
                 self._expr_edit = ExpressionEditingToggle()
-                self._expr_edit.set_au_id(self._au_id)
-                self._expr_edit.set_ui_model(self._ui_model)
+                self.add_to_updaters(self._expr_edit)
                 self.addWidget(self._expr_edit)
 
                 self._expr_selector = ExpressionSelector()
-                self._expr_selector.set_au_id(self._au_id)
-                self._expr_selector.set_ui_model(self._ui_model)
+                self.add_to_updaters(self._expr_selector)
                 self.addWidget(self._expr_selector)
 
             # Export
             self.addWidget(self._export_button)
             self._export_button.clicked.connect(self._export_au)
-
-    def unregister_updaters(self):
-        if self._expr_selector != None:
-            self._expr_selector.unregister_updaters()
-        if self._expr_edit != None:
-            self._expr_edit.unregister_updaters()
-        if self._hit_selector != None:
-            self._hit_selector.unregister_updaters()
-        if self._hit_edit != None:
-            self._hit_edit.unregister_updaters()
 
     def _add_instrument(self):
         module = self._ui_model.get_module()
@@ -257,45 +224,31 @@ def _get_au_conns_edit_signal_type(au_id):
     return 'signal_au_conns_edit_mode_{}'.format(au_id)
 
 
-class EditingToggle(QPushButton):
+class EditingToggle(QPushButton, AudioUnitUpdater):
 
     def __init__(self, text):
         super().__init__(text)
-        self._au_id = None
-        self._ui_model = None
-        self._updater = None
 
         self._style_creator = StyleCreator()
         self._style_sheet = ''
 
         self.setCheckable(True)
 
-    def set_au_id(self, au_id):
-        self._au_id = au_id
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
-
+    def _on_setup(self):
         self.clicked.connect(self._change_enabled)
 
-        self._style_creator.set_ui_model(ui_model)
+        self._style_creator.set_ui_model(self._ui_model)
+
+        for signal in self._get_update_signal_types():
+            self.register_action(signal, self._update_enabled)
+        self.register_action('signal_style_changed', self._update_style)
 
         self._style_sheet = QApplication.instance().styleSheet()
         self._update_enabled()
+        self._update_style()
 
-    def unregister_updaters(self):
+    def _on_teardown(self):
         self._style_creator.unregister_updaters()
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        update_signals = self._get_update_signal_types()
-        if not signals.isdisjoint(update_signals):
-            self._update_enabled()
-
-        if 'signal_style_changed' in signals:
-            self._update_style()
 
     def _update_style(self):
         self._style_sheet = self._style_creator.get_updated_style_sheet()
@@ -396,29 +349,17 @@ class ExpressionEditingToggle(EditingToggle):
         self._updater.signal_update(_get_au_conns_edit_signal_type(self._au_id))
 
 
-class HitSelector(KqtComboBox):
+class HitSelector(KqtComboBox, AudioUnitUpdater):
 
     def __init__(self):
         super().__init__()
 
-    def set_au_id(self, au_id):
-        self._au_id = au_id
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
-
+    def _on_setup(self):
         self.currentIndexChanged.connect(self._change_hit)
 
+        self.register_action(_get_au_hit_signal_type(self._au_id), self._update_hit_list)
+
         self._update_hit_list()
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        if _get_au_hit_signal_type(self._au_id) in signals:
-            self._update_hit_list()
 
     def _get_hit_vis_name(self, hit):
         name = hit.get_name()
@@ -461,31 +402,18 @@ class HitSelector(KqtComboBox):
         self._updater.signal_update('signal_au_conns_hit_{}'.format(self._au_id))
 
 
-class ExpressionSelector(KqtComboBox):
+class ExpressionSelector(KqtComboBox, AudioUnitUpdater):
 
     def __init__(self):
         super().__init__()
-        self._au_id = None
-        self._ui_model = None
 
-    def set_au_id(self, au_id):
-        self._au_id = au_id
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
-
+    def _on_setup(self):
         self.currentIndexChanged.connect(self._change_expression)
 
+        self.register_action(
+                'signal_expr_list_{}'.format(self._au_id), self._update_expression_list)
+
         self._update_expression_list()
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        if 'signal_expr_list_{}'.format(self._au_id) in signals:
-            self._update_expression_list()
 
     def _update_expression_list(self):
         module = self._ui_model.get_module()
