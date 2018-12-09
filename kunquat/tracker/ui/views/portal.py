@@ -111,7 +111,7 @@ class FileButton(QToolButton, Updater):
 
     def _on_setup(self):
         self.register_action('signal_module', self._set_module_loaded)
-        self.register_action('signal_change', self._update_save_enabled)
+        self.register_action('signal_store', self._update_save_enabled)
         self.register_action(
                 'signal_save_module_finished', self._on_save_module_finished)
 
@@ -123,6 +123,8 @@ class FileButton(QToolButton, Updater):
         self._save_as_action.triggered.connect(self._save_as)
         self._quit_action.triggered.connect(self._quit)
 
+        self._update_save_enabled()
+
     def _set_module_loaded(self):
         self._module_loaded = True
 
@@ -130,6 +132,8 @@ class FileButton(QToolButton, Updater):
         if self._module_loaded:
             module = self._ui_model.get_module()
             self._save_action.setEnabled(module.is_modified())
+        else:
+            self._save_action.setEnabled(False)
 
     def _on_save_module_finished(self):
         self._exit_helper.notify_save_module_finished()
