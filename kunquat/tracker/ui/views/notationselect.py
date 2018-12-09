@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2014
-#          Tomi Jylhä-Ollila, Finland 2016-2017
+#          Tomi Jylhä-Ollila, Finland 2016-2018
 #
 # This file is part of Kunquat.
 #
@@ -15,14 +15,13 @@
 from kunquat.tracker.ui.qt import *
 
 from .kqtcombobox import KqtComboBox
+from .updater import Updater
 
 
-class NotationSelect(QWidget):
+class NotationSelect(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
         self._notation_mgr = None
         self._typewriter_mgr = None
         self._notation_catalogue = {}
@@ -37,29 +36,19 @@ class NotationSelect(QWidget):
         h.addWidget(self._notations)
         self.setLayout(h)
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
-        self._notation_mgr = ui_model.get_notation_manager()
-        self._typewriter_mgr = ui_model.get_typewriter_manager()
+    def _on_setup(self):
+        self._notation_mgr = self._ui_model.get_notation_manager()
+        self._typewriter_mgr = self._ui_model.get_typewriter_manager()
+
+        self.register_action('signal_module', self._update_notations)
+        self.register_action('signal_notation', self._update_notations)
+        self.register_action('signal_notation_list', self._update_notations)
+        self.register_action('signal_select_keymap', self._update_enabled)
 
         self._notations.currentIndexChanged.connect(self._select_notation)
 
         self._update_enabled()
         self._update_notations()
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        update_signals = set([
-            'signal_module', 'signal_notation', 'signal_notation_list'])
-        if not signals.isdisjoint(update_signals):
-            self._update_notations()
-
-        if 'signal_select_keymap' in signals:
-            self._update_enabled()
 
     def _select_notation(self, catalogue_index):
         old_octave_id = self._typewriter_mgr.get_octave()
