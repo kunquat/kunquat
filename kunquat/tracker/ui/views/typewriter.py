@@ -29,7 +29,7 @@ class Typewriter(QFrame, Updater):
 
     def _on_setup(self):
         self.add_to_updaters(self._keyboard_mapper)
-        self.register_action('signal_change', self._update_button_leds)
+        self.register_action('signal_audio_rendered', self._update_button_leds)
         self.register_action('signal_style_changed', self._update_style)
 
         self._typewriter_mgr = self._ui_model.get_typewriter_manager()
