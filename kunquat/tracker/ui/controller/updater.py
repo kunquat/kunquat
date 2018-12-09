@@ -18,7 +18,7 @@ from collections import OrderedDict
 class Updater():
 
     def __init__(self):
-        self._update_signals = set(['signal_init'])
+        self._update_signals = ['signal_init']
         self._updaters = set()
         self._actions = OrderedDict()
         self._upcoming_actions = []
@@ -27,10 +27,14 @@ class Updater():
 
     def signal_update(self, *signals):
         assert not self._is_updating
-        self._update_signals.add('signal_change')
+
+        if not self._update_signals:
+            self._update_signals.append('signal_change')
+
         for s in signals:
             assert type(s) == str
-        self._update_signals |= set([*signals])
+            if s not in self._update_signals:
+                self._update_signals.append(s)
 
     def _update_actions(self):
         assert not self._is_updating
@@ -95,8 +99,8 @@ class Updater():
         iterator = set(self._updaters)
         while len(iterator) > 0:
             updater = iterator.pop()
-            updater(self._update_signals)
-        self._update_signals = set()
+            updater(set(self._update_signals))
+        self._update_signals = []
 
     def verify_ready_to_exit(self):
         self._update_actions()
