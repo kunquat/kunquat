@@ -90,8 +90,6 @@ class RootView(Updater):
 
         self.add_to_updaters(self._main_window)
 
-        self._update_visibility()
-
     def _on_teardown(self):
         self._style_creator.unregister_updaters()
 
