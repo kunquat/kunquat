@@ -318,7 +318,7 @@ class DelSelectionButton(IconButton):
 
         self.register_action('signal_selection', self._update_enabled)
         self.register_action('signal_module', self._update_enabled)
-        self.register_action('signal_column', self._update_enabled)
+        self.register_action('signal_column_updated', self._update_enabled)
         self.register_action('signal_edit_mode', self._update_enabled)
 
         self._sheet_mgr = self._ui_model.get_sheet_manager()

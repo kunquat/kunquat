@@ -130,6 +130,7 @@ class Session():
         self._edit_mode_enabled = False
         self._typewriter_connected = False
         self._replace_mode_enabled = False
+        self._column_updates = []
 
         # Grids
         self._is_grid_enabled = True
@@ -600,6 +601,15 @@ class Session():
 
     def get_replace_mode(self):
         return self._replace_mode_enabled
+
+    def add_column_update(self, track_num, system_num, col_num):
+        self._column_updates.append((track_num, system_num, col_num))
+
+    def get_column_updates(self):
+        return self._column_updates
+
+    def clear_column_updates(self):
+        self._column_updates = []
 
     def set_playback_active(self, active):
         self._is_playback_active = active

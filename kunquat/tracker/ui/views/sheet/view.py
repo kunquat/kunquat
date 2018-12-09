@@ -26,6 +26,7 @@ from kunquat.tracker.ui.model.sheetmanager import SheetManager
 from kunquat.tracker.ui.model.trigger import Trigger
 from kunquat.tracker.ui.model.triggerposition import TriggerPosition
 from kunquat.tracker.ui.views.keyboardmapper import KeyboardMapper
+from kunquat.tracker.ui.views.updater import Updater
 from .config import *
 from . import utils
 from .columngrouprenderer import ColumnGroupRenderer
@@ -117,7 +118,7 @@ class FieldEdit(QLineEdit):
         self._finished_callback = None
 
 
-class View(QWidget):
+class View(QWidget, Updater):
 
     heightChanged = Signal(name='heightChanged')
     followCursor = Signal(str, int, name='followCursor')
@@ -128,8 +129,6 @@ class View(QWidget):
         self._force_focus_on_enable = True
         super().__init__()
 
-        self._ui_model = None
-        self._updater = None
         self._sheet_mgr = None
         self._notation_mgr = None
         self._visibility_mgr = None
@@ -178,85 +177,62 @@ class View(QWidget):
         self._playback_cursor_offset = None
         self._was_playback_active = False
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
-        self._sheet_mgr = ui_model.get_sheet_manager()
-        self._notation_mgr = ui_model.get_notation_manager()
-        self._visibility_mgr = ui_model.get_visibility_manager()
-        self._playback_mgr = ui_model.get_playback_manager()
+    def _on_setup(self):
+        self._sheet_mgr = self._ui_model.get_sheet_manager()
+        self._notation_mgr = self._ui_model.get_notation_manager()
+        self._visibility_mgr = self._ui_model.get_visibility_manager()
+        self._playback_mgr = self._ui_model.get_playback_manager()
 
-        self._keyboard_mapper.set_ui_model(ui_model)
+        self._keyboard_mapper.set_ui_model(self._ui_model)
         for cr in self._col_rends:
-            cr.set_ui_model(ui_model)
+            cr.set_ui_model(self._ui_model)
+
+        self.register_action('signal_notation', self._update_notation)
+        self.register_action('signal_hits', self._update_hit_names)
+        self.register_action('signal_ch_defaults', self._update_hit_names)
+        self.register_action('signal_module', self._update_all_patterns)
+        self.register_action('signal_order_list', self._rearrange_patterns)
+        self.register_action('signal_pattern_length', self._update_resized_patterns)
+        self.register_action('signal_selection', self._follow_edit_cursor)
+        self.register_action('signal_edit_mode', self.update)
+        self.register_action('signal_replace_mode', self.update)
+        self.register_action('signal_channel_mute', self.update)
+        self.register_action('signal_grid', self._update_grid)
+        self.register_action('signal_grid_pattern_modified', self._update_grid)
+        self.register_action('signal_force_shift', self._update_force_shift)
+        self.register_action('signal_silence', self._handle_silence)
+        self.register_action('signal_playback_cursor', self._update_playback_cursor)
+        self.register_action('signal_column_updated', self._update_columns)
 
         self.checkFixFocus.connect(self._check_fix_focus, Qt.QueuedConnection)
 
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
+    def _update_columns(self):
+        column_updates = self._sheet_mgr.get_and_clear_column_updates()
+        for cu in column_updates:
+            track_num, system_num, col_num = cu
+            self._update_column(track_num, system_num, col_num)
 
-    def _perform_updates(self, signals):
-        if 'signal_notation' in signals:
-            self._update_notation()
-            self.update()
-        if ('signal_hits' in signals) or ('signal_ch_defaults' in signals):
-            self._update_hit_names()
-            self.update()
-        if 'signal_module' in signals:
-            self._update_all_patterns()
-            self.update()
-        if 'signal_order_list' in signals:
-            self._rearrange_patterns()
-            self.update()
-        if 'signal_pattern_length' in signals:
-            self._update_resized_patterns()
-            self.update()
-        if 'signal_selection' in signals:
-            self._follow_edit_cursor()
-        if 'signal_edit_mode' in signals:
-            self.update()
-        if 'signal_replace_mode' in signals:
-            self.update()
-        if 'signal_channel_mute' in signals:
-            self.update()
-        if ('signal_grid' in signals) or ('signal_grid_pattern_modified' in signals):
-            self._update_grid()
-            self.update()
-        if 'signal_force_shift' in signals:
-            self._update_force_shift()
-            self.update()
-        if 'signal_silence' in signals:
-            self._handle_silence()
-        if 'signal_playback_cursor' in signals:
-            self._update_playback_cursor()
+            # Check if the pattern has multiple instances
+            module = self._ui_model.get_module()
+            album = module.get_album()
+            assert album
+            song = album.get_song_by_track(track_num)
+            signal_pinst = song.get_pattern_instance(system_num)
+            signal_pat_num = signal_pinst.get_pattern_num()
+            signal_pinst_num = signal_pinst.get_instance_num()
 
-        for signal in signals:
-            if signal.startswith(SheetManager.get_column_signal_head()):
-                track_num, system_num, col_num = SheetManager.decode_column_signal(signal)
-                self._update_column(track_num, system_num, col_num)
+            if len(signal_pinst.get_pattern().get_instance_ids()) > 1:
+                # Update columns of other instances
+                for cur_track_num in range(album.get_track_count()):
+                    cur_song = album.get_song_by_track(cur_track_num)
+                    for cur_system_num in range(cur_song.get_system_count()):
+                        cur_pinst = song.get_pattern_instance(cur_system_num)
+                        if ((cur_pinst.get_pattern_num() == signal_pat_num) and
+                                (cur_pinst.get_instance_num() != signal_pinst_num)):
+                            self._update_column(
+                                    cur_track_num, cur_system_num, col_num)
 
-                # Check if the pattern has multiple instances
-                module = self._ui_model.get_module()
-                album = module.get_album()
-                assert album
-                song = album.get_song_by_track(track_num)
-                signal_pinst = song.get_pattern_instance(system_num)
-                signal_pat_num = signal_pinst.get_pattern_num()
-                signal_pinst_num = signal_pinst.get_instance_num()
-
-                if len(signal_pinst.get_pattern().get_instance_ids()) > 1:
-                    # Update columns of other instances
-                    for cur_track_num in range(album.get_track_count()):
-                        cur_song = album.get_song_by_track(cur_track_num)
-                        for cur_system_num in range(cur_song.get_system_count()):
-                            cur_pinst = song.get_pattern_instance(cur_system_num)
-                            if ((cur_pinst.get_pattern_num() == signal_pat_num) and
-                                    (cur_pinst.get_instance_num() != signal_pinst_num)):
-                                self._update_column(
-                                        cur_track_num, cur_system_num, col_num)
-
-                self.update()
+            self.update()
 
     def _update_all_patterns(self):
         for cr in self._col_rends:
@@ -264,6 +240,7 @@ class View(QWidget):
         all_pinsts = utils.get_all_pattern_instances(self._ui_model)
         self.set_pattern_instances(all_pinsts)
         self._update_playback_cursor()
+        self.update()
 
     def _update_playback_cursor(self):
         was_playback_cursor_visible = self._is_playback_cursor_visible
@@ -317,14 +294,17 @@ class View(QWidget):
             cr.rearrange_patterns(self._pinsts)
             cr.set_pattern_lengths(lengths)
         self._set_pattern_heights()
+        self.update()
 
     def _update_grid(self):
         for cr in self._col_rends:
             cr.flush_final_pixmaps()
+        self.update()
 
     def _update_notation(self):
         for cr in self._col_rends:
             cr.flush_caches()
+        self.update()
 
     def _update_hit_names(self):
         for cr in self._col_rends[:self._first_col]:
@@ -339,13 +319,17 @@ class View(QWidget):
         for cr in self._col_rends[vis_col_stop:]:
             cr.flush_caches()
 
+        self.update()
+
     def _update_resized_patterns(self):
         self._rearrange_patterns()
         self._update_playback_cursor()
+        self.update()
 
     def _update_force_shift(self):
         for cr in self._col_rends:
             cr.flush_caches()
+        self.update()
 
     def _update_column(self, track_num, system_num, col_num):
         pattern_index = utils.get_pattern_index_at_location(

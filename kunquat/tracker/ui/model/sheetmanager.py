@@ -37,28 +37,6 @@ CONVERTIBLE_TRIGGERS.update(dict((v, k) for (k, v) in CONVERTIBLE_TRIGGERS.items
 
 class SheetManager():
 
-    @staticmethod
-    def get_column_signal_head():
-        return 'signal_column'
-
-    @staticmethod
-    def encode_column_signal(track_num, system_num, col_num):
-        return '_'.join((
-            SheetManager.get_column_signal_head(),
-            str(track_num),
-            str(system_num),
-            str(col_num)))
-
-    @staticmethod
-    def decode_column_signal(signal):
-        head = SheetManager.get_column_signal_head()
-        assert signal.startswith(head)
-        numbers_part = signal[len(head):]
-        str_parts = numbers_part.split('_')[1:]
-        int_parts = [int(s) for s in str_parts]
-        track_num, system_num, col_num = int_parts
-        return (track_num, system_num, col_num)
-
     def __init__(self):
         self._controller = None
         self._session = None
@@ -670,15 +648,20 @@ class SheetManager():
         track_num = location.get_track()
         system_num = location.get_system()
         col_num = location.get_col_num()
-        signal = SheetManager.encode_column_signal(track_num, system_num, col_num)
+        self._session.add_column_update(track_num, system_num, col_num)
 
         column = self.get_column_at_location(location)
         column.flush_cache()
 
-        self._updater.signal_update(signal)
+        self._updater.signal_update('signal_column_updated')
 
         # Clear cached column data
         self._session.set_last_column(None)
+
+    def get_and_clear_column_updates(self):
+        updates = self._session.get_column_updates()
+        self._session.clear_column_updates()
+        return updates
 
     def set_zoom(self, zoom):
         old_zoom = self._session.get_sheet_zoom()
