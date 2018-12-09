@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2017
+# Author: Tomi Jylhä-Ollila, Finland 2017-2018
 #
 # This file is part of Kunquat.
 #
@@ -13,8 +13,10 @@
 
 from kunquat.tracker.ui.qt import *
 
+from .updater import Updater
 
-class HitMapToggle(QCheckBox):
+
+class HitMapToggle(QCheckBox, Updater):
 
     def __init__(self):
         super().__init__('Use hit keymap')
@@ -24,17 +26,14 @@ class HitMapToggle(QCheckBox):
         self.setToolTip('Use hit keymap (Ctrl + H)')
         self.setFocusPolicy(Qt.NoFocus)
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
+    def _on_setup(self):
+        self.register_action('signal_select_keymap', self._update_checked)
 
         self.stateChanged.connect(self._set_hit_map_active)
 
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
+        self._update_checked()
 
-    def _perform_updates(self, signals):
+    def _update_checked(self):
         keymap_mgr = self._ui_model.get_keymap_manager()
         is_active = keymap_mgr.is_hit_keymap_active()
         is_checked = (self.checkState() == Qt.Checked)
