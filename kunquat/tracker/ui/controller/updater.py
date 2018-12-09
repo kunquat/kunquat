@@ -28,11 +28,11 @@ class Updater():
     def signal_update(self, *signals):
         assert not self._is_updating
 
-        if self._deferred_update_signals:
-            self._update_signals = self._deferred_update_signals
-            self._deferred_update_signals = []
-        else:
-            if not self._update_signals:
+        if not self._update_signals:
+            if self._deferred_update_signals:
+                self._update_signals = self._deferred_update_signals
+                self._deferred_update_signals = []
+            else:
                 self._update_signals.append('signal_change')
 
         for s in signals:
