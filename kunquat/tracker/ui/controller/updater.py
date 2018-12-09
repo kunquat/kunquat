@@ -19,6 +19,7 @@ class Updater():
 
     def __init__(self):
         self._update_signals = ['signal_init']
+        self._deferred_update_signals = []
         self._updaters = set()
         self._actions = OrderedDict()
         self._upcoming_actions = []
@@ -28,13 +29,26 @@ class Updater():
     def signal_update(self, *signals):
         assert not self._is_updating
 
-        if not self._update_signals:
-            self._update_signals.append('signal_change')
+        if self._deferred_update_signals:
+            self._update_signals = self._deferred_update_signals
+            self._deferred_update_signals = []
+        else:
+            if not self._update_signals:
+                self._update_signals.append('signal_change')
 
         for s in signals:
             assert type(s) == str
             if s not in self._update_signals:
                 self._update_signals.append(s)
+
+    def signal_update_deferred(self, *signals):
+        if not self._deferred_update_signals:
+            self._deferred_update_signals.append('signal_change')
+
+        for s in signals:
+            assert type(s) == str
+            if s not in self._deferred_update_signals:
+                self._deferred_update_signals.append(s)
 
     def _update_actions(self):
         assert not self._is_updating
@@ -84,6 +98,10 @@ class Updater():
             self._is_updating = False
 
     def _perform_updates(self):
+        if self._deferred_update_signals:
+            self._update_signals = self._deferred_update_signals + self._update_signals
+            self._deferred_update_signals = []
+
         if not self._update_signals:
             return
 
