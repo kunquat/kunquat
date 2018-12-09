@@ -421,35 +421,27 @@ class EventMap(QWidget, AudioUnitUpdater):
         self.layout().setSpacing(style_mgr.get_scaled_size_param('small_padding'))
 
 
-class EventList(EditorList):
+class EventList(EditorList, AudioUnitUpdater):
 
     def __init__(self):
         super().__init__()
-        self._au_id = None
-        self._ui_model = None
-        self._updater = None
-
         self._event_names = None
         self._event_names_set = None
 
-    def set_au_id(self, au_id):
-        self._au_id = au_id
-
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
+    def _on_setup(self):
+        self.register_action(
+                _get_events_rebuild_signal_type(self._au_id),
+                self._force_update_event_names)
+        self.register_action(
+                _get_events_update_signal_type(self._au_id), self._update_event_names)
 
         self._update_event_names()
 
-    def unregister_updaters(self):
+    def _on_teardown(self):
         self.disconnect_widgets()
-        self._updater.unregister_updater(self._perform_updates)
 
-    def _perform_updates(self, signals):
-        force_rebuild = _get_events_rebuild_signal_type(self._au_id) in signals
-        if _get_events_update_signal_type(self._au_id) in signals:
-            self._update_event_names(force_rebuild)
+    def _force_update_event_names(self):
+        self._update_event_names(force_rebuild=True)
 
     def _update_event_names(self, force_rebuild=False):
         module = self._ui_model.get_module()
@@ -735,16 +727,14 @@ class EventRemoveButton(RemoveButton):
         self._updater.signal_update(_get_events_update_signal_type(self._au_id))
 
 
-class EventBindings(QWidget):
+class EventBindings(QWidget, AudioUnitUpdater):
 
     def __init__(self):
         super().__init__()
-        self._au_id = None
         self._context = None
-        self._ui_model = None
-        self._updater = None
 
         self._adder = EventBindTargetAdder()
+        self.add_to_updaters(self._adder)
 
         self.setVisible(False)
 
@@ -770,32 +760,18 @@ class EventBindings(QWidget):
         for i in range(self.layout().count() - 1):
             yield self.layout().itemAt(i).widget()
 
-    def set_au_id(self, au_id):
-        self._au_id = au_id
-        for widget in self._get_widgets():
-            widget.set_au_id(au_id)
-
     def set_context(self, context):
         self._context = context
 
         if self._ui_model:
             self._update_contents()
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
-
-        for widget in self._get_widgets():
-            widget.set_ui_model(ui_model)
+    def _on_setup(self):
+        #self.register_action(_get_events_update_signal_type(self._au_id), ???)
+        self.register_action('signal_style_changed', self._update_style)
 
         self._update_contents()
         self._update_style()
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-        for widget in self._get_widgets():
-            widget.unregister_updaters()
 
     def _update_contents(self):
         event_name = self._context
@@ -812,31 +788,24 @@ class EventBindings(QWidget):
         layout = self.layout()
         for i in range(cur_binding_count, len(binding_targets)):
             editor = EventBindTargetEditor()
-            editor.set_au_id(self._au_id)
             layout.insertWidget(i, editor)
 
         self._get_adder().set_context(event_name)
 
-        for target_info, editor in zip(binding_targets, self._get_editors()):
+        for i, (target_info, editor) in enumerate(
+                zip(binding_targets, self._get_editors())):
             target_dev_id, target_event_name = target_info
             context = (event_name, target_dev_id, target_event_name)
             editor.set_context(context)
-            editor.set_ui_model(self._ui_model)
-
-    def _perform_updates(self, signals):
-        if _get_events_update_signal_type(self._au_id) in signals:
-            pass
-        if 'signal_style_changed' in signals:
-            self._update_style()
+            if i >= cur_binding_count:
+                self.add_to_updaters(editor)
 
 
-class EventBindTargetEditor(QWidget):
+class EventBindTargetEditor(QWidget, AudioUnitUpdater):
 
     def __init__(self):
         super().__init__()
-        self._au_id = None
         self._context = None
-        self._ui_model = None
 
         self._target_dev_selector = EventBindTargetDeviceSelector()
         self._event_editor = EventBindTargetEventEditor()
@@ -844,13 +813,12 @@ class EventBindTargetEditor(QWidget):
         self._expr_editor = EventBindTargetArgExpressionEditor()
         self._remove_button = EventBindTargetRemoveButton()
 
-    def set_au_id(self, au_id):
-        self._au_id = au_id
-        self._target_dev_selector.set_au_id(au_id)
-        self._event_editor.set_au_id(au_id)
-        self._type_editor.set_au_id(au_id)
-        self._expr_editor.set_au_id(au_id)
-        self._remove_button.set_au_id(au_id)
+        self.add_to_updaters(
+                self._target_dev_selector,
+                self._event_editor,
+                self._type_editor,
+                self._expr_editor,
+                self._remove_button)
 
     def set_context(self, context):
         self._context = context
@@ -860,18 +828,8 @@ class EventBindTargetEditor(QWidget):
         self._expr_editor.set_context(context)
         self._remove_button.set_context(context)
 
-    def set_ui_model(self, ui_model):
+    def _on_setup(self):
         assert self._context
-
-        if self._ui_model:
-            return
-        self._ui_model = ui_model
-
-        self._target_dev_selector.set_ui_model(ui_model)
-        self._event_editor.set_ui_model(ui_model)
-        self._type_editor.set_ui_model(ui_model)
-        self._expr_editor.set_ui_model(ui_model)
-        self._remove_button.set_ui_model(ui_model)
 
         event_name, target_dev_id, target_event_name = self._context
 
@@ -889,26 +847,13 @@ class EventBindTargetEditor(QWidget):
         h.addWidget(self._remove_button)
         self.setLayout(h)
 
-        updater = self._ui_model.get_updater()
-        updater.register_updater(self._perform_updates)
+        self.register_action('signal_style_changed', self._update_style)
 
         self._update_style()
 
     def _update_style(self):
         style_mgr = self._ui_model.get_style_manager()
         self.layout().setSpacing(style_mgr.get_scaled_size_param('small_padding'))
-
-    def _perform_updates(self, signals):
-        if 'signal_style_changed' in signals:
-            self._update_style()
-
-    def unregister_updaters(self):
-        self._ui_model.get_updater().unregister_updater(self._perform_updates)
-        self._remove_button.unregister_updaters()
-        self._expr_editor.unregister_updaters()
-        self._type_editor.unregister_updaters()
-        self._event_editor.unregister_updaters()
-        self._target_dev_selector.unregister_updaters()
 
     def set_used_names(self, used_names):
         self._event_editor.set_used_names(used_names)
@@ -1101,14 +1046,11 @@ class ExpressionValidator(QValidator):
         return (QValidator.Acceptable, contents, pos)
 
 
-class EventBindTargetArgExpressionEditor(QWidget):
+class EventBindTargetArgExpressionEditor(QWidget, AudioUnitUpdater):
 
     def __init__(self):
         super().__init__()
-        self._au_id = None
         self._context = None
-        self._ui_model = None
-        self._updater = None
 
         self._editor = QLineEdit()
         self._editor.setValidator(ExpressionValidator())
@@ -1120,32 +1062,18 @@ class EventBindTargetArgExpressionEditor(QWidget):
         h.addWidget(self._editor)
         self.setLayout(h)
 
-    def set_au_id(self, au_id):
-        self._au_id = au_id
-
     def set_context(self, context):
         self._context = context
         if self._ui_model:
             self._update_expression()
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-
-        self._updater.register_updater(self._perform_updates)
-
+    def _on_setup(self):
         self._editor.textChanged.connect(self._change_expression)
 
+        self.register_action('signal_style_changed', self._update_style)
+
         self._update_expression()
-
         self._update_style()
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
-        if 'signal_style_changed' in signals:
-            self._update_style()
 
     def _update_style(self):
         style_mgr = self._ui_model.get_style_manager()
