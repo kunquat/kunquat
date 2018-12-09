@@ -20,7 +20,6 @@ class Updater():
     def __init__(self):
         self._update_signals = ['signal_init']
         self._deferred_update_signals = []
-        self._updaters = set()
         self._actions = OrderedDict()
         self._upcoming_actions = []
         self._removed_actor_ids = []
@@ -81,12 +80,6 @@ class Updater():
         if not self._is_updating:
             self._update_actions()
 
-    def register_updater(self, updater):
-        self._updaters.add(updater)
-
-    def unregister_updater(self, updater):
-        self._updaters.remove(updater)
-
     def perform_updates(self):
         self._update_actions()
 
@@ -114,10 +107,6 @@ class Updater():
                         _, action, _ = action_info
                         action()
 
-        iterator = set(self._updaters)
-        while len(iterator) > 0:
-            updater = iterator.pop()
-            updater(set(self._update_signals))
         self._update_signals = []
 
     def verify_ready_to_exit(self):
@@ -136,10 +125,5 @@ class Updater():
             actions_str = '\n'.join(a for a in live_actions)
             raise RuntimeError(
                     'Actions left on exit:\n{}'.format(actions_str))
-
-        if self._updaters:
-            updaters_str = '\n'.join(str(u) for u in self._updaters)
-            raise RuntimeError(
-                    'Updaters left on exit:\n{}'.format(updaters_str))
 
 
