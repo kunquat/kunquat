@@ -45,7 +45,8 @@ class Session():
 
     def __init__(self):
         # Visibility
-        self._visible = set()
+        self._visible_uis = set()
+        self._signalled_uis = set()
 
         # Stats
         self._output_speed = 0
@@ -446,17 +447,27 @@ class Session():
 
     def show_ui(self, ui_id):
         assert ui_id
-        self._visible.add(ui_id)
+        self._visible_uis.add(ui_id)
 
     def hide_ui(self, ui_id):
         assert ui_id
-        self._visible -= set([ui_id])
+        self._visible_uis.discard(ui_id)
 
     def hide_all(self):
-        self._visible = set()
+        self._visible_uis = set()
 
     def get_visible(self):
-        return self._visible
+        return self._visible_uis
+
+    def signal_ui(self, ui_id):
+        assert ui_id
+        self._signalled_uis.add(ui_id)
+
+    def get_signalled_uis(self):
+        return self._signalled_uis
+
+    def clear_signalled_uis(self):
+        self._signalled_uis = set()
 
     def log_event(self, channel, event_type, event_value, context):
         if context != 'tfire':
