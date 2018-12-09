@@ -21,6 +21,7 @@ class Store(MutableMapping):
     def __init__(self):
         self._content = dict()
         self._audio_engine = None
+        self._updater = None
         self._data_converters = None
         self._pending_validation = deque()
         self._transaction_ids = count()
@@ -28,6 +29,9 @@ class Store(MutableMapping):
         self._flush_callbacks = {}
         self._is_saving = False
         self._is_modified = False
+
+    def set_updater(self, updater):
+        self._updater = updater
 
     def set_audio_engine(self, audio_engine):
         self._audio_engine = audio_engine
@@ -47,6 +51,8 @@ class Store(MutableMapping):
         self._audio_engine.set_data(transaction_id, ver_transaction)
         self._pending_validation.append((transaction_id, ver_transaction))
         if mark_modified:
+            if not self._is_modified:
+                self._updater.signal_update_deferred('signal_store')
             self._is_modified = True
 
     def put_raw(self, entries):
@@ -97,6 +103,8 @@ class Store(MutableMapping):
         return self._is_modified
 
     def clear_modified_flag(self):
+        if self._is_modified:
+            self._updater.signal_update_deferred('signal_store')
         self._is_modified = False
 
     def _get_validated_transaction(self, validated_id):
