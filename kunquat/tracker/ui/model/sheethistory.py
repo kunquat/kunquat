@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016-2017
+# Author: Tomi Jylhä-Ollila, Finland 2016-2018
 #
 # This file is part of Kunquat.
 #
@@ -46,7 +46,7 @@ class SheetHistory():
     def add_step(self, transaction, location, commit=True):
         cur_step = self._session.get_sheet_cur_step()
         if not cur_step:
-            cur_step = Step(self._store, self._ui_model)
+            cur_step = Step(self._store, self._session, self._ui_model)
             self._session.set_sheet_cur_step(cur_step)
         cur_step.add_transaction(transaction, location)
 
@@ -116,8 +116,9 @@ class SheetHistory():
 
 class Step():
 
-    def __init__(self, store, ui_model):
+    def __init__(self, store, session, ui_model):
         self._store = store
+        self._session = session
         self._ui_model = ui_model
         self._updater = ui_model.get_updater()
 
@@ -182,8 +183,8 @@ class Step():
                 track_num, system_num = album.get_pattern_instance_location_by_nums(
                         pat_num, inst_num)
 
-                self._updater.signal_update(SheetManager.encode_column_signal(
-                    track_num, system_num, col_num))
+                self._session.add_column_update(track_num, system_num, col_num)
+                self._updater.signal_update('signal_column_updated')
                 return
 
         elif re.match('pat_[0-9a-f]{3}/col_[0-9a-f]{2}/i_overlay_grids.json', key):

@@ -14,6 +14,7 @@
 from kunquat.tracker.ui.qt import *
 
 from . import utils
+from .updater import Updater
 
 
 _LIGHT_CONFIG = {
@@ -66,12 +67,10 @@ class EventLight(QWidget):
         return QSize(self._config['width'], self._config['height'])
 
 
-class EventListButton(QToolButton):
+class EventListButton(QToolButton, Updater):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
         self._last_event_count = 0
 
         self._light = EventLight()
@@ -86,16 +85,14 @@ class EventListButton(QToolButton):
         h.addWidget(self._text)
         self.setLayout(h)
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
+    def _on_setup(self):
+        self.register_action('signal_event_log_updated', self._update_event_count)
+        self.register_action('signal_style_changed', self._update_style)
+
         self.clicked.connect(self._clicked)
 
+        self._update_event_count()
         self._update_style()
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
 
     def _clicked(self):
         visibility_mgr = self._ui_model.get_visibility_manager()
@@ -105,7 +102,7 @@ class EventListButton(QToolButton):
         s = '' if count == 1 else 's'
         return '{} event{}'.format(count, s)
 
-    def _perform_updates(self, signals):
+    def _update_event_count(self):
         event_history = self._ui_model.get_event_history()
         event_count = event_history.get_received_event_count()
 
@@ -113,9 +110,6 @@ class EventListButton(QToolButton):
             self._last_event_count = event_count
             self._light.do_flash()
             self._text.setText(self._get_text(event_count))
-
-        if 'signal_style_changed' in signals:
-            self._update_style()
 
     def _update_style(self):
         style_mgr = self._ui_model.get_style_manager()

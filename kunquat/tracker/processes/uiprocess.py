@@ -106,6 +106,9 @@ class UiProcess(Process):
     def update_drivers(self, drivers):
         self._q.put('update_drivers', drivers)
 
+    def notify_audio_rendered(self, levels):
+        self._q.put('notify_audio_rendered', levels)
+
     def update_selected_driver(self, driver_class):
         self._q.put('update_selected_driver', driver_class)
 
@@ -117,9 +120,6 @@ class UiProcess(Process):
 
     def update_render_load(self, ratio):
         self._q.put('update_render_load', ratio)
-
-    def update_audio_levels(self, levels):
-        self._q.put('update_audio_levels', levels)
 
     def update_selected_control(self, channel_number, control_number):
         self._q.put('update_selected_control', channel_number, control_number)

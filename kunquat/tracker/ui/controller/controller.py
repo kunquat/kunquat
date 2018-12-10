@@ -95,6 +95,8 @@ class Controller():
     def set_updater(self, updater):
         self._updater = updater
 
+        self._store.set_updater(self._updater)
+
     def get_updater(self):
         return self._updater
 
@@ -575,25 +577,25 @@ class Controller():
     def notify_libkunquat_error(self, e):
         raise e
 
+    def notify_audio_rendered(self, levels):
+        self._session.set_audio_levels(levels)
+        self._updater.signal_update('signal_audio_rendered')
+
     def update_output_speed(self, fps):
         self._session.set_output_speed(fps)
-        self._updater.signal_update()
+        #self._updater.signal_update()
 
     def update_render_speed(self, fps):
         self._session.set_render_speed(fps)
-        self._updater.signal_update()
+        #self._updater.signal_update()
 
     def update_render_load(self, load):
         self._session.set_render_load(load)
-        self._updater.signal_update()
-
-    def update_audio_levels(self, levels):
-        self._session.set_audio_levels(levels)
-        self._updater.signal_update()
+        #self._updater.signal_update()
 
     def update_ui_load(self, load):
         self._session.set_ui_load(load)
-        self._updater.signal_update()
+        #self._updater.signal_update()
 
     def add_ui_load_average(self, load_avg):
         self._session.add_ui_load_average(load_avg)
@@ -605,11 +607,11 @@ class Controller():
 
     def update_selected_control(self, channel, control_id):
         self._session.set_selected_control_id_by_channel(channel, control_id)
-        self._updater.signal_update()
+        #self._updater.signal_update()
 
     def update_active_note(self, channel, event_type, pitch):
         self._session.set_active_note(channel, event_type, pitch)
-        self._updater.signal_update()
+        #self._updater.signal_update()
 
     def update_active_var_name(self, ch, var_name):
         self._session.set_active_var_name(ch, var_name)
@@ -673,7 +675,7 @@ class Controller():
 
     def update_event_log_with(self, channel_number, event_type, event_value, context):
         self._session.log_event(channel_number, event_type, event_value, context)
-        self._updater.signal_update()
+        self._updater.signal_update('signal_event_log_updated')
 
     def update_import_progress(self, progress):
         self._update_progress_step(progress)
@@ -731,8 +733,8 @@ def create_controller():
     controller.set_store(store)
     controller.set_session(session)
     controller.set_share(share)
-    controller.set_updater(updater)
     controller.set_note_channel_mapper(note_channel_mapper)
+    controller.set_updater(updater)
     return controller
 
 

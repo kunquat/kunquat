@@ -18,8 +18,8 @@ from collections import OrderedDict
 class Updater():
 
     def __init__(self):
-        self._update_signals = set(['signal_init'])
-        self._updaters = set()
+        self._update_signals = ['signal_init']
+        self._deferred_update_signals = []
         self._actions = OrderedDict()
         self._upcoming_actions = []
         self._removed_actor_ids = []
@@ -27,10 +27,22 @@ class Updater():
 
     def signal_update(self, *signals):
         assert not self._is_updating
-        self._update_signals.add('signal_change')
+
+        if not self._update_signals:
+            if self._deferred_update_signals:
+                self._update_signals = self._deferred_update_signals
+                self._deferred_update_signals = []
+
         for s in signals:
             assert type(s) == str
-        self._update_signals |= set([*signals])
+            if s not in self._update_signals:
+                self._update_signals.append(s)
+
+    def signal_update_deferred(self, *signals):
+        for s in signals:
+            assert type(s) == str
+            if s not in self._deferred_update_signals:
+                self._deferred_update_signals.append(s)
 
     def _update_actions(self):
         assert not self._is_updating
@@ -63,12 +75,6 @@ class Updater():
         if not self._is_updating:
             self._update_actions()
 
-    def register_updater(self, updater):
-        self._updaters.add(updater)
-
-    def unregister_updater(self, updater):
-        self._updaters.remove(updater)
-
     def perform_updates(self):
         self._update_actions()
 
@@ -80,8 +86,9 @@ class Updater():
             self._is_updating = False
 
     def _perform_updates(self):
-        if not self._update_signals:
-            return
+        if self._deferred_update_signals:
+            self._update_signals = self._deferred_update_signals + self._update_signals
+            self._deferred_update_signals = []
 
         called_action_infos = set()
         for signal in self._update_signals:
@@ -92,11 +99,7 @@ class Updater():
                         _, action, _ = action_info
                         action()
 
-        iterator = set(self._updaters)
-        while len(iterator) > 0:
-            updater = iterator.pop()
-            updater(self._update_signals)
-        self._update_signals = set()
+        self._update_signals = []
 
     def verify_ready_to_exit(self):
         self._update_actions()
@@ -114,10 +117,5 @@ class Updater():
             actions_str = '\n'.join(a for a in live_actions)
             raise RuntimeError(
                     'Actions left on exit:\n{}'.format(actions_str))
-
-        if self._updaters:
-            updaters_str = '\n'.join(str(u) for u in self._updaters)
-            raise RuntimeError(
-                    'Updaters left on exit:\n{}'.format(updaters_str))
 
 

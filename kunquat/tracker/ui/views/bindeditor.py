@@ -397,6 +397,8 @@ class ConstraintEditor(QWidget, Updater):
 
         self.add_to_updaters(self._remove_button)
 
+        self._is_pending_removal = False
+
         h = QHBoxLayout()
         h.setContentsMargins(0, 0, 0, 0)
         h.setSpacing(2)
@@ -417,18 +419,22 @@ class ConstraintEditor(QWidget, Updater):
                 style_mgr.get_style_param('list_button_padding'))
 
         self._event.currentIndexChanged.connect(self._change_event)
-
         self._expression.editingFinished.connect(self._change_expression)
-
         self._remove_button.clicked.connect(self._remove)
 
         self._update_all()
+
+    def _on_teardown(self):
+        self._is_pending_removal = True
 
     def _update_style(self):
         style_mgr = self._ui_model.get_style_manager()
         self.layout().setSpacing(style_mgr.get_scaled_size_param('small_padding'))
 
     def _update_all(self):
+        if self._is_pending_removal:
+            return
+
         bindings = self._ui_model.get_module().get_bindings()
         if not bindings.has_selected_binding():
             return
@@ -468,6 +474,8 @@ class ConstraintEditor(QWidget, Updater):
         self._updater.signal_update('signal_bind')
 
     def _remove(self):
+        self._is_pending_removal = True
+
         bindings = self._ui_model.get_module().get_bindings()
         binding = bindings.get_selected_binding()
         binding.get_constraints().remove_constraint(self._index)
@@ -575,6 +583,8 @@ class TargetEditor(QWidget, Updater):
 
         self.add_to_updaters(self._remove_button)
 
+        self._is_pending_removal = False
+
         h = QHBoxLayout()
         h.setContentsMargins(0, 0, 0, 0)
         h.setSpacing(2)
@@ -604,11 +614,17 @@ class TargetEditor(QWidget, Updater):
         self._update_style()
         self._update_all()
 
+    def _on_teardown(self):
+        self._is_pending_removal = True
+
     def _update_style(self):
         style_mgr = self._ui_model.get_style_manager()
         self.layout().setSpacing(style_mgr.get_scaled_size_param('small_padding'))
 
     def _update_all(self):
+        if self._is_pending_removal:
+            return
+
         bindings = self._ui_model.get_module().get_bindings()
         if not bindings.has_selected_binding():
             return
@@ -676,6 +692,8 @@ class TargetEditor(QWidget, Updater):
         self._updater.signal_update('signal_bind')
 
     def _remove(self):
+        self._is_pending_removal = True
+
         bindings = self._ui_model.get_module().get_bindings()
         binding = bindings.get_selected_binding()
         binding.get_targets().remove_target(self._index)

@@ -32,70 +32,71 @@ from .procwindow import ProcWindow
 from .sheet.grideditorwindow import GridEditorWindow
 from .iawindow import IAWindow
 from .renderstatswindow import RenderStatsWindow
+from .updater import Updater
 from . import utils
 
 
-class RootView():
+class RootView(Updater):
 
     def __init__(self):
-        self._ui_model = None
-        self._updater = None
+        super().__init__()
+
         self._visible = set()
 
         self._style_creator = StyleCreator()
         self._crash_dialog = None
 
         self._main_window = MainWindow()
-        self._about_window = None
-        self._event_log = None
-        self._connections = None
-        self._songs_channels = None
-        self._notation = None
-        self._tuning_tables = {}
-        self._env_bind = None
-        self._general_mod = None
-        self._settings = None
-        self._au_windows = {}
-        self._proc_windows = {}
-        self._grid_editor = None
-        self._ia_controls = None
-        self._render_stats = None
-        self._progress_window = None
+        self._single_windows = {}
+        self._mult_windows = {
+            UI_TUNING_TABLE:    {},
+            UI_AUDIO_UNIT:      {},
+            UI_PROCESSOR:       {},
+        }
 
         self._module = None
 
+        self._progress_window = None
         self._load_error_dialog = None
         self._au_import_error_dialog = None
 
-        self._window_raise_signals = set('signal_window_{}'.format(ui) for ui in [
-                UI_ABOUT,
-                UI_EVENT_LOG,
-                UI_CONNECTIONS,
-                UI_SONGS_CHS,
-                UI_NOTATION,
-                UI_ENV_BIND,
-                UI_GENERAL_MOD,
-                UI_SETTINGS,
-                UI_GRID_EDITOR,
-                UI_IA_CONTROLS,
-                UI_RENDER_STATS,
-            ])
-        self._window_raise_signal_prefixes = tuple('signal_window_{}'.format(ui)
-                for ui in [UI_TUNING_TABLE, UI_AUDIO_UNIT, UI_PROCESSOR])
+    def _on_setup(self):
+        self._style_creator.set_ui_model(self._ui_model)
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-
-        self._style_creator.set_ui_model(ui_model)
-        self._main_window.set_ui_model(ui_model)
-        self._updater = self._ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
         self._module = self._ui_model.get_module()
+
+        self.register_action('signal_visibility', self._update_visibility)
+        self.register_action('signal_audio_rendered', self._send_audio_state_queries)
+
+        self.register_action('signal_module', self._on_module_setup_finished)
+        self.register_action('signal_start_save_module', self._start_save_module)
+        self.register_action(
+                'signal_save_module_finished', self._on_save_module_finished)
+        self.register_action('signal_start_import_au', self._start_import_au)
+        self.register_action('signal_au_import_error', self._on_au_import_error)
+        self.register_action('signal_au_import_finished', self._on_au_import_finished)
+        self.register_action('signal_start_export_au', self._start_export_au)
+        self.register_action('signal_export_au_finished', self._on_export_au_finished)
+        self.register_action('signal_progress_start', self._show_progress_window)
+        self.register_action('signal_progress_step', self._update_progress_window)
+        self.register_action('signal_progress_finished', self._hide_progress_window)
+        self.register_action('signal_module_load_error', self._on_module_load_error)
+        self.register_action('signal_style_changed', self._update_style)
 
         style_mgr = self._ui_model.get_style_manager()
         style_mgr.set_init_style_sheet(QApplication.instance().styleSheet())
         style_sheet = self._style_creator.get_updated_style_sheet()
         QApplication.instance().setStyleSheet(style_sheet)
+
+        self.add_to_updaters(self._main_window)
+
+    def _on_teardown(self):
+        self._style_creator.unregister_updaters()
+
+    def _update_style(self):
+        style_sheet = self._style_creator.get_updated_style_sheet()
+        QApplication.instance().setStyleSheet(style_sheet)
+        self._crash_dialog.update_style(self._ui_model.get_style_manager())
 
     def set_crash_dialog(self, crash_dialog):
         self._crash_dialog = crash_dialog
@@ -116,12 +117,32 @@ class RootView():
         else:
             module.execute_create_sandbox(task_executor)
 
-    def _perform_updates(self, signals):
+    def _update_visibility(self):
         visibility_mgr = self._ui_model.get_visibility_manager()
         visibility_update = visibility_mgr.get_visible()
 
         opened = visibility_update - self._visible
         closed = self._visible - visibility_update
+
+        single_window_cons = {
+            UI_ABOUT:           AboutWindow,
+            UI_EVENT_LOG:       EventListWindow,
+            UI_CONNECTIONS:     ConnectionsWindow,
+            UI_SONGS_CHS:       SongsChannelsWindow,
+            UI_NOTATION:        NotationWindow,
+            UI_ENV_BIND:        EnvBindWindow,
+            UI_GENERAL_MOD:     GeneralModWindow,
+            UI_SETTINGS:        SettingsWindow,
+            UI_GRID_EDITOR:     GridEditorWindow,
+            UI_IA_CONTROLS:     IAWindow,
+            UI_RENDER_STATS:    RenderStatsWindow,
+        }
+
+        mult_window_cons = {
+            UI_TUNING_TABLE:    TuningTableWindow,
+            UI_AUDIO_UNIT:      AuWindow,
+            UI_PROCESSOR:       ProcWindow,
+        }
 
         for ui in opened:
             # Check settings for UI visibility
@@ -130,236 +151,75 @@ class RootView():
             if ui == UI_MAIN:
                 if is_show_allowed:
                     self._main_window.show()
-            elif ui == UI_ABOUT:
-                self._about_window = AboutWindow()
-                self._about_window.set_ui_model(self._ui_model)
+            elif ui in single_window_cons:
+                assert ui not in self._single_windows
+                window = single_window_cons[ui]()
+                self.add_to_updaters(window)
+                self._single_windows[ui] = window
                 if is_show_allowed:
-                    self._about_window.show()
-            elif ui == UI_EVENT_LOG:
-                self._event_log = EventListWindow()
-                self._event_log.set_ui_model(self._ui_model)
+                    window.show()
+            elif isinstance(ui, tuple):
+                ui_type, ui_id = ui
+                assert ui_id not in self._mult_windows[ui_type]
+
+                window = mult_window_cons[ui_type]()
+                if ui_type == UI_TUNING_TABLE:
+                    window.set_tuning_table_id(ui_id)
+                elif ui_type == UI_AUDIO_UNIT:
+                    window.set_au_id(ui_id)
+                elif ui_type == UI_PROCESSOR:
+                    proc_id = ui_id
+                    proc_id_parts = proc_id.split('/')
+                    au_id = '/'.join(proc_id_parts[:-1])
+                    window.set_au_id(au_id)
+                    window.set_proc_id(proc_id)
+                else:
+                    assert False
+
+                self.add_to_updaters(window)
+                self._mult_windows[ui_type][ui_id] = window
                 if is_show_allowed:
-                    self._event_log.show()
-            elif ui == UI_CONNECTIONS:
-                self._connections = ConnectionsWindow()
-                self._connections.set_ui_model(self._ui_model)
-                if is_show_allowed:
-                    self._connections.show()
-            elif ui == UI_SONGS_CHS:
-                self._songs_channels = SongsChannelsWindow()
-                self._songs_channels.set_ui_model(self._ui_model)
-                if is_show_allowed:
-                    self._songs_channels.show()
-            elif ui == UI_NOTATION:
-                self._notation = NotationWindow()
-                self._notation.set_ui_model(self._ui_model)
-                if is_show_allowed:
-                    self._notation.show()
-            elif type(ui) == tuple and ui[0] == UI_TUNING_TABLE:
-                table_id = ui[1]
-                tt_window = TuningTableWindow()
-                tt_window.set_tuning_table_id(table_id)
-                tt_window.set_ui_model(self._ui_model)
-                self._tuning_tables[table_id] = tt_window
-                if is_show_allowed:
-                    self._tuning_tables[table_id].show()
-            elif ui == UI_ENV_BIND:
-                self._env_bind = EnvBindWindow()
-                self._env_bind.set_ui_model(self._ui_model)
-                if is_show_allowed:
-                    self._env_bind.show()
-            elif ui == UI_GENERAL_MOD:
-                self._general_mod = GeneralModWindow()
-                self._general_mod.set_ui_model(self._ui_model)
-                if is_show_allowed:
-                    self._general_mod.show()
-            elif ui == UI_SETTINGS:
-                self._settings = SettingsWindow()
-                self._settings.set_ui_model(self._ui_model)
-                if is_show_allowed:
-                    self._settings.show()
-            elif type(ui) == tuple and ui[0] == UI_AUDIO_UNIT:
-                au_id = ui[1]
-                au_window = AuWindow()
-                au_window.set_au_id(au_id)
-                au_window.set_ui_model(self._ui_model)
-                self._au_windows[au_id] = au_window
-                if is_show_allowed:
-                    self._au_windows[au_id].show()
-            elif type(ui) == tuple and ui[0] == UI_PROCESSOR:
-                proc_id = ui[1]
-                proc_id_parts = proc_id.split('/')
-                au_id = '/'.join(proc_id_parts[:-1])
-                proc_window = ProcWindow()
-                proc_window.set_au_id(au_id)
-                proc_window.set_proc_id(proc_id)
-                proc_window.set_ui_model(self._ui_model)
-                self._proc_windows[proc_id] = proc_window
-                if is_show_allowed:
-                    self._proc_windows[proc_id].show()
-            elif ui == UI_GRID_EDITOR:
-                self._grid_editor = GridEditorWindow()
-                self._grid_editor.set_ui_model(self._ui_model)
-                if is_show_allowed:
-                    self._grid_editor.show()
-            elif ui == UI_IA_CONTROLS:
-                self._ia_controls = IAWindow()
-                self._ia_controls.set_ui_model(self._ui_model)
-                if is_show_allowed:
-                    self._ia_controls.show()
-            elif ui == UI_RENDER_STATS:
-                self._render_stats = RenderStatsWindow()
-                self._render_stats.set_ui_model(self._ui_model)
-                if is_show_allowed:
-                    self._render_stats.show()
+                    window.show()
             else:
                 raise ValueError('Unsupported UI type: {}'.format(ui))
 
         for ui in closed:
             if ui == UI_MAIN:
-                visibility_mgr.hide_all()
                 self._main_window.hide()
-            elif ui == UI_ABOUT:
-                self._about_window.unregister_updaters()
-                self._about_window.deleteLater()
-                self._about_window = None
-            elif ui == UI_EVENT_LOG:
-                self._event_log.unregister_updaters()
-                self._event_log.deleteLater()
-                self._event_log = None
-            elif ui == UI_CONNECTIONS:
-                self._connections.unregister_updaters()
-                self._connections.deleteLater()
-                self._connections = None
-            elif ui == UI_SONGS_CHS:
-                self._songs_channels.unregister_updaters()
-                self._songs_channels.deleteLater()
-                self._songs_channels = None
-            elif ui == UI_NOTATION:
-                self._notation.unregister_updaters()
-                self._notation.deleteLater()
-                self._notation = None
-            elif type(ui) == tuple and ui[0] == UI_TUNING_TABLE:
-                table_id = ui[1]
-                tt_window = self._tuning_tables.pop(table_id)
-                tt_window.unregister_updaters()
-                tt_window.deleteLater()
-            elif ui == UI_ENV_BIND:
-                self._env_bind.unregister_updaters()
-                self._env_bind.deleteLater()
-                self._env_bind = None
-            elif ui == UI_GENERAL_MOD:
-                self._general_mod.unregister_updaters()
-                self._general_mod.deleteLater()
-                self._general_mod = None
-            elif ui == UI_SETTINGS:
-                self._settings.unregister_updaters()
-                self._settings.deleteLater()
-                self._settings = None
-            elif type(ui) == tuple and ui[0] == UI_AUDIO_UNIT:
-                au_id = ui[1]
-                au_window = self._au_windows.pop(au_id)
-                au_window.unregister_updaters()
-                au_window.deleteLater()
-            elif type(ui) == tuple and ui[0] == UI_PROCESSOR:
-                proc_id = ui[1]
-                proc_window = self._proc_windows.pop(proc_id)
-                proc_window.unregister_updaters()
-                proc_window.deleteLater()
-            elif ui == UI_GRID_EDITOR:
-                self._grid_editor.unregister_updaters()
-                self._grid_editor.deleteLater()
-                self._grid_editor = None
-            elif ui == UI_IA_CONTROLS:
-                self._ia_controls.unregister_updaters()
-                self._ia_controls.deleteLater()
-                self._ia_controls = None
-            elif ui == UI_RENDER_STATS:
-                self._render_stats.unregister_updaters()
-                self._render_stats.deleteLater()
-                self._render_stats = None
+            elif ui in single_window_cons:
+                window = self._single_windows.pop(ui)
+                self.remove_from_updaters(window)
+                window.deleteLater()
+            elif isinstance(ui, tuple):
+                ui_type, ui_id = ui
+                window = self._mult_windows[ui_type].pop(ui_id)
+                self.remove_from_updaters(window)
+                window.deleteLater()
             else:
                 raise ValueError('Unsupported UI type: {}'.format(ui))
 
         self._visible = set(visibility_update)
 
         if self._visible:
+            signalled = visibility_mgr.get_and_clear_signalled()
+
             # Raise signalled windows to top
-            bring_to_top = self._window_raise_signals & signals
-            if bring_to_top:
-                windows = {
-                    UI_ABOUT:           self._about_window,
-                    UI_EVENT_LOG:       self._event_log,
-                    UI_CONNECTIONS:     self._connections,
-                    UI_SONGS_CHS:       self._songs_channels,
-                    UI_NOTATION:        self._notation,
-                    UI_ENV_BIND:        self._env_bind,
-                    UI_GENERAL_MOD:     self._general_mod,
-                    UI_SETTINGS:        self._settings,
-                    UI_GRID_EDITOR:     self._grid_editor,
-                    UI_IA_CONTROLS:     self._ia_controls,
-                    UI_RENDER_STATS:    self._render_stats,
-                }
-                for ui, window in windows.items():
-                    sig = 'signal_window_{}'.format(ui)
-                    if sig in bring_to_top and window:
+            if signalled:
+                for signalled_id in signalled:
+                    if isinstance(signalled_id, tuple):
+                        win_type, win_id = signalled_id
+                        window = self._mult_windows[win_type].get(win_id)
+                    else:
+                        window = self._single_windows.get(signalled_id)
+
+                    if window:
                         window.activateWindow()
                         window.raise_()
 
-            bring_to_top = (s for s in signals
-                    if s.startswith(self._window_raise_signal_prefixes))
-            for s in bring_to_top:
-                prefix_format = 'signal_window_{}_'
-                window = None
-                if s.startswith(prefix_format.format(UI_TUNING_TABLE)):
-                    tuning_id = '_'.join(s.split('_')[-2:])
-                    if tuning_id in self._tuning_tables:
-                        window = self._tuning_tables[tuning_id]
-                elif s.startswith(prefix_format.format(UI_AUDIO_UNIT)):
-                    au_id = '_'.join(s.split('_')[-2:])
-                    if au_id in self._au_windows:
-                        window = self._au_windows[au_id]
-                elif s.startswith(prefix_format.format(UI_PROCESSOR)):
-                    proc_id = s[len(prefix_format.format(UI_PROCESSOR)):]
-                    if proc_id in self._proc_windows:
-                        window = self._proc_windows[proc_id]
-
-                if window:
-                    window.activateWindow()
-                    window.raise_()
-
-            # Process other signals
-            if 'signal_module' in signals:
-                self._on_module_setup_finished()
-            if 'signal_start_save_module' in signals:
-                self._start_save_module()
-            if 'signal_save_module_finished' in signals:
-                self._on_save_module_finished()
-            if 'signal_start_import_au' in signals:
-                self._start_import_au()
-            if 'signal_au_import_error' in signals:
-                self._on_au_import_error()
-            if 'signal_au_import_finished' in signals:
-                self._on_au_import_finished()
-            if 'signal_start_export_au' in signals:
-                self._start_export_au()
-            if 'signal_export_au_finished' in signals:
-                self._on_export_au_finished()
-            if 'signal_progress_start' in signals:
-                self._show_progress_window()
-            if 'signal_progress_step' in signals:
-                self._update_progress_window()
-            if 'signal_progress_finished' in signals:
-                self._hide_progress_window()
-            if 'signal_module_load_error' in signals:
-                self._on_module_load_error()
-            if 'signal_style_changed' in signals:
-                style_sheet = self._style_creator.get_updated_style_sheet()
-                QApplication.instance().setStyleSheet(style_sheet)
-                self._crash_dialog.update_style(self._ui_model.get_style_manager())
         else:
             QApplication.quit()
 
+    def _send_audio_state_queries(self):
         self._ui_model.clock()
 
     def _show_progress_window(self):
@@ -393,29 +253,14 @@ class RootView():
             if window:
                 window.setEnabled(enabled)
 
-        try_set_enabled(self._main_window)
-        try_set_enabled(self._about_window)
-        try_set_enabled(self._event_log)
-        try_set_enabled(self._connections)
-        try_set_enabled(self._songs_channels)
-        try_set_enabled(self._notation)
-        for window in self._tuning_tables.values():
-            window.setEnabled(enabled)
-        try_set_enabled(self._env_bind)
-        try_set_enabled(self._general_mod)
-        try_set_enabled(self._settings)
-        for window in self._au_windows.values():
-            window.setEnabled(enabled)
-        for window in self._proc_windows.values():
-            window.setEnabled(enabled)
-        try_set_enabled(self._grid_editor)
-        try_set_enabled(self._ia_controls)
-        try_set_enabled(self._render_stats)
+        self._main_window.setEnabled(enabled)
 
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-        self._main_window.unregister_updaters()
-        self._style_creator.unregister_updaters()
+        for window in self._single_windows.values():
+            window.setEnabled(enabled)
+
+        for group in self._mult_windows.values():
+            for window in group.values():
+                window.setEnabled(enabled)
 
     def _start_save_module(self):
         self._set_windows_enabled(False)

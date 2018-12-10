@@ -24,23 +24,18 @@ DISP_CONTEXTS = {
         }
 
 
-class EventListModel(QAbstractTableModel):
+class EventListModel(QAbstractTableModel, Updater):
 
     HEADERS = ["#", "Chn", "Type", "Value", "Context"]
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
-
         self._log = []
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
+    def _on_setup(self):
+        self.register_action('signal_event_log_updated', self._update_data)
 
-    def _perform_updates(self, signals):
+    def _update_data(self):
         event_history = self._ui_model.get_event_history()
         log = event_history.get_log()
 
@@ -60,9 +55,6 @@ class EventListModel(QAbstractTableModel):
         self.dataChanged.emit(
                 self.index(0, 0),
                 self.index(len(self._log) - 1, len(self.HEADERS) - 1))
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
 
     # Qt interface
 
@@ -139,27 +131,16 @@ class EventTable(QTableView):
         self._focusbottom = (vscrollbar.value() == vscrollbar.maximum())
 
 
-class EventFilterButton(QCheckBox):
+class EventFilterButton(QCheckBox, Updater):
 
     def __init__(self, context):
         super().__init__(DISP_CONTEXTS[context])
-        self._ui_model = None
-        self._updater = None
         self._context = context
 
         self.clicked.connect(self._on_clicked)
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
-
-        self._update_all()
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signal):
+    def _on_setup(self):
+        self.register_action('signal_event_log_updated', self._update_all)
         self._update_all()
 
     def _update_all(self):

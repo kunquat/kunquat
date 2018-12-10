@@ -45,7 +45,8 @@ class Session():
 
     def __init__(self):
         # Visibility
-        self._visible = set()
+        self._visible_uis = set()
+        self._signalled_uis = set()
 
         # Stats
         self._output_speed = 0
@@ -129,6 +130,7 @@ class Session():
         self._edit_mode_enabled = False
         self._typewriter_connected = False
         self._replace_mode_enabled = False
+        self._column_updates = []
 
         # Grids
         self._is_grid_enabled = True
@@ -446,17 +448,27 @@ class Session():
 
     def show_ui(self, ui_id):
         assert ui_id
-        self._visible.add(ui_id)
+        self._visible_uis.add(ui_id)
 
     def hide_ui(self, ui_id):
         assert ui_id
-        self._visible -= set([ui_id])
+        self._visible_uis.discard(ui_id)
 
     def hide_all(self):
-        self._visible = set()
+        self._visible_uis = set()
 
     def get_visible(self):
-        return self._visible
+        return self._visible_uis
+
+    def signal_ui(self, ui_id):
+        assert ui_id
+        self._signalled_uis.add(ui_id)
+
+    def get_signalled_uis(self):
+        return self._signalled_uis
+
+    def clear_signalled_uis(self):
+        self._signalled_uis = set()
 
     def log_event(self, channel, event_type, event_value, context):
         if context != 'tfire':
@@ -589,6 +601,15 @@ class Session():
 
     def get_replace_mode(self):
         return self._replace_mode_enabled
+
+    def add_column_update(self, track_num, system_num, col_num):
+        self._column_updates.append((track_num, system_num, col_num))
+
+    def get_column_updates(self):
+        return self._column_updates
+
+    def clear_column_updates(self):
+        self._column_updates = []
 
     def set_playback_active(self, active):
         self._is_playback_active = active

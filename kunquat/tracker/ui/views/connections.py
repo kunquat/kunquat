@@ -20,6 +20,7 @@ from kunquat.tracker.ui.qt import *
 
 from kunquat.tracker.ui.model.module import Module
 from kunquat.tracker.ui.model.processor import Processor
+from .audiounit.audiounitupdater import AudioUnitUpdater
 from .confirmdialog import ConfirmDialog
 from .linesegment import LineSegment
 from . import utils
@@ -167,7 +168,7 @@ def get_dist_to_ls(point, ls_a, ls_b):
     return dist(x, proj)
 
 
-class Connections(QAbstractScrollArea):
+class Connections(QAbstractScrollArea, AudioUnitUpdater):
 
     def __init__(self):
         super().__init__()
@@ -178,16 +179,11 @@ class Connections(QAbstractScrollArea):
         self.horizontalScrollBar().setSingleStep(8)
         self.verticalScrollBar().setSingleStep(8)
 
-    def set_au_id(self, au_id):
-        self.viewport().set_au_id(au_id)
+        self.add_to_updaters(self.viewport())
 
-    def set_ui_model(self, ui_model):
-        self.viewport().set_ui_model(ui_model)
+    def _on_setup(self):
         self.viewport().positionsChanged.connect(self._update_scrollbars)
         self._update_scrollbars()
-
-    def unregister_updaters(self):
-        self.viewport().unregister_updaters()
 
     def _update_scrollbars(self):
         visible_rect = self.viewport().get_visible_rect()
@@ -267,15 +263,12 @@ STATE_EDGE_MENU = 'edge_menu'
 STATE_ADDING_EDGE = 'adding_edge'
 
 
-class ConnectionsView(QWidget):
+class ConnectionsView(QWidget, AudioUnitUpdater):
 
     positionsChanged = Signal(name='positionsChanged')
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
-        self._au_id = None
-        self._updater = None
 
         self._state = STATE_IDLE
 
@@ -315,20 +308,26 @@ class ConnectionsView(QWidget):
         self.setFocusPolicy(Qt.ClickFocus)
         self.setMouseTracking(True)
 
-    def set_au_id(self, au_id):
-        assert self._ui_model == None, "Cannot set audio unit ID after UI model"
-        self._au_id = au_id
+    def _on_setup(self):
+        device_update_signals = [
+            'signal_module',
+            self._get_signal('signal_connections'),
+            'signal_controls',
+        ]
+        if self._au_id != None:
+            device_update_signals.extend([
+                self._get_signal('signal_au_conns_hit'),
+                self._get_signal('signal_au_conns_expr'),
+                self._get_signal('signal_au_conns_edit_mode'),
+                ])
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
+        for signal in device_update_signals:
+            self.register_action(signal, self._update_devices)
+
+        self.register_action('signal_style_changed', self._update_style)
 
         self._update_style()
         self._update_devices()
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
 
     def get_area_rect(self):
         area_rect = None
@@ -539,25 +538,6 @@ class ConnectionsView(QWidget):
 
         self._set_config(config)
         self.update()
-
-    def _perform_updates(self, signals):
-        update_signals = set([
-            'signal_module',
-            self._get_signal('signal_connections'),
-            'signal_controls',
-            ])
-        if self._au_id != None:
-            update_signals |= set([
-                self._get_signal('signal_au_conns_hit'),
-                self._get_signal('signal_au_conns_expr'),
-                self._get_signal('signal_au_conns_edit_mode'),
-                ])
-
-        if not signals.isdisjoint(update_signals):
-            self._update_devices()
-
-        if 'signal_style_changed' in signals:
-            self._update_style()
 
     def _get_full_id(self, dev_id):
         assert '/' not in dev_id

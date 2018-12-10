@@ -24,11 +24,10 @@ from .updater import Updater
 from . import utils
 
 
-class RenderStats(QWidget):
+class RenderStats(QWidget, Updater):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
         self._stat_mgr = None
 
         self._voice_info = QLabel()
@@ -42,6 +41,8 @@ class RenderStats(QWidget):
 
         self._render_load_container = LoadHistoryContainer(RenderLoadHistory())
         self._ui_load_container = LoadHistoryContainer(UILoadHistory())
+
+        self.add_to_updaters(self._render_load_container, self._ui_load_container)
 
         self._profile_control = ProfileControl()
 
@@ -76,14 +77,13 @@ class RenderStats(QWidget):
 
         self.setLayout(v)
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        updater = ui_model.get_updater()
-        updater.register_updater(self._perform_updates)
-        self._stat_mgr = ui_model.get_stat_manager()
-        self._render_load_container.set_ui_model(ui_model)
-        self._ui_load_container.set_ui_model(ui_model)
+    def _on_setup(self):
+        self._stat_mgr = self._ui_model.get_stat_manager()
 
+        self.register_action('signal_audio_rendered', self._update_voice_stats)
+        self.register_action('signal_style_changed', self._update_style)
+
+        self._update_voice_stats()
         self._update_style()
 
     def _update_style(self):
@@ -99,21 +99,12 @@ class RenderStats(QWidget):
         self.layout().setContentsMargins(margin, margin, margin, margin)
         self.layout().setSpacing(style_mgr.get_scaled_size_param('medium_padding'))
 
-    def unregister_updaters(self):
-        self._ui_load_container.unregister_updaters()
-        self._render_load_container.unregister_updaters()
-        updater = self._ui_model.get_updater()
-        updater.unregister_updater(self._perform_updates)
-
-    def _perform_updates(self, signals):
+    def _update_voice_stats(self):
         active_voices, max_active_voices = self._stat_mgr.get_voice_count_info()
         self._voice_info.setText('{} ({})'.format(active_voices, max_active_voices))
 
         active_vgroups, max_active_vgroups = self._stat_mgr.get_vgroup_count_info()
         self._vgroup_info.setText('{} ({})'.format(active_vgroups, max_active_vgroups))
-
-        if 'signal_style_changed' in signals:
-            self._update_style()
 
     def keyPressEvent(self, event):
         modifiers = event.modifiers()

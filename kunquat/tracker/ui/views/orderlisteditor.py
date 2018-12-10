@@ -121,12 +121,10 @@ class OrderlistEditor(QWidget, Updater):
         event.ignore()
 
 
-class OrderlistToolBar(QToolBar):
+class OrderlistToolBar(QToolBar, Updater):
 
     def __init__(self, orderlist):
         super().__init__()
-        self._ui_model = None
-        self._updater = None
         self._orderlist_mgr = None
 
         self._orderlist = orderlist
@@ -151,23 +149,23 @@ class OrderlistToolBar(QToolBar):
         self.addWidget(self._new_song_button)
         self.addWidget(self._remove_song_button)
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        module = ui_model.get_module()
+        self.add_to_updaters(
+                self._new_pat_button,
+                self._remove_pat_button,
+                self._reuse_pat_button,
+                self._new_song_button,
+                self._remove_song_button)
+
+    def _on_setup(self):
+        module = self._ui_model.get_module()
         self._album = module.get_album()
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
-        self._orderlist_mgr = ui_model.get_orderlist_manager()
+        self._orderlist_mgr = self._ui_model.get_orderlist_manager()
 
-        def setup_button(button, icon_name):
-            button.set_ui_model(self._ui_model)
-            button.set_icon(icon_name)
-
-        setup_button(self._new_pat_button, 'new_pattern')
-        setup_button(self._remove_pat_button, 'remove_pattern')
-        setup_button(self._reuse_pat_button, 'reuse_pattern')
-        setup_button(self._new_song_button, 'new_song')
-        setup_button(self._remove_song_button, 'remove_song')
+        self._new_pat_button.set_icon('new_pattern')
+        self._remove_pat_button.set_icon('remove_pattern')
+        self._reuse_pat_button.set_icon('reuse_pattern')
+        self._new_song_button.set_icon('new_song')
+        self._remove_song_button.set_icon('remove_song')
 
         self._update_buttons_enabled(None)
 
@@ -177,18 +175,13 @@ class OrderlistToolBar(QToolBar):
         self._new_song_button.clicked.connect(self._song_added)
         self._remove_song_button.clicked.connect(self._song_removed)
 
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
+        self.register_action(
+                'signal_order_list_updated', self._update_buttons_with_selection)
+        self.register_action(
+                'signal_order_list_selection', self._update_buttons_with_selection)
 
-        self._remove_song_button.unregister_updaters()
-        self._new_song_button.unregister_updaters()
-        self._reuse_pat_button.unregister_updaters()
-        self._remove_pat_button.unregister_updaters()
-        self._new_pat_button.unregister_updaters()
-
-    def _perform_updates(self, signals):
+    def _update_buttons_with_selection(self):
         selection = self._orderlist.get_selected_object()
-
         if selection != self._selection:
             self._update_buttons_enabled(selection)
 

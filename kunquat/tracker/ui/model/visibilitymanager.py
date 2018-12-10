@@ -41,19 +41,16 @@ class VisibilityManager():
         self._session.hide_all()
 
     def show_main(self):
-        if self._is_closing:
-            return
-        self._session.show_ui(UI_MAIN)
-        self._updater.signal_update()
+        self._show_window(UI_MAIN)
 
     def hide_main(self):
-        self._session.hide_ui(UI_MAIN)
-        self._updater.signal_update()
+        self._hide_window(UI_MAIN)
+        self.hide_all()
 
     def hide_main_after_saving(self):
-        # XXX: This hacky version can be called from an update function
-        #      It only works because there are always some signals emitted
         self._session.hide_ui(UI_MAIN)
+        self.hide_all()
+        self._updater.signal_update_deferred('signal_visibility')
 
     def set_input_control_view(self, mode):
         config = get_config()
@@ -66,44 +63,42 @@ class VisibilityManager():
     def _show_window(self, ui):
         if self._is_closing:
             return
+        if ui in self.get_visible():
+            self._session.signal_ui(ui)
         self._session.show_ui(ui)
 
-        if type(ui) == str:
-            signal = 'signal_window_{}'.format(ui)
-        else:
-            signal = 'signal_window_{}_{}'.format(ui[0], ui[1])
-        self._updater.signal_update(signal)
+        self._updater.signal_update('signal_visibility')
+
+    def _hide_window(self, ui):
+        self._session.hide_ui(ui)
+        self._updater.signal_update('signal_visibility')
 
     def show_about(self):
         self._show_window(UI_ABOUT)
 
     def hide_about(self):
-        self._session.hide_ui(UI_ABOUT)
-        self._updater.signal_update()
+        self._hide_window(UI_ABOUT)
 
     def show_event_log(self):
         self._show_window(UI_EVENT_LOG)
 
     def hide_event_log(self):
-        self._session.hide_ui(UI_EVENT_LOG)
-        self._updater.signal_update()
+        self._hide_window(UI_EVENT_LOG)
 
     def show_connections(self):
         self._show_window(UI_CONNECTIONS)
 
     def hide_connections(self):
-        self._session.hide_ui(UI_CONNECTIONS)
-        self._updater.signal_update()
+        self._hide_window(UI_CONNECTIONS)
 
     def show_audio_unit(self, au_id):
         self._show_window((UI_AUDIO_UNIT, au_id))
 
     def hide_audio_unit(self, au_id):
-        self._session.hide_ui((UI_AUDIO_UNIT, au_id))
-        self._updater.signal_update()
+        self._hide_window((UI_AUDIO_UNIT, au_id))
 
     def hide_audio_unit_and_subdevices(self, au_id):
-        self._session.hide_ui((UI_AUDIO_UNIT, au_id))
+        self._hide_window((UI_AUDIO_UNIT, au_id))
 
         visible_entries = self._session.get_visible()
 
@@ -113,7 +108,7 @@ class VisibilityManager():
                 (e[0] == UI_AUDIO_UNIT) and
                 e[1].startswith(au_prefix))
         for au_entry in au_entries:
-            self._session.hide_ui(au_entry)
+            self._hide_window(au_entry)
 
         proc_prefix = '{}/'.format(au_id)
         proc_entries = set(e for e in visible_entries
@@ -121,81 +116,74 @@ class VisibilityManager():
                 (e[0] == UI_PROCESSOR) and
                 e[1].startswith(proc_prefix))
         for proc_entry in proc_entries:
-            self._session.hide_ui(proc_entry)
-
-        self._updater.signal_update()
+            self._hide_window(proc_entry)
 
     def show_songs_channels(self):
         self._show_window(UI_SONGS_CHS)
 
     def hide_songs_channels(self):
-        self._session.hide_ui(UI_SONGS_CHS)
-        self._updater.signal_update()
+        self._hide_window(UI_SONGS_CHS)
 
     def show_env_and_bindings(self):
         self._show_window(UI_ENV_BIND)
 
     def hide_env_and_bindings(self):
-        self._session.hide_ui(UI_ENV_BIND)
-        self._updater.signal_update()
+        self._hide_window(UI_ENV_BIND)
 
     def show_processor(self, proc_id):
         self._show_window((UI_PROCESSOR, proc_id))
 
     def hide_processor(self, proc_id):
-        self._session.hide_ui((UI_PROCESSOR, proc_id))
-        self._updater.signal_update()
+        self._hide_window((UI_PROCESSOR, proc_id))
 
     def show_grid_editor(self):
         self._show_window(UI_GRID_EDITOR)
 
     def hide_grid_editor(self):
-        self._session.hide_ui(UI_GRID_EDITOR)
-        self._updater.signal_update()
+        self._hide_window(UI_GRID_EDITOR)
 
     def show_notation_editor(self):
         self._show_window(UI_NOTATION)
 
     def hide_notation_editor(self):
-        self._session.hide_ui(UI_NOTATION)
-        self._updater.signal_update()
+        self._hide_window(UI_NOTATION)
 
     def show_tuning_table_editor(self, table_id):
         self._show_window((UI_TUNING_TABLE, table_id))
 
     def hide_tuning_table_editor(self, table_id):
-        self._session.hide_ui((UI_TUNING_TABLE, table_id))
-        self._updater.signal_update()
+        self._hide_window((UI_TUNING_TABLE, table_id))
 
     def show_general_module_settings(self):
         self._show_window(UI_GENERAL_MOD)
 
     def hide_general_module_settings(self):
-        self._session.hide_ui(UI_GENERAL_MOD)
-        self._updater.signal_update()
+        self._hide_window(UI_GENERAL_MOD)
 
     def show_settings(self):
         self._show_window(UI_SETTINGS)
 
     def hide_settings(self):
-        self._session.hide_ui(UI_SETTINGS)
-        self._updater.signal_update()
+        self._hide_window(UI_SETTINGS)
 
     def show_render_stats(self):
         self._show_window(UI_RENDER_STATS)
 
     def hide_render_stats(self):
-        self._session.hide_ui(UI_RENDER_STATS)
-        self._updater.signal_update()
+        self._hide_window(UI_RENDER_STATS)
 
     def show_interactivity_controls(self):
         self._show_window(UI_IA_CONTROLS)
 
     def hide_interactivity_controls(self):
-        self._session.hide_ui(UI_IA_CONTROLS)
-        self._updater.signal_update()
+        self._hide_window(UI_IA_CONTROLS)
 
     def get_visible(self):
         return self._session.get_visible()
+
+    def get_and_clear_signalled(self):
+        signalled = self._session.get_signalled_uis()
+        self._session.clear_signalled_uis()
+        return signalled
 
 

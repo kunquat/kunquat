@@ -260,7 +260,7 @@ class AudioEngine():
                 self._ui_engine.update_render_speed(self._render_speed)
                 self._ui_engine.update_render_load(ratio)
 
-            self._ui_engine.update_audio_levels(self._audio_levels)
+            self._ui_engine.notify_audio_rendered(self._audio_levels)
             if self._send_voice_info:
                 self.tfire_event(0, ('qvoices', None))
                 self._send_voice_info = False

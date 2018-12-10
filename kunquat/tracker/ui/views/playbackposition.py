@@ -19,13 +19,14 @@ from kunquat.tracker.ui.qt import *
 
 from kunquat.kunquat.limits import *
 import kunquat.tracker.ui.model.tstamp as tstamp
+from .updater import Updater
 from . import utils
 
 
 _REF_NUM_STR = '23456789' * 8
 
 
-class PlaybackPosition(QWidget):
+class PlaybackPosition(QWidget, Updater):
 
     _NUM_FONT = QFont(QFont().defaultFamily(), 16, QFont.Bold)
     utils.set_glyph_rel_width(_NUM_FONT, QWidget, _REF_NUM_STR, 51.875)
@@ -69,7 +70,6 @@ class PlaybackPosition(QWidget):
 
     def __init__(self):
         super().__init__()
-        self._ui_model = None
 
         self._widths = None
         self._min_height = 0
@@ -92,15 +92,11 @@ class PlaybackPosition(QWidget):
         self.setAttribute(Qt.WA_OpaquePaintEvent)
         self.setAttribute(Qt.WA_NoSystemBackground)
 
-    def set_ui_model(self, ui_model):
-        self._ui_model = ui_model
-        self._updater = ui_model.get_updater()
-        self._updater.register_updater(self._perform_updates)
+    def _on_setup(self):
+        self.register_action('signal_audio_rendered', self._check_update)
+        self.register_action('signal_style_changed', self._update_style)
 
         self._update_style()
-
-    def unregister_updaters(self):
-        self._updater.unregister_updater(self._perform_updates)
 
     def _update_style(self):
         style_mgr = self._ui_model.get_style_manager()
@@ -274,14 +270,11 @@ class PlaybackPosition(QWidget):
 
         return (playback_state, is_infinite)
 
-    def _perform_updates(self, signals):
+    def _check_update(self):
         state = self._get_current_state()
         if (state != self._state) or (state[0] != self._STOPPED):
             self._state = state
             self.update()
-
-        if 'signal_style_changed' in signals:
-            self._update_style()
 
     def minimumSizeHint(self):
         return QSize(sum(self._widths), self._min_height)
