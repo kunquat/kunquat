@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2018
  *
  * This file is part of Kunquat.
  *
@@ -132,6 +132,13 @@ uint64_t Voice_pool_new_group_id(Voice_pool* pool);
  *           under the control of the caller or the pool size is \c 0.
  */
 Voice* Voice_pool_get_voice(Voice_pool* pool, Voice* voice, uint64_t id);
+
+
+void Voice_pool_sort_groups(Voice_pool* pool);
+
+
+Voice_group* Voice_pool_get_group(
+        const Voice_pool* pool, uint64_t group_id, Voice_group* vgroup);
 
 
 /**

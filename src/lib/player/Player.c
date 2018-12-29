@@ -31,6 +31,7 @@
 #include <player/Position.h>
 #include <player/Tuning_state.h>
 #include <player/Voice_group.h>
+#include <player/Voice_group_reservations.h>
 #include <player/Voice_signal_plan.h>
 #include <player/Work_buffer.h>
 #include <player/Work_buffers.h>
@@ -208,6 +209,8 @@ Player* new_Player(
         return NULL;
     }
 
+    Voice_group_reservations_init(&player->voice_group_res);
+
     for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
     {
         player->channels[i] = new_Channel(
@@ -216,6 +219,7 @@ Player* new_Player(
                 Module_get_au_table(player->module),
                 player->estate,
                 player->voices,
+                &player->voice_group_res,
                 player->master_params.tempo,
                 player->audio_rate);
         if (player->channels[i] == NULL)
@@ -1434,6 +1438,7 @@ void Player_play(Player* player, int32_t nframes)
 
     const Connections* connections = Module_get_connections(player->module);
     rassert(connections != NULL);
+    rassert(player->mixed_signal_plan != NULL);
 
     // TODO: check if song or pattern instance location has changed
 
@@ -1442,14 +1447,7 @@ void Player_play(Player* player, int32_t nframes)
     int32_t rendered = 0;
     while (rendered < nframes && !Event_buffer_is_full(player->event_buffer))
     {
-        // Invalidate mixed signal buffers
-        Device_states_invalidate_mixed_buffers(player->device_states);
-        for (int thread_id = 0; thread_id < player->thread_count; ++thread_id)
-        {
-            Player_thread_params* tp = &player->thread_params[thread_id];
-            rassert(tp->test_voice_output != NULL);
-            Work_buffer_invalidate(tp->test_voice_output);
-        }
+        Voice_group_reservations_init(&player->voice_group_res);
 
         // Move forwards in composition
         int32_t to_be_rendered = nframes - rendered;
@@ -1469,6 +1467,15 @@ void Player_play(Player* player, int32_t nframes)
         {
             rassert(to_be_rendered == 0);
             break;
+        }
+
+        // Invalidate mixed signal buffers
+        Device_states_invalidate_mixed_buffers(player->device_states);
+        for (int thread_id = 0; thread_id < player->thread_count; ++thread_id)
+        {
+            Player_thread_params* tp = &player->thread_params[thread_id];
+            rassert(tp->test_voice_output != NULL);
+            Work_buffer_invalidate(tp->test_voice_output);
         }
 
         // Process voices

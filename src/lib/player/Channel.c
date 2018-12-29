@@ -64,6 +64,7 @@ Channel* new_Channel(
         Au_table* au_table,
         Env_state* estate,
         Voice_pool* voices,
+        Voice_group_reservations* voice_group_res,
         double tempo,
         int32_t audio_rate)
 {
@@ -72,6 +73,7 @@ Channel* new_Channel(
     rassert(au_table != NULL);
     rassert(estate != NULL);
     rassert(voices != NULL);
+    rassert(voice_group_res != NULL);
     rassert(isfinite(tempo));
     rassert(tempo > 0);
     rassert(audio_rate > 0);
@@ -88,6 +90,7 @@ Channel* new_Channel(
 
     ch->au_table = au_table;
     ch->pool = voices;
+    ch->voice_group_res = voice_group_res;
     ch->tempo = tempo;
     ch->audio_rate = audio_rate;
 

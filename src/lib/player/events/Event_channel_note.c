@@ -110,6 +110,25 @@ static void init_streams(Channel* ch, const Audio_unit* au)
 }
 
 
+static void reset_channel_voices(Channel* ch)
+{
+    rassert(ch != NULL);
+
+    for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
+    {
+        if (ch->fg[i] != NULL)
+        {
+            Voice_reset(ch->fg[i]);
+            ch->fg[i] = NULL;
+        }
+    }
+
+    Channel_reset_test_output(ch);
+
+    return;
+}
+
+
 bool Event_channel_note_on_process(
         Channel* ch,
         Device_states* dstates,
@@ -134,9 +153,6 @@ bool Event_channel_note_on_process(
     Audio_unit* au = Module_get_au_from_input(ch->parent.module, ch->au_input);
     if (au == NULL)
         return true;
-
-    // Allocate new Voices
-    const uint64_t new_group_id = Voice_pool_new_group_id(ch->pool);
 
     double pitch_param = params->arg->value.float_type;
 
@@ -186,6 +202,51 @@ bool Event_channel_note_on_process(
     if (Audio_unit_get_type(au) != AU_TYPE_INSTRUMENT)
         return true;
 
+    // Allocate new Voices
+    const uint64_t new_group_id = Voice_pool_new_group_id(ch->pool);
+    int reserve_count = 0;
+
+    // Reserve voices, TODO: move to event handling ASAP
+    for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
+    {
+        const Processor* proc = Audio_unit_get_proc(au, i);
+        if (proc == NULL ||
+                !Device_is_existent((const Device*)proc) ||
+                !Processor_get_voice_signals(proc))
+            continue;
+
+        const Proc_state* proc_state = (Proc_state*)Device_states_get_state(
+                dstates, Device_get_id((const Device*)proc));
+
+        if (reserve_voice(ch, new_group_id, proc_state, params->external))
+            ++reserve_count;
+    }
+
+    if (reserve_count == 0)
+    {
+        Channel_reset_test_output(ch);
+        return true;
+    }
+
+    Voice_pool_sort_groups(ch->pool); // TODO: don't do this for every note
+
+    Voice_group_reservations_add_entry(ch->voice_group_res, ch->num, new_group_id);
+
+    // Find reserved voices
+    uint64_t voice_group_id = 0;
+    Voice_group* vgroup = VOICE_GROUP_AUTO;
+
+    if (!Voice_group_reservations_get_clear_entry(
+                ch->voice_group_res, ch->num, &voice_group_id) ||
+            (Voice_pool_get_group(ch->pool, voice_group_id, vgroup) == NULL) ||
+            (Voice_group_get_size(vgroup) < reserve_count))
+    {
+        reset_channel_voices(ch);
+        return true;
+    }
+
+    int voice_index = 0;
+
     for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
         const Processor* proc = Audio_unit_get_proc(au, i);
@@ -199,12 +260,24 @@ bool Event_channel_note_on_process(
 
         const uint64_t voice_rand_seed = Random_get_uint64(&ch->rand);
 
-        const bool voice_allocated = reserve_voice(
-                ch, au, new_group_id, proc_state, i, voice_rand_seed, params->external);
-        if (!voice_allocated)
+        Voice_state_get_size_func* get_vstate_size =
+            proc_state->parent.device->dimpl->get_vstate_size;
+        if ((get_vstate_size != NULL) && (get_vstate_size() == 0))
             continue;
 
-        Voice* voice = ch->fg[i];
+        Voice* voice = Voice_group_get_voice(vgroup, voice_index);
+
+        const bool voice_allocated = init_voice(
+                ch, voice, au, new_group_id, proc_state, i, voice_rand_seed);
+        if (!voice_allocated)
+        {
+            // Some of our voices were reallocated
+            reset_channel_voices(ch);
+            return true;
+        }
+
+        ++voice_index;
+
         Voice_state* vs = voice->state;
 
         if (vs->proc_type == Proc_type_pitch)
@@ -250,8 +323,6 @@ bool Event_channel_hit_process(
     if (au == NULL)
         return true;
 
-    const uint64_t new_group_id = Voice_pool_new_group_id(ch->pool);
-
     init_force_controls(ch, master_params);
 
     // Don't attempt to hit effects
@@ -264,6 +335,54 @@ bool Event_channel_hit_process(
         return true;
 
     const Param_proc_filter* hpf = Audio_unit_get_hit_proc_filter(au, hit_index);
+
+    const uint64_t new_group_id = Voice_pool_new_group_id(ch->pool);
+    int reserve_count = 0;
+
+    // Reserve voices, TODO: move to event handling ASAP
+    for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
+    {
+        const Processor* proc = Audio_unit_get_proc(au, i);
+        if (proc == NULL ||
+                !Device_is_existent((const Device*)proc) ||
+                !Processor_get_voice_signals(proc))
+            continue;
+
+        // Skip processors that are filtered out for this hit index
+        if ((hpf != NULL) && !Param_proc_filter_is_proc_allowed(hpf, i))
+            continue;
+
+        const Proc_state* proc_state = (Proc_state*)Device_states_get_state(
+                dstates, Device_get_id((const Device*)proc));
+
+        if (reserve_voice(ch, new_group_id, proc_state, params->external))
+            ++reserve_count;
+    }
+
+    if (reserve_count == 0)
+    {
+        Channel_reset_test_output(ch);
+        return true;
+    }
+
+    Voice_pool_sort_groups(ch->pool); // TODO: don't do this for every note
+
+    Voice_group_reservations_add_entry(ch->voice_group_res, ch->num, new_group_id);
+
+    // Find reserved voices
+    uint64_t voice_group_id = 0;
+    Voice_group* vgroup = VOICE_GROUP_AUTO;
+
+    if (!Voice_group_reservations_get_clear_entry(
+                ch->voice_group_res, ch->num, &voice_group_id) ||
+            (Voice_pool_get_group(ch->pool, voice_group_id, vgroup) == NULL) ||
+            (Voice_group_get_size(vgroup) < reserve_count))
+    {
+        reset_channel_voices(ch);
+        return true;
+    }
+
+    int voice_index = 0;
 
     for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
@@ -282,12 +401,24 @@ bool Event_channel_hit_process(
 
         const uint64_t voice_rand_seed = Random_get_uint64(&ch->rand);
 
-        const bool voice_allocated = reserve_voice(
-                ch, au, new_group_id, proc_state, i, voice_rand_seed, params->external);
-        if (!voice_allocated)
+        Voice_state_get_size_func* get_vstate_size =
+            proc_state->parent.device->dimpl->get_vstate_size;
+        if ((get_vstate_size != NULL) && (get_vstate_size() == 0))
             continue;
 
-        Voice* voice = ch->fg[i];
+        Voice* voice = Voice_group_get_voice(vgroup, voice_index);
+
+        const bool voice_allocated = init_voice(
+                ch, voice, au, new_group_id, proc_state, i, voice_rand_seed);
+        if (!voice_allocated)
+        {
+            // Some of our voices were reallocated
+            reset_channel_voices(ch);
+            return true;
+        }
+
+        ++voice_index;
+
         Voice_state* vs = voice->state;
         vs->hit_index = hit_index;
 

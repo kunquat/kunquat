@@ -147,23 +147,29 @@ void Voice_set_work_buffer(Voice* voice, Work_buffer* wb);
 
 
 /**
+ * Reserve the Voice for a new note.
+ *
+ * \param voice      The Voice -- must not be \c NULL.
+ * \param group_id   The ID of the group this Voice belongs to. This is used
+ *                   to identify which Voices are connected.
+ * \param ch_num     The Channel number associated with this initialisation
+ *                   -- must be >= \c 0 and < \c KQT_CHANNELS_MAX, or \c -1
+ *                   which indicates indeterminate Channel.
+ */
+void Voice_reserve(Voice* voice, uint64_t group_id, int ch_num);
+
+
+/**
  * Initialise the Voice for mixing.
  *
  * \param voice        The Voice -- must not be \c NULL.
  * \param proc         The Processor used -- must not be \c NULL.
- * \param group_id     The ID of the group this Voice belongs to. This is used
- *                     to identify which Voices are connected.
- * \param ch_num       The Channel number associated with this initialisation
- *                     -- must be >= \c 0 and < \c KQT_CHANNELS_MAX, or \c -1
- *                     which indicates indeterminate Channel.
  * \param proc_state   The Processor state -- must not be \c NULL.
  * \param seed         The random seed.
  */
 void Voice_init(
         Voice* voice,
         const Processor* proc,
-        uint64_t group_id,
-        int ch_num,
         const Proc_state* proc_state,
         uint64_t seed);
 

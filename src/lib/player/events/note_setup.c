@@ -31,36 +31,54 @@
 
 bool reserve_voice(
         Channel* ch,
+        uint64_t group_id,
+        const Proc_state* proc_state,
+        bool is_external)
+{
+    rassert(ch != NULL);
+    rassert(proc_state != NULL);
+
+    Voice_state_get_size_func* get_vstate_size =
+        proc_state->parent.device->dimpl->get_vstate_size;
+    if ((get_vstate_size != NULL) && (get_vstate_size() == 0))
+        return false;
+
+    Voice* voice = Voice_pool_get_voice(ch->pool, NULL, 0);
+    rassert(voice != NULL);
+    Voice_reserve(voice, group_id, is_external ? -1 : ch->num);
+
+    //fprintf(stderr, "reserved Voice %p\n", (void*)voice);
+
+    return true;
+}
+
+
+bool init_voice(
+        Channel* ch,
+        Voice* voice,
         const Audio_unit* au,
         uint64_t group_id,
         const Proc_state* proc_state,
         int proc_num,
-        uint64_t rand_seed,
-        bool is_external)
+        uint64_t rand_seed)
 {
     rassert(ch != NULL);
     rassert(ch->audio_rate > 0);
     rassert(ch->tempo > 0);
+    rassert(voice != NULL);
     rassert(au != NULL);
     rassert(proc_state != NULL);
     rassert(proc_num >= 0);
     rassert(proc_num < KQT_PROCESSORS_MAX);
 
-    Voice_state_get_size_func* get_vstate_size =
-        proc_state->parent.device->dimpl->get_vstate_size;
-    if ((get_vstate_size != NULL) && (get_vstate_size() == 0))
-    {
-        ch->fg[proc_num] = NULL;
+    if (Voice_get_group_id(voice) != group_id)
         return false;
-    }
 
     ++ch->fg_count;
-    ch->fg[proc_num] = Voice_pool_get_voice(ch->pool, NULL, 0);
-//    fprintf(stderr, "allocated Voice %p\n", (void*)ch->fg[proc_num]);
-
-    Voice* voice = ch->fg[proc_num];
-    rassert(voice != NULL);
+    ch->fg[proc_num] = voice;
     ch->fg_id[proc_num] = Voice_id(voice);
+
+    //fprintf(stderr, "initialised Voice %p\n", (void*)ch->fg[proc_num]);
 
     // Get expression settings
     const char* ch_expr =
@@ -73,8 +91,6 @@ bool reserve_voice(
     Voice_init(
             voice,
             Audio_unit_get_proc(au, proc_num),
-            group_id,
-            is_external ? -1 : ch->num,
             proc_state,
             rand_seed);
 

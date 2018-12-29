@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2018
  *
  * This file is part of Kunquat.
  *
@@ -269,7 +269,7 @@ static uint64_t get_voice_group_prio(const Voice* voice)
 }
 
 
-static void Voice_pool_sort_groups(Voice_pool* pool)
+void Voice_pool_sort_groups(Voice_pool* pool)
 {
     rassert(pool != NULL);
 
@@ -292,6 +292,25 @@ static void Voice_pool_sort_groups(Voice_pool* pool)
     }
 
     return;
+}
+
+
+Voice_group* Voice_pool_get_group(
+        const Voice_pool* pool, uint64_t group_id, Voice_group* vgroup)
+{
+    rassert(pool != NULL);
+    rassert(vgroup != NULL);
+
+    for (int i = 0; i < pool->size; ++i)
+    {
+        if (pool->voices[i]->group_id == group_id)
+        {
+            Voice_group_init(vgroup, pool->voices, i, pool->size);
+            return vgroup;
+        }
+    }
+
+    return NULL;
 }
 
 

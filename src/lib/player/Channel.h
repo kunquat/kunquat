@@ -29,6 +29,7 @@
 #include <player/General_state.h>
 #include <player/LFO.h>
 #include <player/Pitch_controls.h>
+#include <player/Voice_group_reservations.h>
 #include <player/Voice_pool.h>
 
 #include <stdbool.h>
@@ -49,6 +50,7 @@ struct Channel
     Channel_stream_state* csstate;
 
     Voice_pool* pool;              ///< All Voices.
+    Voice_group_reservations* voice_group_res;
     Voice* fg[KQT_PROCESSORS_MAX]; ///< Foreground Voices.
     uint64_t fg_id[KQT_PROCESSORS_MAX]; ///< Voice reservation IDs.
     int fg_count;
@@ -95,14 +97,15 @@ struct Channel
 /**
  * Create a new Channel.
  *
- * \param module       The Module -- must not be \c NULL.
- * \param num          The Channel number -- must be >= \c 0 and
- *                     < \c KQT_CHANNELS_MAX.
- * \param au_table     The audio unit table -- must not be \c NULL.
- * \param estate       The Environment state -- must not be \c NULL.
- * \param voices       The Voice pool -- must not be \c NULL.
- * \param tempo        The current tempo -- must be finite and positive.
- * \param audio_rate   The current audio rate -- must be positive.
+ * \param module            The Module -- must not be \c NULL.
+ * \param num               The Channel number -- must be >= \c 0 and
+ *                          < \c KQT_CHANNELS_MAX.
+ * \param au_table          The audio unit table -- must not be \c NULL.
+ * \param estate            The Environment state -- must not be \c NULL.
+ * \param voices            The Voice pool -- must not be \c NULL.
+ * \param voice_group_res   The Voice group reservations -- must not be \c NULL.
+ * \param tempo             The current tempo -- must be finite and positive.
+ * \param audio_rate        The current audio rate -- must be positive.
  *
  * \return   The new Channel state if successful, or \c NULL if memory
  *           allocation failed.
@@ -113,6 +116,7 @@ Channel* new_Channel(
         Au_table* au_table,
         Env_state* estate,
         Voice_pool* voices,
+        Voice_group_reservations* voice_group_res,
         double tempo,
         int32_t audio_rate);
 

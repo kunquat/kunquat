@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2018
  *
  * This file is part of Kunquat.
  *
@@ -23,6 +23,13 @@
 #include <stdlib.h>
 
 
+bool reserve_voice(
+        Channel* ch,
+        uint64_t group_id,
+        const Proc_state* proc_state,
+        bool is_external);
+
+
 /**
  * Reserve a Voice for a processor in an Audio unit.
  *
@@ -40,14 +47,14 @@
  * \return   \c true if a Voice was allocated, otherwise \c false (this implies
  *           that the associated Processor uses stateless voice rendering).
  */
-bool reserve_voice(
+bool init_voice(
         Channel* ch,
+        Voice* voice,
         const Audio_unit* au,
         uint64_t group_id,
         const Proc_state* proc_state,
         int proc_num,
-        uint64_t rand_seed,
-        bool is_external);
+        uint64_t rand_seed);
 
 
 #endif // KQT_NOTE_SETUP_H
