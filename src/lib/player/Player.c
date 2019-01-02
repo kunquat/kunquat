@@ -1080,7 +1080,7 @@ static void Player_process_voices(Player* player, int32_t frame_count)
         // Process all voice groups in a single thread
         Render_stats* stats = RENDER_STATS_AUTO;
 
-        Voice_group* vg = Voice_pool_get_next_group(player->voices);
+        Voice_group* vg = Voice_pool_get_next_group(player->voices, VOICE_GROUP_AUTO);
         while (vg != NULL)
         {
             Player_process_voice_group(
@@ -1090,7 +1090,7 @@ static void Player_process_voices(Player* player, int32_t frame_count)
                     frame_count,
                     stats);
 
-            vg = Voice_pool_get_next_group(player->voices);
+            vg = Voice_pool_get_next_group(player->voices, VOICE_GROUP_AUTO);
         }
 
         active_voice_count = stats->voice_count;

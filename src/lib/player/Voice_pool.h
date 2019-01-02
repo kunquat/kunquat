@@ -148,12 +148,13 @@ void Voice_pool_start_group_iteration(Voice_pool* pool);
 /**
  * Get the next Voice group.
  *
- * \param pool   The Voice pool -- must not be \c NULL.
+ * \param pool     The Voice pool -- must not be \c NULL.
+ * \param vgroup   Destination for the Voice group data -- must not be \c NULL.
  *
- * \return   The next Voice group, or \c NULL if there are no groups left to
+ * \return   The parameter \a vgroup, or \c NULL if there are no groups left to
  *           be processed.
  */
-Voice_group* Voice_pool_get_next_group(Voice_pool* pool);
+Voice_group* Voice_pool_get_next_group(Voice_pool* pool, Voice_group* vgroup);
 
 
 #ifdef ENABLE_THREADS

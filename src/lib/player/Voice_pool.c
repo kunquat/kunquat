@@ -34,7 +34,6 @@ struct Voice_pool
     Voice_work_buffers* voice_wbs;
 
     int group_iter_offset;
-    Voice_group group_iter;
 
     Mutex group_iter_lock;
 };
@@ -54,7 +53,6 @@ Voice_pool* new_Voice_pool(int size)
     pool->voices = NULL;
     pool->voice_wbs = NULL;
     pool->group_iter_offset = 0;
-    pool->group_iter = *VOICE_GROUP_AUTO;
 
     pool->group_iter_lock = *MUTEX_AUTO;
 
@@ -360,21 +358,21 @@ void Voice_pool_start_group_iteration(Voice_pool* pool)
 }
 
 
-Voice_group* Voice_pool_get_next_group(Voice_pool* pool)
+Voice_group* Voice_pool_get_next_group(Voice_pool* pool, Voice_group* vgroup)
 {
     rassert(pool != NULL);
+    rassert(vgroup != NULL);
 
     if (pool->group_iter_offset >= pool->size)
         return NULL;
 
-    Voice_group_init(
-            &pool->group_iter, pool->voices, pool->group_iter_offset, pool->size);
-    pool->group_iter_offset += Voice_group_get_size(&pool->group_iter);
+    Voice_group_init(vgroup, pool->voices, pool->group_iter_offset, pool->size);
+    pool->group_iter_offset += Voice_group_get_size(vgroup);
 
-    if (Voice_group_get_size(&pool->group_iter) == 0)
+    if (Voice_group_get_size(vgroup) == 0)
         return NULL;
 
-    return &pool->group_iter;
+    return vgroup;
 }
 
 
