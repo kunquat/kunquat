@@ -74,11 +74,7 @@ bool init_voice(
     if (Voice_get_group_id(voice) != group_id)
         return false;
 
-    //++ch->fg_count;
-    //ch->fg[proc_num] = voice;
-    //ch->fg_id[proc_num] = Voice_id(voice);
-
-    //fprintf(stderr, "initialised Voice %p\n", (void*)ch->fg[proc_num]);
+    //fprintf(stderr, "initialised Voice %p\n", (void*)voice);
 
     // Get expression settings
     const char* ch_expr =

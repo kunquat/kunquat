@@ -157,14 +157,6 @@ void Channel_reset(Channel* ch)
     General_state_reset(&ch->parent);
 
     ch->fg_group_id = 0;
-    /*
-    for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
-    {
-        ch->fg[i] = NULL;
-        ch->fg_id[i] = 0;
-    }
-    ch->fg_count = 0;
-    */
 
     ch->use_test_output = false;
     ch->test_proc_index = -1;
@@ -246,35 +238,9 @@ Random* Channel_get_random_source(Channel* ch)
 }
 
 
-#if 0
-Voice* Channel_get_fg_voice(Channel* ch, int proc_index)
-{
-    rassert(ch != NULL);
-    rassert(proc_index >= 0);
-    rassert(proc_index < KQT_PROCESSORS_MAX);
-
-    return ch->fg[proc_index];
-}
-#endif
-
-
 double Channel_get_fg_force(const Channel* ch)
 {
     rassert(ch != NULL);
-
-#if 0
-    bool has_fg_voice = false;
-    for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
-    {
-        if (ch->fg[i] != NULL)
-        {
-            has_fg_voice = true;
-            break;
-        }
-    }
-    if (!has_fg_voice)
-        return NAN;
-#endif
 
     if (ch->fg_group_id == 0)
         return NAN;

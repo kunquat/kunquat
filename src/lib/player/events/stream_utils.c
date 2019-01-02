@@ -49,16 +49,6 @@ Voice_state* get_target_stream_vstate(Channel* channel, const char* stream_name)
         return NULL;
 
     rassert(proc_index < KQT_PROCESSORS_MAX);
-    /*
-    if (channel->fg[proc_index] == NULL)
-        return NULL;
-
-    // Check that we still own the Voice
-    channel->fg[proc_index] = Voice_pool_get_voice(
-            channel->pool, channel->fg[proc_index], channel->fg_id[proc_index]);
-    if (channel->fg[proc_index] == NULL)
-        return NULL;
-    */
 
     Voice_group* vgroup = Event_get_voice_group(channel);
     if (vgroup == NULL)

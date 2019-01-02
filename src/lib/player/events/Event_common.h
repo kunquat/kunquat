@@ -28,24 +28,6 @@
     : NULL)
 
 
-#if 0
-#define Event_check_voice(ch_state, proc)              \
-    if (true)                                          \
-    {                                                  \
-        if ((ch_state)->fg[(proc)] == NULL)            \
-            continue;                                  \
-                                                       \
-        (ch_state)->fg[(proc)] = Voice_pool_get_voice( \
-                        (ch_state)->pool,              \
-                        (ch_state)->fg[(proc)],        \
-                        (ch_state)->fg_id[(proc)]);    \
-        if ((ch_state)->fg[(proc)] == NULL)            \
-            continue;                                  \
-    }                                                  \
-    else ignore(0)
-#endif
-
-
 #endif // KQT_EVENT_COMMON_H
 
 

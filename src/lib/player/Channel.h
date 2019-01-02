@@ -52,9 +52,6 @@ struct Channel
     Voice_pool* pool;              ///< All Voices.
     Voice_group_reservations* voice_group_res;
     uint64_t fg_group_id;
-    //Voice* fg[KQT_PROCESSORS_MAX]; ///< Foreground Voices.
-    //uint64_t fg_id[KQT_PROCESSORS_MAX]; ///< Voice reservation IDs.
-    //int fg_count;
 
     bool mute;
     bool use_test_output;
@@ -205,23 +202,11 @@ Random* Channel_get_random_source(Channel* ch);
 
 
 /**
- * Get current foreground Voice of the Channel.
- *
- * \param ch           The Channel -- must not be \c NULL.
- * \param proc_index   The Processor index -- must be >= \c 0 and
- *                     < \c KQT_PROCESSORS_MAX.
- *
- * \return   The foreground Voice at \a proc_index if one exists, otherwise \c NULL.
- */
-//Voice* Channel_get_fg_voice(Channel* ch, int proc_index);
-
-
-/**
- * Return an actual force of a current foreground Voice.
+ * Return actual force applied to current foreground Voices.
  *
  * \param ch   The Channel -- must not be \c NULL.
  *
- * \return   The actual force if the active foreground Voice exists, otherwise NAN.
+ * \return   The actual force if an active foreground Voice group exists, otherwise NAN.
  */
 double Channel_get_fg_force(const Channel* ch);
 

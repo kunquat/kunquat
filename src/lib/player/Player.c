@@ -1047,23 +1047,6 @@ static void Player_process_voices(Player* player, int32_t frame_count)
     if (frame_count == 0)
         return;
 
-#if 0
-    // Verify foreground voice ownerships
-    for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
-    {
-        Channel* ch = player->channels[i];
-        for (int k = 0; k < KQT_PROCESSORS_MAX; ++k)
-        {
-            if (ch->fg[k] != NULL)
-            {
-                // Verify voice ownership
-                ch->fg[k] = Voice_pool_get_voice(
-                        player->voices, ch->fg[k], ch->fg_id[k]);
-            }
-        }
-    }
-#endif
-
     // Process active Voice groups
     int active_voice_count = 0;
     int active_vgroup_count = 0;
