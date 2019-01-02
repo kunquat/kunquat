@@ -34,7 +34,6 @@ Voice* new_Voice(void)
     if (voice == NULL)
         return NULL;
 
-    voice->id = 0;
     voice->group_id = 0;
     voice->ch_num = -1;
     voice->updated = false;
@@ -87,13 +86,6 @@ int Voice_cmp(const Voice* v1, const Voice* v2)
     rassert(v2 != NULL);
 
     return (int)v1->prio - (int)v2->prio;
-}
-
-
-uint64_t Voice_id(const Voice* voice)
-{
-    rassert(voice != NULL);
-    return voice->id;
 }
 
 
@@ -216,7 +208,6 @@ void Voice_reset(Voice* voice)
 {
     rassert(voice != NULL);
 
-    voice->id = 0;
     // Clearing the group ID may break the implicit grouping in Voice pool
     //voice->group_id = 0;
     // The voice may be part of an active group that needs the channel

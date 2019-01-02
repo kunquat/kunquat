@@ -257,11 +257,8 @@ Voice* Voice_pool_get_voice(Voice_pool* pool, uint64_t group_id)
         Voice_pool_reset_group(pool, new_voice->group_id);
 
     // Pre-init the voice
-    static uint64_t running_id = 1;
-    new_voice->id = running_id;
     new_voice->prio = VOICE_PRIO_INACTIVE;
     new_voice->group_id = group_id;
-    ++running_id;
 
     return new_voice;
 }

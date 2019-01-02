@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2019
  *
  * This file is part of Kunquat.
  *
@@ -44,8 +44,7 @@ typedef enum
  */
 typedef struct Voice
 {
-    uint64_t id;             ///< An identification number for this initialisation.
-    uint64_t group_id;       ///< The ID of the group this Voice currently belogns to.
+    uint64_t group_id;       ///< The ID of the group this Voice currently belongs to.
     int ch_num;              ///< The last Channel that initialised this Voice.
     bool updated;            ///< Used to cut Voices that are not updated.
     Voice_prio prio;         ///< Current priority of the Voice.
@@ -92,19 +91,6 @@ bool Voice_reserve_state_space(Voice* voice, int32_t state_size);
  *           \a v2 in priority.
  */
 int Voice_cmp(const Voice* v1, const Voice* v2);
-
-
-/**
- * Retrieve the Voice identification.
- *
- * The user should store the ID after retrieving the Voice from the Voice
- * pool.
- *
- * \param voice   The Voice -- must not be \c NULL.
- *
- * \return   The ID.
- */
-uint64_t Voice_id(const Voice* voice);
 
 
 /**
