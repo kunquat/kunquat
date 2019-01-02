@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2019
  *
  * This file is part of Kunquat.
  *
@@ -229,36 +229,41 @@ uint64_t Voice_pool_new_group_id(Voice_pool* pool)
 }
 
 
-Voice* Voice_pool_get_voice(Voice_pool* pool, Voice* voice, uint64_t id)
+Voice* Voice_pool_get_voice(Voice_pool* pool, uint64_t group_id)
 {
     rassert(pool != NULL);
+    rassert(group_id != 0);
 
     if (pool->size == 0)
         return NULL;
 
-    if (voice == NULL)
+    // Find a voice of lowest priority available
+    unsigned int new_prio = VOICE_PRIO_NEW + 1;
+    Voice* new_voice = NULL;
+    for (uint16_t i = 0; i < pool->size; ++i)
     {
-        // Find a voice of lowest priority available
-        Voice* new_voice = pool->voices[0];
-        for (uint16_t i = 1; i < pool->size; ++i)
+        Voice* voice = pool->voices[i];
+        if ((voice->prio < new_prio) && (voice->group_id != group_id))
         {
-            if (Voice_cmp(pool->voices[i], new_voice) < 0)
-                new_voice = pool->voices[i];
+            new_voice = voice;
+            new_prio = voice->prio;
         }
-
-        // Pre-init the voice
-        static uint64_t running_id = 1;
-        new_voice->id = running_id;
-        new_voice->prio = VOICE_PRIO_INACTIVE;
-        ++running_id;
-
-        return new_voice;
     }
 
-    if (voice->id == id)
-        return voice;
+    rassert(new_voice != NULL);
+    rassert(new_voice->group_id != group_id);
 
-    return NULL;
+    if (new_voice->group_id != 0)
+        Voice_pool_reset_group(pool, new_voice->group_id);
+
+    // Pre-init the voice
+    static uint64_t running_id = 1;
+    new_voice->id = running_id;
+    new_voice->prio = VOICE_PRIO_INACTIVE;
+    new_voice->group_id = group_id;
+    ++running_id;
+
+    return new_voice;
 }
 
 
@@ -266,6 +271,21 @@ static uint64_t get_voice_group_prio(const Voice* voice)
 {
     // Overflow group ID 0 to maximum so that inactive voices are placed last
     return Voice_get_group_id(voice) - 1;
+}
+
+
+void Voice_pool_free_inactive(Voice_pool* pool)
+{
+    rassert(pool != NULL);
+
+    for (uint16_t i = 0; i < pool->size; ++i)
+    {
+        Voice* current = pool->voices[i];
+        if (current->prio == VOICE_PRIO_INACTIVE)
+            current->group_id = 0;
+    }
+
+    return;
 }
 
 
@@ -295,10 +315,27 @@ void Voice_pool_sort_groups(Voice_pool* pool)
 }
 
 
+void Voice_pool_reset_group(Voice_pool* pool, uint64_t group_id)
+{
+    rassert(pool != NULL);
+    rassert(group_id != 0);
+
+    for (int i = 0; i < pool->size; ++i)
+    {
+        Voice* voice = pool->voices[i];
+        if (voice->group_id == group_id)
+            Voice_reset(voice);
+    }
+
+    return;
+}
+
+
 Voice_group* Voice_pool_get_group(
         const Voice_pool* pool, uint64_t group_id, Voice_group* vgroup)
 {
     rassert(pool != NULL);
+    rassert(group_id != 0);
     rassert(vgroup != NULL);
 
     for (int i = 0; i < pool->size; ++i)

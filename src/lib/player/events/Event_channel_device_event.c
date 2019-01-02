@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2018
+ * Author: Tomi Jylhä-Ollila, Finland 2018-2019
  *
  * This file is part of Kunquat.
  *
@@ -88,15 +88,18 @@ bool Event_channel_fire_device_event_process(
             {
                 // Find the Voice associated with our Processor
                 Voice* voice = NULL;
-                for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
-                {
-                    Event_check_voice(ch, i);
-                    Voice* cur_voice = ch->fg[i];
 
-                    if (cur_voice->proc == proc)
+                Voice_group* vgroup = Event_get_voice_group(ch);
+                if (vgroup != NULL)
+                {
+                    for (int i = 0; i < Voice_group_get_size(vgroup); ++i)
                     {
-                        voice = cur_voice;
-                        break;
+                        Voice* cur_voice = Voice_group_get_voice(vgroup, i);
+                        if (cur_voice->proc == proc)
+                        {
+                            voice = cur_voice;
+                            break;
+                        }
                     }
                 }
 

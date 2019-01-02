@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2019
  *
  * This file is part of Kunquat.
  *
@@ -317,6 +317,9 @@ bool Player_set_thread_count(Player* player, int new_count, Error* error)
     // Override requested thread count if threads are not supported
     new_count = 1;
 #endif
+
+    // TODO: Reimplement multithreading support
+    new_count = 1;
 
     if (Error_is_set(error))
         return false;
@@ -1044,8 +1047,8 @@ static void Player_process_voices(Player* player, int32_t frame_count)
     if (frame_count == 0)
         return;
 
+#if 0
     // Verify foreground voice ownerships
-    // TODO: this is required for correct event processing, move elsewhere maybe?
     for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
     {
         Channel* ch = player->channels[i];
@@ -1059,6 +1062,7 @@ static void Player_process_voices(Player* player, int32_t frame_count)
             }
         }
     }
+#endif
 
     // Process active Voice groups
     int active_voice_count = 0;
@@ -1066,6 +1070,7 @@ static void Player_process_voices(Player* player, int32_t frame_count)
 
     Voice_pool_start_group_iteration(player->voices);
 
+#if 0
 #ifdef ENABLE_THREADS
     if (player->thread_count > 1)
     {
@@ -1086,6 +1091,7 @@ static void Player_process_voices(Player* player, int32_t frame_count)
         }
     }
     else
+#endif
 #endif
     {
         // Process all voice groups in a single thread
@@ -1447,6 +1453,9 @@ void Player_play(Player* player, int32_t nframes)
     int32_t rendered = 0;
     while (rendered < nframes && !Event_buffer_is_full(player->event_buffer))
     {
+        Voice_pool_free_inactive(player->voices);
+        Voice_pool_sort_groups(player->voices);
+
         Voice_group_reservations_init(&player->voice_group_res);
 
         // Move forwards in composition

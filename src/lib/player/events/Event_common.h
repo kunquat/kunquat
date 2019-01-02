@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2019
  *
  * This file is part of Kunquat.
  *
@@ -22,6 +22,13 @@
 #include <stdlib.h>
 
 
+#define Event_get_voice_group(ch)                                           \
+    ((ch)->fg_group_id != 0                                                 \
+    ? Voice_pool_get_group((ch)->pool, (ch)->fg_group_id, VOICE_GROUP_AUTO) \
+    : NULL)
+
+
+#if 0
 #define Event_check_voice(ch_state, proc)              \
     if (true)                                          \
     {                                                  \
@@ -36,6 +43,7 @@
             continue;                                  \
     }                                                  \
     else ignore(0)
+#endif
 
 
 #endif // KQT_EVENT_COMMON_H

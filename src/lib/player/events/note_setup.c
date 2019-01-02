@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2019
  *
  * This file is part of Kunquat.
  *
@@ -43,7 +43,7 @@ bool reserve_voice(
     if ((get_vstate_size != NULL) && (get_vstate_size() == 0))
         return false;
 
-    Voice* voice = Voice_pool_get_voice(ch->pool, NULL, 0);
+    Voice* voice = Voice_pool_get_voice(ch->pool, group_id);
     rassert(voice != NULL);
     Voice_reserve(voice, group_id, is_external ? -1 : ch->num);
 
@@ -74,9 +74,9 @@ bool init_voice(
     if (Voice_get_group_id(voice) != group_id)
         return false;
 
-    ++ch->fg_count;
-    ch->fg[proc_num] = voice;
-    ch->fg_id[proc_num] = Voice_id(voice);
+    //++ch->fg_count;
+    //ch->fg[proc_num] = voice;
+    //ch->fg_id[proc_num] = Voice_id(voice);
 
     //fprintf(stderr, "initialised Voice %p\n", (void*)ch->fg[proc_num]);
 

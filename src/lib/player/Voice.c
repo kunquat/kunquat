@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2019
  *
  * This file is part of Kunquat.
  *
@@ -217,7 +217,8 @@ void Voice_reset(Voice* voice)
     rassert(voice != NULL);
 
     voice->id = 0;
-    voice->group_id = 0;
+    // Clearing the group ID may break the implicit grouping in Voice pool
+    //voice->group_id = 0;
     // The voice may be part of an active group that needs the channel
     // number information, so let's keep it
     //voice->ch_num = -1;

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2019
  *
  * This file is part of Kunquat.
  *
@@ -22,6 +22,7 @@
 #include <player/events/Event_common.h>
 #include <player/events/Event_params.h>
 #include <player/Voice.h>
+#include <player/Voice_group.h>
 #include <player/Voice_pool.h>
 #include <Value.h>
 
@@ -48,10 +49,13 @@ bool Event_channel_arpeggio_on_process(
     if (isnan(ch->arpeggio_tones[0]))
         ch->arpeggio_tones[0] = ch->arpeggio_ref;
 
-    for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
+    Voice_group* vgroup = Event_get_voice_group(ch);
+    if (vgroup == NULL)
+        return true;
+
+    for (int i = 0; i < Voice_group_get_size(vgroup); ++i)
     {
-        Event_check_voice(ch, i);
-        Voice* voice = ch->fg[i];
+        Voice* voice = Voice_group_get_voice(vgroup, i);
         Voice_state* vs = voice->state;
 
         if (vs->proc_type == Proc_type_pitch)
@@ -74,10 +78,14 @@ bool Event_channel_arpeggio_off_process(
     rassert(master_params != NULL);
     ignore(params);
 
-    for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
+    Voice_group* vgroup = Event_get_voice_group(ch);
+    if (vgroup == NULL)
+        return true;
+
+    for (int i = 0; i < Voice_group_get_size(vgroup); ++i)
     {
-        Event_check_voice(ch, i);
-        Voice_state* vs = ch->fg[i]->state;
+        Voice* voice = Voice_group_get_voice(vgroup, i);
+        Voice_state* vs = voice->state;
 
         if (vs->proc_type == Proc_type_pitch)
             Pitch_vstate_arpeggio_off(vs);
@@ -125,13 +133,17 @@ bool Event_channel_set_arpeggio_note_process(
 
     ch->arpeggio_tones[ch->arpeggio_edit_pos] = params->arg->value.float_type;
 
-    for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
+    Voice_group* vgroup = Event_get_voice_group(ch);
+    if (vgroup != NULL)
     {
-        Event_check_voice(ch, i);
-        Voice_state* vs = ch->fg[i]->state;
+        for (int i = 0; i < Voice_group_get_size(vgroup); ++i)
+        {
+            Voice* voice = Voice_group_get_voice(vgroup, i);
+            Voice_state* vs = voice->state;
 
-        if (vs->proc_type == Proc_type_pitch)
-            Pitch_vstate_update_arpeggio_tones(vs, ch->arpeggio_tones);
+            if (vs->proc_type == Proc_type_pitch)
+                Pitch_vstate_update_arpeggio_tones(vs, ch->arpeggio_tones);
+        }
     }
 
     if (ch->arpeggio_edit_pos < KQT_ARPEGGIO_TONES_MAX - 1)
@@ -156,10 +168,14 @@ bool Event_channel_set_arpeggio_speed_process(
 
     ch->arpeggio_speed = params->arg->value.float_type;
 
-    for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
+    Voice_group* vgroup = Event_get_voice_group(ch);
+    if (vgroup == NULL)
+        return true;
+
+    for (int i = 0; i < Voice_group_get_size(vgroup); ++i)
     {
-        Event_check_voice(ch, i);
-        Voice_state* vs = ch->fg[i]->state;
+        Voice* voice = Voice_group_get_voice(vgroup, i);
+        Voice_state* vs = voice->state;
 
         if (vs->proc_type == Proc_type_pitch)
             Pitch_vstate_update_arpeggio_speed(vs, ch->arpeggio_speed);
@@ -184,10 +200,14 @@ bool Event_channel_reset_arpeggio_process(
     ch->arpeggio_edit_pos = 1;
     ch->arpeggio_tones[0] = ch->arpeggio_tones[1] = NAN;
 
-    for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
+    Voice_group* vgroup = Event_get_voice_group(ch);
+    if (vgroup == NULL)
+        return true;
+
+    for (int i = 0; i < Voice_group_get_size(vgroup); ++i)
     {
-        Event_check_voice(ch, i);
-        Voice_state* vs = ch->fg[i]->state;
+        Voice* voice = Voice_group_get_voice(vgroup, i);
+        Voice_state* vs = voice->state;
 
         if (vs->proc_type == Proc_type_pitch)
             Pitch_vstate_reset_arpeggio(vs);

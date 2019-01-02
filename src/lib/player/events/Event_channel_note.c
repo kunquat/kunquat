@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2019
  *
  * This file is part of Kunquat.
  *
@@ -114,15 +114,10 @@ static void reset_channel_voices(Channel* ch)
 {
     rassert(ch != NULL);
 
-    for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
-    {
-        if (ch->fg[i] != NULL)
-        {
-            Voice_reset(ch->fg[i]);
-            ch->fg[i] = NULL;
-        }
-    }
+    if (ch->fg_group_id != 0)
+        Voice_pool_reset_group(ch->pool, ch->fg_group_id);
 
+    ch->fg_group_id = 0;
     Channel_reset_test_output(ch);
 
     return;
@@ -146,8 +141,6 @@ bool Event_channel_note_on_process(
 
     // Move the old Voices to the background
     Event_channel_note_off_process(ch, dstates, master_params, NULL);
-
-    ch->fg_count = 0;
 
     // Find our audio unit
     Audio_unit* au = Module_get_au_from_input(ch->parent.module, ch->au_input);
@@ -233,12 +226,11 @@ bool Event_channel_note_on_process(
     Voice_group_reservations_add_entry(ch->voice_group_res, ch->num, new_group_id);
 
     // Find reserved voices
-    uint64_t voice_group_id = 0;
     Voice_group* vgroup = VOICE_GROUP_AUTO;
 
     if (!Voice_group_reservations_get_clear_entry(
-                ch->voice_group_res, ch->num, &voice_group_id) ||
-            (Voice_pool_get_group(ch->pool, voice_group_id, vgroup) == NULL) ||
+                ch->voice_group_res, ch->num, &ch->fg_group_id) ||
+            (Voice_pool_get_group(ch->pool, ch->fg_group_id, vgroup) == NULL) ||
             (Voice_group_get_size(vgroup) < reserve_count))
     {
         reset_channel_voices(ch);
@@ -316,8 +308,6 @@ bool Event_channel_hit_process(
     // Move the old Voices to the background
     Event_channel_note_off_process(ch, dstates, master_params, NULL);
 
-    ch->fg_count = 0;
-
     // Find our audio unit
     Audio_unit* au = Module_get_au_from_input(ch->parent.module, ch->au_input);
     if (au == NULL)
@@ -370,12 +360,11 @@ bool Event_channel_hit_process(
     Voice_group_reservations_add_entry(ch->voice_group_res, ch->num, new_group_id);
 
     // Find reserved voices
-    uint64_t voice_group_id = 0;
     Voice_group* vgroup = VOICE_GROUP_AUTO;
 
     if (!Voice_group_reservations_get_clear_entry(
-                ch->voice_group_res, ch->num, &voice_group_id) ||
-            (Voice_pool_get_group(ch->pool, voice_group_id, vgroup) == NULL) ||
+                ch->voice_group_res, ch->num, &ch->fg_group_id) ||
+            (Voice_pool_get_group(ch->pool, ch->fg_group_id, vgroup) == NULL) ||
             (Voice_group_get_size(vgroup) < reserve_count))
     {
         reset_channel_voices(ch);
@@ -448,22 +437,21 @@ bool Event_channel_note_off_process(
     rassert(master_params != NULL);
     ignore(params);
 
-    for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
+    Voice_group* vgroup = Event_get_voice_group(ch);
+    if (vgroup != NULL)
     {
-        if (ch->fg[i] != NULL)
+        for (int i = 0; i < Voice_group_get_size(vgroup); ++i)
         {
-            ch->fg[i] = Voice_pool_get_voice(ch->pool, ch->fg[i], ch->fg_id[i]);
-            if (ch->fg[i] == NULL)
-            {
-                // The Voice has been given to another channel
-                continue;
-            }
-            ch->fg[i]->state->note_on = false;
-            ch->fg[i]->prio = VOICE_PRIO_BG;
-            ch->fg[i] = NULL;
+            Voice* voice = Voice_group_get_voice(vgroup, i);
+            rassert(voice->prio >= VOICE_PRIO_FG);
+            rassert(voice->group_id == ch->fg_group_id);
+
+            voice->state->note_on = false;
+            voice->prio = VOICE_PRIO_BG;
         }
     }
-    ch->fg_count = 0;
+
+    ch->fg_group_id = 0;
 
     return true;
 }

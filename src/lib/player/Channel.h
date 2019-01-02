@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2019
  *
  * This file is part of Kunquat.
  *
@@ -51,9 +51,10 @@ struct Channel
 
     Voice_pool* pool;              ///< All Voices.
     Voice_group_reservations* voice_group_res;
-    Voice* fg[KQT_PROCESSORS_MAX]; ///< Foreground Voices.
-    uint64_t fg_id[KQT_PROCESSORS_MAX]; ///< Voice reservation IDs.
-    int fg_count;
+    uint64_t fg_group_id;
+    //Voice* fg[KQT_PROCESSORS_MAX]; ///< Foreground Voices.
+    //uint64_t fg_id[KQT_PROCESSORS_MAX]; ///< Voice reservation IDs.
+    //int fg_count;
 
     bool mute;
     bool use_test_output;
@@ -212,7 +213,7 @@ Random* Channel_get_random_source(Channel* ch);
  *
  * \return   The foreground Voice at \a proc_index if one exists, otherwise \c NULL.
  */
-Voice* Channel_get_fg_voice(Channel* ch, int proc_index);
+//Voice* Channel_get_fg_voice(Channel* ch, int proc_index);
 
 
 /**
