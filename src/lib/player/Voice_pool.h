@@ -157,6 +157,12 @@ void Voice_pool_start_group_iteration(Voice_pool* pool);
 Voice_group* Voice_pool_get_next_group(Voice_pool* pool, Voice_group* vgroup);
 
 
+Voice_group* Voice_pool_get_next_fg_group(Voice_pool* pool, Voice_group* vgroup);
+
+
+Voice_group* Voice_pool_get_next_bg_group(Voice_pool* pool, Voice_group* vgroup);
+
+
 #ifdef ENABLE_THREADS
 /**
  * Get the next Voice group in a thread-safe way.
@@ -168,6 +174,12 @@ Voice_group* Voice_pool_get_next_group(Voice_pool* pool, Voice_group* vgroup);
  *           be processed.
  */
 Voice_group* Voice_pool_get_next_group_synced(Voice_pool* pool, Voice_group* vgroup);
+
+
+Voice_group* Voice_pool_get_next_fg_group_synced(Voice_pool* pool, Voice_group* vgroup);
+
+
+Voice_group* Voice_pool_get_next_bg_group_synced(Voice_pool* pool, Voice_group* vgroup);
 #endif
 
 

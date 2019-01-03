@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2019
  *
  * This file is part of Kunquat.
  *
@@ -20,6 +20,7 @@
 
 #include <decl.h>
 
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -54,6 +55,17 @@ Voice_group* Voice_group_init(
 
 
 /**
+ * Make a shallow copy of the Voice group.
+ *
+ * \param dest   The destination Voice group -- must not be \c NULL.
+ * \param src    The source Voice group -- must not be \c NULL or \a dest.
+ *
+ * \return   The parameter \a dest.
+ */
+Voice_group* Voice_group_copy(Voice_group* dest, const Voice_group* src);
+
+
+/**
  * Get the number of Voices in the Voice group.
  *
  * \param vg   The Voice group -- must not be \c NULL.
@@ -61,6 +73,16 @@ Voice_group* Voice_group_init(
  * \return   The number of Voices in the group.
  */
 int Voice_group_get_size(const Voice_group* vg);
+
+
+/**
+ * Get Voice group background status.
+ *
+ * \param vg   The Voice group -- must not be \c NULL.
+ *
+ * \return   \c true if \a vg contains background Voices, otherwise \c false.
+ */
+bool Voice_group_is_bg(const Voice_group* vg);
 
 
 /**

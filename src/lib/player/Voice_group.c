@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2019
  *
  * This file is part of Kunquat.
  *
@@ -21,6 +21,7 @@
 
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 
 
 Voice_group* Voice_group_init(
@@ -58,10 +59,30 @@ Voice_group* Voice_group_init(
 }
 
 
+Voice_group* Voice_group_copy(Voice_group* dest, const Voice_group* src)
+{
+    rassert(dest != NULL);
+    rassert(src != NULL);
+    rassert(src != dest);
+
+    memcpy(dest, src, sizeof(Voice_group));
+
+    return dest;
+}
+
+
 int Voice_group_get_size(const Voice_group* vg)
 {
     rassert(vg != NULL);
     return vg->size;
+}
+
+
+bool Voice_group_is_bg(const Voice_group* vg)
+{
+    rassert(vg != NULL);
+
+    return (vg->size > 0) && (vg->voices[0]->prio == VOICE_PRIO_BG);
 }
 
 

@@ -20,6 +20,7 @@
 #include <mathnum/Tstamp.h>
 #include <memory.h>
 #include <player/Channel_stream_state.h>
+#include <player/Voice_group.h>
 
 #include <math.h>
 #include <stdio.h>
@@ -50,6 +51,7 @@ static bool Channel_init(Channel* ch, int num, Env_state* estate, const Module* 
 
     ch->event_cache = NULL;
     ch->num = num;
+    ch->fg_group_temp = *VOICE_GROUP_AUTO;
     ch->mute = false;
 
     Channel_reset(ch);

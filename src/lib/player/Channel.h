@@ -29,6 +29,7 @@
 #include <player/General_state.h>
 #include <player/LFO.h>
 #include <player/Pitch_controls.h>
+#include <player/Voice_group.h>
 #include <player/Voice_group_reservations.h>
 #include <player/Voice_pool.h>
 
@@ -52,6 +53,7 @@ struct Channel
     Voice_pool* pool;              ///< All Voices.
     Voice_group_reservations* voice_group_res;
     uint64_t fg_group_id;
+    Voice_group fg_group_temp;     ///< NOTE: This is for temporary storage only.
 
     bool mute;
     bool use_test_output;

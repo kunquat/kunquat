@@ -1051,7 +1051,7 @@ static void Player_process_voices(Player* player, int32_t frame_count)
     int active_voice_count = 0;
     int active_vgroup_count = 0;
 
-    Voice_pool_start_group_iteration(player->voices);
+    //Voice_pool_start_group_iteration(player->voices);
 
 #if 0
 #ifdef ENABLE_THREADS
@@ -1080,17 +1080,84 @@ static void Player_process_voices(Player* player, int32_t frame_count)
         // Process all voice groups in a single thread
         Render_stats* stats = RENDER_STATS_AUTO;
 
-        Voice_group* vg = Voice_pool_get_next_group(player->voices, VOICE_GROUP_AUTO);
-        while (vg != NULL)
+        // Foreground voices
         {
-            Player_process_voice_group(
-                    player,
-                    &player->thread_params[0],
-                    vg,
-                    frame_count,
-                    stats);
+            for (int ci = 0; ci < KQT_CHANNELS_MAX; ++ci)
+                player->channels[ci]->fg_group_temp = *VOICE_GROUP_AUTO;
 
-            vg = Voice_pool_get_next_group(player->voices, VOICE_GROUP_AUTO);
+            {
+                Voice_pool_start_group_iteration(player->voices);
+
+                Voice_group* vgroup = VOICE_GROUP_AUTO;
+
+                Voice_group* vg = Voice_pool_get_next_fg_group(player->voices, vgroup);
+                while (vg != NULL)
+                {
+                    Voice* first_voice = Voice_group_get_voice(vg, 0);
+                    const int ch_num = first_voice->ch_num;
+
+                    if (ch_num >= 0)
+                    {
+                        Channel* ch = player->channels[ch_num];
+                        if (ch->fg_group_id == first_voice->group_id)
+                        {
+                            rassert(player->channels[ch_num]->fg_group_temp.size == 0);
+                            Voice_group_copy(
+                                    &player->channels[ch_num]->fg_group_temp, vg);
+                        }
+                    }
+                    else
+                    {
+                        // Process externally started notes first
+                        Player_process_voice_group(
+                                player,
+                                &player->thread_params[0],
+                                vg,
+                                frame_count,
+                                stats);
+                    }
+
+                    vg = Voice_pool_get_next_fg_group(player->voices, vgroup);
+                }
+            }
+
+            for (int ci = 0; ci < KQT_CHANNELS_MAX; ++ci)
+            {
+                Channel* ch = player->channels[ci];
+                if (ch->fg_group_id == 0)
+                    continue;
+
+                Voice_group* vg = &ch->fg_group_temp;
+                if (Voice_group_get_size(vg) == 0)
+                    continue;
+
+                Player_process_voice_group(
+                        player,
+                        &player->thread_params[0],
+                        vg,
+                        frame_count,
+                        stats);
+            }
+        }
+
+        // Background voices
+        {
+            Voice_pool_start_group_iteration(player->voices);
+
+            Voice_group* vgroup = VOICE_GROUP_AUTO;
+
+            Voice_group* vg = Voice_pool_get_next_bg_group(player->voices, vgroup);
+            while (vg != NULL)
+            {
+                Player_process_voice_group(
+                        player,
+                        &player->thread_params[0],
+                        vg,
+                        frame_count,
+                        stats);
+
+                vg = Voice_pool_get_next_bg_group(player->voices, vgroup);
+            }
         }
 
         active_voice_count = stats->voice_count;

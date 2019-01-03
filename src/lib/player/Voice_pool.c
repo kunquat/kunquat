@@ -376,6 +376,32 @@ Voice_group* Voice_pool_get_next_group(Voice_pool* pool, Voice_group* vgroup)
 }
 
 
+Voice_group* Voice_pool_get_next_fg_group(Voice_pool* pool, Voice_group* vgroup)
+{
+    rassert(pool != NULL);
+    rassert(vgroup != NULL);
+
+    Voice_group* vg = Voice_pool_get_next_group(pool, vgroup);
+    while ((vg != NULL) && Voice_group_is_bg(vg))
+        vg = Voice_pool_get_next_group(pool, vgroup);
+
+    return vg;
+}
+
+
+Voice_group* Voice_pool_get_next_bg_group(Voice_pool* pool, Voice_group* vgroup)
+{
+    rassert(pool != NULL);
+    rassert(vgroup != NULL);
+
+    Voice_group* vg = Voice_pool_get_next_group(pool, vgroup);
+    while ((vg != NULL) && !Voice_group_is_bg(vg))
+        vg = Voice_pool_get_next_group(pool, vgroup);
+
+    return vg;
+}
+
+
 #ifdef ENABLE_THREADS
 Voice_group* Voice_pool_get_next_group_synced(Voice_pool* pool, Voice_group* vgroup)
 {
@@ -401,6 +427,36 @@ Voice_group* Voice_pool_get_next_group_synced(Voice_pool* pool, Voice_group* vgr
         return NULL;
 
     return vgroup;
+}
+
+
+Voice_group* Voice_pool_get_next_fg_group_synced(Voice_pool* pool, Voice_group* vgroup)
+{
+    rassert(pool != NULL);
+    rassert(vgroup != NULL);
+
+    Mutex_lock(&pool->group_iter_lock);
+
+    Voice_group* vg = Voice_pool_get_next_fg_group(pool, vgroup);
+
+    Mutex_unlock(&pool->group_iter_lock);
+
+    return vg;
+}
+
+
+Voice_group* Voice_pool_get_next_bg_group_synced(Voice_pool* pool, Voice_group* vgroup)
+{
+    rassert(pool != NULL);
+    rassert(vgroup != NULL);
+
+    Mutex_lock(&pool->group_iter_lock);
+
+    Voice_group* vg = Voice_pool_get_next_bg_group(pool, vgroup);
+
+    Mutex_unlock(&pool->group_iter_lock);
+
+    return vg;
 }
 #endif
 
