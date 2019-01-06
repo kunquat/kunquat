@@ -174,7 +174,7 @@ void Cgiter_clear_returned_status(Cgiter* cgiter)
 }
 
 
-bool Cgiter_peek(Cgiter* cgiter, Tstamp* dist)
+bool Cgiter_peek(const Cgiter* cgiter, Tstamp* dist)
 {
     rassert(cgiter != NULL);
     rassert(dist != NULL);
