@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2019
  *
  * This file is part of Kunquat.
  *
@@ -441,11 +441,16 @@ static void Device_thread_state_mark_mixed_audio(Device_thread_state* ts)
 
 
 void Device_thread_state_mix_voice_signals(
-        Device_thread_state* ts, int32_t buf_start, int32_t mix_stop, int32_t clear_stop)
+        Device_thread_state* ts,
+        int32_t buf_start,
+        int32_t mix_stop,
+        int32_t frame_offset,
+        int32_t clear_stop)
 {
     rassert(ts != NULL);
-    rassert(buf_start >= 0);
+    rassert(buf_start == 0);
     rassert(mix_stop >= buf_start);
+    rassert(frame_offset >= 0);
     rassert(clear_stop >= mix_stop);
 
     const Etable* mixed_bufs = ts->buffers[DEVICE_BUFFER_MIXED][DEVICE_PORT_TYPE_SEND];
@@ -465,9 +470,7 @@ void Device_thread_state_mix_voice_signals(
 
         if (!Work_buffer_is_valid(mixed_buffer, 0))
             Work_buffer_clear_all(mixed_buffer, buf_start, clear_stop);
-        const uint8_t mask =
-            (uint8_t)((1 << Work_buffer_get_sub_count(mixed_buffer)) - 1);
-        Work_buffer_mix_all(mixed_buffer, voice_buffer, buf_start, mix_stop, mask);
+        Work_buffer_mix_all_shifted(mixed_buffer, frame_offset, voice_buffer, mix_stop);
         Device_thread_state_mark_mixed_audio(ts);
     }
 

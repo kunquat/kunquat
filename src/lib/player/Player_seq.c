@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2019
  *
  * This file is part of Kunquat.
  *
@@ -148,6 +148,7 @@ static void Player_process_expr_event(
         int ch_num,
         const char* trigger_desc,
         const Value* meta,
+        int32_t frame_offset,
         bool skip,
         bool external);
 
@@ -157,6 +158,7 @@ void Player_process_event(
         int ch_num,
         const char* event_name,
         const Value* arg,
+        int32_t frame_offset,
         bool skip,
         bool external)
 {
@@ -166,6 +168,7 @@ void Player_process_event(
     rassert(ch_num < KQT_CHANNELS_MAX);
     rassert(event_name != NULL);
     rassert(arg != NULL);
+    rassert(frame_offset >= 0);
 
     const Event_names* event_names = Event_handler_get_names(player->event_handler);
     const Event_type type = Event_names_get(event_names, event_name);
@@ -209,6 +212,7 @@ void Player_process_event(
                     (ch_num + bound->ch_offset + KQT_CHANNELS_MAX) % KQT_CHANNELS_MAX,
                     bound->desc,
                     arg,
+                    frame_offset,
                     skip,
                     external);
 
@@ -219,17 +223,18 @@ void Player_process_event(
     // Handle query events
     if (!skip && Event_is_query(type))
     {
-#define try_process(name, value)                                                   \
-        if (true)                                                                  \
-        {                                                                          \
-            if (Event_buffer_is_full(player->event_buffer))                        \
-            {                                                                      \
-                Event_buffer_start_skipping(player->event_buffer);                 \
-                return;                                                            \
-            }                                                                      \
-            else                                                                   \
-                Player_process_event(player, ch_num, name, value, skip, external); \
-        }                                                                          \
+#define try_process(name, value)                                                    \
+        if (true)                                                                   \
+        {                                                                           \
+            if (Event_buffer_is_full(player->event_buffer))                         \
+            {                                                                       \
+                Event_buffer_start_skipping(player->event_buffer);                  \
+                return;                                                             \
+            }                                                                       \
+            else                                                                    \
+                Player_process_event(                                               \
+                        player, ch_num, name, value, frame_offset, skip, external); \
+        }                                                                           \
         else ignore(0)
 
         switch (type)
@@ -311,6 +316,7 @@ static void Player_process_expr_event(
         int ch_num,
         const char* trigger_desc,
         const Value* meta,
+        int32_t frame_offset,
         bool skip,
         bool external)
 {
@@ -319,6 +325,7 @@ static void Player_process_expr_event(
     rassert(ch_num >= 0);
     rassert(ch_num < KQT_CHANNELS_MAX);
     rassert(trigger_desc != NULL);
+    rassert(frame_offset >= 0);
 
     Streader* sr =
         Streader_init(STREADER_AUTO, trigger_desc, (int64_t)strlen(trigger_desc));
@@ -367,7 +374,8 @@ static void Player_process_expr_event(
     }
 
     if (!Event_is_control(type) || player->master_params.is_infinite)
-        Player_process_event(player, ch_num, event_name, arg, skip, external);
+        Player_process_event(
+                player, ch_num, event_name, arg, frame_offset, skip, external);
 
     if (Event_buffer_is_full(player->event_buffer))
         return;
@@ -514,12 +522,14 @@ bool Player_check_perform_goto(Player* player)
 }
 
 
-void Player_process_cgiters(Player* player, Tstamp* limit, bool skip)
+void Player_process_cgiters(
+        Player* player, Tstamp* limit, int32_t frame_offset, bool skip)
 {
     rassert(player != NULL);
     rassert(!Player_has_stopped(player));
     rassert(limit != NULL);
     rassert(Tstamp_cmp(limit, TSTAMP_AUTO) >= 0);
+    rassert(frame_offset >= 0);
 
     // Check pattern playback start
     if (player->master_params.pattern_playback_flag)
@@ -660,6 +670,7 @@ void Player_process_cgiters(Player* player, Tstamp* limit, bool skip)
                                     i,
                                     Trigger_get_desc(trl->trigger),
                                     NULL, // no meta value
+                                    frame_offset,
                                     skip,
                                     external);
 
@@ -915,6 +926,8 @@ int32_t Player_move_forwards(Player* player, int32_t nframes, bool skip)
 
     Tstamp* delay_left = &player->master_params.delay_left;
 
+    const int32_t frame_offset = 0;
+
     if (Tstamp_cmp(delay_left, TSTAMP_AUTO) > 0)
     {
         // Apply pattern delay
@@ -924,7 +937,7 @@ int32_t Player_move_forwards(Player* player, int32_t nframes, bool skip)
     else
     {
         // Process cgiters
-        Player_process_cgiters(player, limit, skip);
+        Player_process_cgiters(player, limit, frame_offset, skip);
     }
 
     if (Tstamp_cmp(limit, TSTAMP_AUTO) > 0)

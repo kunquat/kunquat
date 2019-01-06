@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2019
  *
  * This file is part of Kunquat.
  *
@@ -39,6 +39,7 @@ void Player_process_event(
         int ch_num,
         const char* event_name,
         const Value* arg,
+        int32_t frame_offset,
         bool skip,
         bool external);
 
@@ -49,7 +50,8 @@ bool Player_check_perform_goto(Player* player);
 // TODO: Implement Player_check_perform_jump
 
 
-void Player_process_cgiters(Player* player, Tstamp* limit, bool skip);
+void Player_process_cgiters(
+        Player* player, Tstamp* limit, int32_t frame_offset, bool skip);
 
 
 void Player_update_sliders_and_lfos_tempo(Player* player);

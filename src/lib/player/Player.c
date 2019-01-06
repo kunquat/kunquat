@@ -855,6 +855,10 @@ static void Player_process_voice_group(
             (ch_num >= 0) ? Channel_is_muted(player->channels[ch_num]) : false;
         const bool enable_mixing = !is_muted && !use_test_output;
 
+        // TODO
+        const int32_t frame_offset = 0;
+        const int32_t total_frame_count = frame_count;
+
         const int32_t process_stop = Voice_signal_plan_execute(
                 plan,
                 player->device_states,
@@ -862,6 +866,8 @@ static void Player_process_voice_group(
                 vgroup,
                 tparams->work_buffers,
                 frame_count,
+                frame_offset,
+                total_frame_count,
                 player->master_params.tempo,
                 enable_mixing);
 
@@ -1258,6 +1264,7 @@ static bool Player_update_receive(Player* player)
         }
         else
         {
+            const int32_t frame_offset = 0;
             const bool skip = false;
             const bool external = false;
             Player_process_event(
@@ -1265,6 +1272,7 @@ static bool Player_update_receive(Player* player)
                     player->susp_event_ch,
                     player->susp_event_name,
                     &player->susp_event_value,
+                    frame_offset,
                     skip,
                     external);
 
@@ -1568,7 +1576,7 @@ void Player_play(Player* player, int32_t nframes)
             Channel_stream_state_update(ch->csstate, to_be_rendered);
         }
 
-        // Process signals in the connection graph
+        // Process mixed signals in the connection graph
         {
             Player_process_mixed_signals(player, to_be_rendered);
 
@@ -1826,9 +1834,10 @@ bool Player_fire(Player* player, int ch, Streader* event_reader)
         return false;
 
     // Fire
+    const int32_t frame_offset = 0;
     const bool skip = false;
     const bool external = true;
-    Player_process_event(player, ch, event_name, value, skip, external);
+    Player_process_event(player, ch, event_name, value, frame_offset, skip, external);
 
     // Check and perform goto if needed
     Player_check_perform_goto(player);

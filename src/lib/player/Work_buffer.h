@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2019
  *
  * This file is part of Kunquat.
  *
@@ -390,7 +390,7 @@ void Work_buffer_mix(
 
 
 /**
- * Mixes all subareas of a Work buffer into another as floating-point data.
+ * Mix all subareas of a Work buffer into another as floating-point data.
  *
  * If the two buffers are the same Work buffer, this function does nothing.
  *
@@ -411,6 +411,26 @@ void Work_buffer_mix_all(
         int32_t buf_start,
         int32_t buf_stop,
         uint8_t mask);
+
+
+/**
+ * Mix all subareas of a Work buffer into another with destination offset.
+ *
+ * \param dest          The Work buffer that will contain the end result --
+ *                      must not be \c NULL.
+ * \param dest_offset   The destination offset -- must be >= \c 0 and less than
+ *                      the buffer size.
+ * \param src           The input Work buffer -- must not be \c NULL or \a dest
+ *                      but must have the same size and stride as \a dest.
+ * \param buf_stop      The stop index of the area to be mixed -- must be
+ *                      >= \c 0, and \a dest_offset + \a buf_stop must be
+ *                      less than or equal to the buffer size.
+ */
+void Work_buffer_mix_all_shifted(
+        Work_buffer* restrict dest,
+        int32_t dest_offset,
+        const Work_buffer* restrict src,
+        int32_t buf_stop);
 
 
 /**
