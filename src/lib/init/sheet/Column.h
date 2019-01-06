@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2019
  *
  * This file is part of Kunquat.
  *
@@ -54,6 +54,10 @@ typedef struct Column_iter
 } Column_iter;
 
 
+#define COLUMN_ITER_AUTO (&(Column_iter){ \
+        .version = 0, .col = NULL, .tree_iter = *AAITER_AUTO, .trlist = NULL })
+
+
 /**
  * Create a new Column iterator.
  *
@@ -67,8 +71,10 @@ Column_iter* new_Column_iter(Column* col);
  * Initialise a Column iterator.
  *
  * \param iter   The Column iterator -- must not be \c NULL.
+ *
+ * \return   The parameter \a iter.
  */
-void Column_iter_init(Column_iter* iter);
+Column_iter* Column_iter_init(Column_iter* iter);
 
 
 /**

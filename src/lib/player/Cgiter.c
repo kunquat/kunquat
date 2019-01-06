@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2019
  *
  * This file is part of Kunquat.
  *
@@ -31,7 +31,6 @@ void Cgiter_init(Cgiter* cgiter, const Module* module, int col_index)
     cgiter->module = module;
     cgiter->col_index = col_index;
     Position_init(&cgiter->pos);
-    Column_iter_init(&cgiter->citer);
 
     cgiter->cur_tr.head = NULL;
 
@@ -150,8 +149,9 @@ const Trigger_row* Cgiter_get_trigger_row(Cgiter* cgiter)
     if (column == NULL)
         return NULL;
 
-    Column_iter_change_col(&cgiter->citer, column);
-    cgiter->cur_tr.head = Column_iter_get_row(&cgiter->citer, &cgiter->pos.pat_pos);
+    Column_iter* citer = Column_iter_init(COLUMN_ITER_AUTO);
+    Column_iter_change_col(citer, column);
+    cgiter->cur_tr.head = Column_iter_get_row(citer, &cgiter->pos.pat_pos);
     if (cgiter->cur_tr.head == NULL)
         return NULL;
     rassert(cgiter->cur_tr.head->next != NULL);
@@ -212,11 +212,12 @@ bool Cgiter_peek(Cgiter* cgiter, Tstamp* dist)
     // Check next trigger row
     Column* column = Pattern_get_column(pattern, cgiter->col_index);
     rassert(column != NULL);
-    Column_iter_change_col(&cgiter->citer, column);
+    Column_iter* citer = Column_iter_init(COLUMN_ITER_AUTO);
+    Column_iter_change_col(citer, column);
 
     const Tstamp* epsilon = Tstamp_set(TSTAMP_AUTO, 0, 1);
     Tstamp* next_pos_min = Tstamp_add(TSTAMP_AUTO, &cgiter->pos.pat_pos, epsilon);
-    Trigger_list* row = Column_iter_get_row(&cgiter->citer, next_pos_min);
+    Trigger_list* row = Column_iter_get_row(citer, next_pos_min);
 
     if (row != NULL)
     {

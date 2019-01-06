@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2019
  *
  * This file is part of Kunquat.
  *
@@ -40,7 +40,6 @@ typedef struct Cgiter
     int col_index;
 
     Position pos;
-    Column_iter citer;
     Trigger_row cur_tr; // TODO: remove
 
     bool row_returned;
