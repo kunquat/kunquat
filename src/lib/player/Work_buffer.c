@@ -744,7 +744,7 @@ static void Work_buffer_shift_contents(Work_buffer* buffer, int32_t offset)
         }
     }
 
-    buffer->contents = contents;
+    return;
 }
 
 

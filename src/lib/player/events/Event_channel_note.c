@@ -195,43 +195,12 @@ bool Event_channel_note_on_process(
     if (Audio_unit_get_type(au) != AU_TYPE_INSTRUMENT)
         return true;
 
-    // Allocate new Voices
-    const uint64_t new_group_id = Voice_pool_new_group_id(ch->pool);
-    int reserve_count = 0;
-
-    // Reserve voices, TODO: move to event handling ASAP
-    for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
-    {
-        const Processor* proc = Audio_unit_get_proc(au, i);
-        if (proc == NULL ||
-                !Device_is_existent((const Device*)proc) ||
-                !Processor_get_voice_signals(proc))
-            continue;
-
-        const Proc_state* proc_state = (Proc_state*)Device_states_get_state(
-                dstates, Device_get_id((const Device*)proc));
-
-        if (reserve_voice(ch, new_group_id, proc_state, params->external))
-            ++reserve_count;
-    }
-
-    if (reserve_count == 0)
-    {
-        Channel_reset_test_output(ch);
-        return true;
-    }
-
-    Voice_pool_sort_groups(ch->pool); // TODO: don't do this for every note
-
-    Voice_group_reservations_add_entry(ch->voice_group_res, ch->num, new_group_id);
-
     // Find reserved voices
     Voice_group* vgroup = VOICE_GROUP_AUTO;
 
     if (!Voice_group_reservations_get_clear_entry(
                 ch->voice_group_res, ch->num, &ch->fg_group_id) ||
-            (Voice_pool_get_group(ch->pool, ch->fg_group_id, vgroup) == NULL) ||
-            (Voice_group_get_size(vgroup) < reserve_count))
+            (Voice_pool_get_group(ch->pool, ch->fg_group_id, vgroup) == NULL))
     {
         reset_channel_voices(ch);
         return true;
@@ -260,7 +229,7 @@ bool Event_channel_note_on_process(
         Voice* voice = Voice_group_get_voice(vgroup, voice_index);
 
         const bool voice_allocated = init_voice(
-                ch, voice, au, new_group_id, proc_state, i, voice_rand_seed);
+                ch, voice, au, ch->fg_group_id, proc_state, i, voice_rand_seed);
         if (!voice_allocated)
         {
             // Some of our voices were reallocated
@@ -326,46 +295,12 @@ bool Event_channel_hit_process(
 
     const Param_proc_filter* hpf = Audio_unit_get_hit_proc_filter(au, hit_index);
 
-    const uint64_t new_group_id = Voice_pool_new_group_id(ch->pool);
-    int reserve_count = 0;
-
-    // Reserve voices, TODO: move to event handling ASAP
-    for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
-    {
-        const Processor* proc = Audio_unit_get_proc(au, i);
-        if (proc == NULL ||
-                !Device_is_existent((const Device*)proc) ||
-                !Processor_get_voice_signals(proc))
-            continue;
-
-        // Skip processors that are filtered out for this hit index
-        if ((hpf != NULL) && !Param_proc_filter_is_proc_allowed(hpf, i))
-            continue;
-
-        const Proc_state* proc_state = (Proc_state*)Device_states_get_state(
-                dstates, Device_get_id((const Device*)proc));
-
-        if (reserve_voice(ch, new_group_id, proc_state, params->external))
-            ++reserve_count;
-    }
-
-    if (reserve_count == 0)
-    {
-        Channel_reset_test_output(ch);
-        return true;
-    }
-
-    Voice_pool_sort_groups(ch->pool); // TODO: don't do this for every note
-
-    Voice_group_reservations_add_entry(ch->voice_group_res, ch->num, new_group_id);
-
     // Find reserved voices
     Voice_group* vgroup = VOICE_GROUP_AUTO;
 
     if (!Voice_group_reservations_get_clear_entry(
                 ch->voice_group_res, ch->num, &ch->fg_group_id) ||
-            (Voice_pool_get_group(ch->pool, ch->fg_group_id, vgroup) == NULL) ||
-            (Voice_group_get_size(vgroup) < reserve_count))
+            (Voice_pool_get_group(ch->pool, ch->fg_group_id, vgroup) == NULL))
     {
         reset_channel_voices(ch);
         return true;
@@ -398,7 +333,7 @@ bool Event_channel_hit_process(
         Voice* voice = Voice_group_get_voice(vgroup, voice_index);
 
         const bool voice_allocated = init_voice(
-                ch, voice, au, new_group_id, proc_state, i, voice_rand_seed);
+                ch, voice, au, ch->fg_group_id, proc_state, i, voice_rand_seed);
         if (!voice_allocated)
         {
             // Some of our voices were reallocated
@@ -443,11 +378,15 @@ bool Event_channel_note_off_process(
         for (int i = 0; i < Voice_group_get_size(vgroup); ++i)
         {
             Voice* voice = Voice_group_get_voice(vgroup, i);
+            if (voice->prio == VOICE_PRIO_INACTIVE)
+                continue;
+
             rassert(voice->prio >= VOICE_PRIO_FG);
             rassert(voice->group_id == ch->fg_group_id);
 
             voice->state->note_on = false;
             voice->prio = VOICE_PRIO_BG;
+            voice->frame_offset = ch->frame_offset_temp;
         }
     }
 

@@ -12,6 +12,9 @@
  */
 
 
+#include <init/Bind.h>
+#include <init/sheet/Column.h>
+#include <init/sheet/Trigger.h>
 #include <player/Cgiter.h>
 
 #include <debug/assert.h>
@@ -110,8 +113,6 @@ void Cgiter_reset(Cgiter* cgiter, const Position* start_pos)
             (int)cgiter->pos.piref.inst);
 #endif
 
-    // TODO: Prepare for the first Cgiter_peek call
-
     return;
 }
 
@@ -174,7 +175,24 @@ void Cgiter_clear_returned_status(Cgiter* cgiter)
 }
 
 
-bool Cgiter_peek(const Cgiter* cgiter, Tstamp* dist)
+static const Pattern* find_pattern(const Cgiter* cgiter)
+{
+    rassert(cgiter != NULL);
+
+    const Pat_inst_ref* piref = NULL;
+    if (cgiter->is_pattern_playback_state)
+        piref = &cgiter->pos.piref;
+    else
+        piref = find_pat_inst_ref(cgiter->module, cgiter->pos.track, cgiter->pos.system);
+
+    if (piref != NULL)
+        return Module_get_pattern(cgiter->module, piref);
+
+    return NULL;
+}
+
+
+bool Cgiter_get_local_bp_dist(const Cgiter* cgiter, Tstamp* dist)
 {
     rassert(cgiter != NULL);
     rassert(dist != NULL);
@@ -183,17 +201,7 @@ bool Cgiter_peek(const Cgiter* cgiter, Tstamp* dist)
     if (Cgiter_has_finished(cgiter))
         return false;
 
-    // Find pattern
-    const Pattern* pattern = NULL;
-    const Pat_inst_ref* piref = NULL;
-    if (cgiter->is_pattern_playback_state)
-        piref = &cgiter->pos.piref;
-    else
-        piref = find_pat_inst_ref(cgiter->module, cgiter->pos.track, cgiter->pos.system);
-
-    if (piref != NULL)
-        pattern = Module_get_pattern(cgiter->module, piref);
-
+    const Pattern* pattern = find_pattern(cgiter);
     if (pattern == NULL)
         return false;
 
@@ -217,7 +225,7 @@ bool Cgiter_peek(const Cgiter* cgiter, Tstamp* dist)
 
     const Tstamp* epsilon = Tstamp_set(TSTAMP_AUTO, 0, 1);
     Tstamp* next_pos_min = Tstamp_add(TSTAMP_AUTO, &cgiter->pos.pat_pos, epsilon);
-    Trigger_list* row = Column_iter_get_row(citer, next_pos_min);
+    const Trigger_list* row = Column_iter_get_row(citer, next_pos_min);
 
     if (row != NULL)
     {
@@ -233,6 +241,89 @@ bool Cgiter_peek(const Cgiter* cgiter, Tstamp* dist)
             Tstamp_mina(dist, dist_to_row);
             return true;
         }
+    }
+
+    // No trigger row found
+    Tstamp_mina(dist, dist_to_end);
+    return true;
+}
+
+
+bool Cgiter_get_global_bp_dist(
+        const Cgiter* cgiter,
+        const Bind* bind,
+        const Event_names* event_names,
+        Tstamp* dist)
+{
+    rassert(cgiter != NULL);
+    rassert(event_names != NULL);
+    rassert(dist != NULL);
+    rassert(Tstamp_cmp(dist, TSTAMP_AUTO) >= 0);
+
+    if (Cgiter_has_finished(cgiter))
+        return false;
+
+    const Pattern* pattern = find_pattern(cgiter);
+    if (pattern == NULL)
+        return false;
+
+    // Check pattern end
+    const Tstamp* pat_length = Pattern_get_length(pattern);
+    const Tstamp* dist_to_end =
+        Tstamp_sub(TSTAMP_AUTO, pat_length, &cgiter->pos.pat_pos);
+
+    if (Tstamp_cmp(dist_to_end, TSTAMP_AUTO) <= 0)
+    {
+        // We cannot move forwards in playback time
+        Tstamp_set(dist, 0, 0);
+        return true;
+    }
+
+    // Check next trigger row
+    Column* column = Pattern_get_column(pattern, cgiter->col_index);
+    rassert(column != NULL);
+    Column_iter* citer = Column_iter_init(COLUMN_ITER_AUTO);
+    Column_iter_change_col(citer, column);
+
+    const Tstamp* epsilon = Tstamp_set(TSTAMP_AUTO, 0, 1);
+    Tstamp* next_pos_min = Tstamp_add(TSTAMP_AUTO, &cgiter->pos.pat_pos, epsilon);
+    const Trigger_list* row = Column_iter_get_row(citer, next_pos_min);
+
+    while (row != NULL)
+    {
+        rassert(row->next != NULL);
+        rassert(row->next->trigger != NULL);
+        if (Tstamp_cmp(&row->next->trigger->pos, pat_length) > 0)
+            break;
+
+        bool row_is_global_breakpoint = false;
+
+        const Trigger_list* cur_entry = row;
+        while (cur_entry->trigger != NULL)
+        {
+            const Trigger* trigger = cur_entry->trigger;
+
+            if (Event_is_global_breakpoint(trigger->type) ||
+                    ((bind != NULL) &&
+                     Bind_event_is_global_breakpoint(bind, event_names, trigger->desc)))
+            {
+                row_is_global_breakpoint = true;
+                break;
+            }
+
+            cur_entry = cur_entry->next;
+            rassert(cur_entry != NULL);
+        }
+
+        if (row_is_global_breakpoint)
+        {
+            const Tstamp* dist_to_row =
+                Tstamp_sub(TSTAMP_AUTO, &row->next->trigger->pos, &cgiter->pos.pat_pos);
+            Tstamp_mina(dist, dist_to_row);
+            return true;
+        }
+
+        row = Column_iter_get_next_row(citer);
     }
 
     // No trigger row found

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2019
  *
  * This file is part of Kunquat.
  *
@@ -101,8 +101,6 @@ void Event_buffer_start_skipping(Event_buffer* ebuf)
 {
     rassert(ebuf != NULL);
     rassert(!ebuf->is_skipping);
-    rassert(Event_buffer_is_full(ebuf));
-    rassert(ebuf->events_added > 0);
 
     ebuf->is_skipping = true;
     ebuf->events_skipped = 0;
@@ -115,6 +113,13 @@ bool Event_buffer_is_skipping(const Event_buffer* ebuf)
 {
     rassert(ebuf != NULL);
     return ebuf->is_skipping;
+}
+
+
+bool Event_buffer_is_zero_skipping(const Event_buffer* ebuf)
+{
+    rassert(ebuf != NULL);
+    return ebuf->is_skipping && (ebuf->events_added == 0);
 }
 
 
@@ -133,6 +138,12 @@ void Event_buffer_add(Event_buffer* ebuf, int ch, const char* name, const Value*
     rassert(ch < KQT_CHANNELS_MAX);
     rassert(name != NULL);
     rassert(arg != NULL);
+
+    if (ebuf->is_skipping && (ebuf->events_added == 0))
+    {
+        rassert(ebuf->events_skipped == 0);
+        ebuf->is_skipping = false;
+    }
 
     // Skipping mode
     if (ebuf->is_skipping)

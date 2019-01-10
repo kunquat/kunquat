@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2019
  *
  * This file is part of Kunquat.
  *
@@ -106,6 +106,9 @@ void Event_buffer_start_skipping(Event_buffer* ebuf);
  *           otherwise \c false.
  */
 bool Event_buffer_is_skipping(const Event_buffer* ebuf);
+
+
+bool Event_buffer_is_zero_skipping(const Event_buffer* ebuf);
 
 
 /**

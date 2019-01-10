@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2019
  *
  * This file is part of Kunquat.
  *
@@ -85,14 +85,25 @@ typedef enum
 
 typedef struct Cblist
 {
-    char event_name[KQT_EVENT_NAME_MAX + 1];
+    //char event_name[KQT_EVENT_NAME_MAX + 1];
+    Event_type event_type;
     Source_state source_state;
     Cblist_item* first;
     Cblist_item* last;
 } Cblist;
 
 
-static Cblist* new_Cblist(char* event_name);
+#define CBLIST_KEY(type) (&(Cblist){        \
+        .event_type = (type),               \
+        .source_state = SOURCE_STATE_NEW,   \
+        .first = NULL,                      \
+        .last = NULL })
+
+
+static Cblist* new_Cblist(Event_type event_type);
+
+
+static int Cblist_cmp(const Cblist* c1, const Cblist* c2);
 
 
 static void Cblist_append(Cblist* list, Cblist_item* item);
@@ -107,7 +118,7 @@ static bool read_constraints(Streader* sr, Bind* map, Cblist_item* item);
 static bool read_events(Streader* sr, Cblist_item* item, const Event_names* names);
 
 
-static bool Bind_is_cyclic(const Bind* map);
+static bool Bind_is_cyclic(const Bind* map, const Event_names* event_names);
 
 
 typedef struct bedata
@@ -128,15 +139,21 @@ static bool read_bind_entry(Streader* sr, int32_t index, void* userdata)
     if (!Streader_readf(sr, "[%s,", READF_STR(KQT_EVENT_NAME_MAX + 1, event_name)))
         return false;
 
-    Cblist* cblist = AAtree_get_exact(bd->map->cblists, event_name);
+    Event_type event_type = Event_names_get(bd->names, event_name);
+    if (event_type == Event_NONE)
+    {
+        Streader_set_error(sr, "Event is not valid: %s", event_name);
+        return false;
+    }
+
+    Cblist* cblist = AAtree_get_exact(bd->map->cblists, CBLIST_KEY(event_type));
     if (cblist == NULL)
     {
-        cblist = new_Cblist(event_name);
+        cblist = new_Cblist(event_type);
         if (cblist == NULL || !AAtree_ins(bd->map->cblists, cblist))
         {
             del_Cblist(cblist);
-            Streader_set_memory_error(
-                    sr, "Could not allocate memory for bind");
+            Streader_set_memory_error(sr, "Could not allocate memory for bind");
             return false;
         }
     }
@@ -174,7 +191,7 @@ Bind* new_Bind(Streader* sr, const Event_names* names)
     }
 
     map->cblists = new_AAtree(
-            (AAtree_item_cmp*)strcmp, (AAtree_item_destroy*)del_Cblist);
+            (AAtree_item_cmp*)Cblist_cmp, (AAtree_item_destroy*)del_Cblist);
     if (map->cblists == NULL)
     {
         del_Bind(map);
@@ -193,7 +210,7 @@ Bind* new_Bind(Streader* sr, const Event_names* names)
         return NULL;
     }
 
-    if (Bind_is_cyclic(map))
+    if (Bind_is_cyclic(map, names))
     {
         Streader_set_error(sr, "Bind contains a cycle");
         del_Bind(map);
@@ -213,7 +230,7 @@ Event_cache* Bind_create_cache(const Bind* map)
         return NULL;
 
     AAiter* iter = AAiter_init(AAITER_AUTO, map->cblists);
-    Cblist* cblist = AAiter_get_at_least(iter, "");
+    Cblist* cblist = AAiter_get_at_least(iter, CBLIST_KEY(Event_NONE));
     while (cblist != NULL)
     {
         Cblist_item* item = cblist->first;
@@ -238,8 +255,73 @@ Event_cache* Bind_create_cache(const Bind* map)
 }
 
 
+bool Bind_event_is_global_breakpoint(
+        const Bind* map, const Event_names* event_names, const char* event_desc)
+{
+    rassert(map != NULL);
+    rassert(event_names != NULL);
+    rassert(event_desc != NULL);
+
+    Streader* sr = Streader_init(STREADER_AUTO, event_desc, (int64_t)strlen(event_desc));
+    char event_name[KQT_EVENT_NAME_MAX + 1] = "";
+    Streader_readf(sr, "[%s", READF_STR(KQT_EVENT_NAME_MAX, event_name));
+    rassert(!Streader_is_error_set(sr));
+
+    if (Event_is_global_breakpoint(Event_names_get(event_names, event_name)))
+        return true;
+
+    Event_type event_type = Event_names_get(event_names, event_name);
+
+    Cblist* list = AAtree_get_exact(map->cblists, CBLIST_KEY(event_type));
+    if (list == NULL)
+        return false;
+
+    Cblist_item* item = list->first;
+    while (item != NULL)
+    {
+        if (item->constraints != NULL)
+            return true;
+
+        Target_event* event = item->first_event;
+        while (event != NULL)
+        {
+            if (Bind_event_is_global_breakpoint(map, event_names, event->desc))
+                return true;
+
+            event = event->next;
+        }
+
+        item = item->next;
+    }
+
+    return false;
+}
+
+
+bool Bind_event_has_constraints(const Bind* map, Event_type event_type)
+{
+    rassert(map != NULL);
+
+    Cblist* list = AAtree_get_exact(map->cblists, CBLIST_KEY(event_type));
+    if (list == NULL)
+        return false;
+
+    Cblist_item* item = list->first;
+    while (item != NULL)
+    {
+        if (item->constraints != NULL)
+            return true;
+
+        item = item->next;
+    }
+
+    return false;
+}
+
+
 Target_event* Bind_get_first(
         const Bind* map,
+        const Event_names* event_names,
         Event_cache* cache,
         Env_state* estate,
         const char* event_name,
@@ -253,7 +335,9 @@ Target_event* Bind_get_first(
 
     Event_cache_update(cache, event_name, value);
 
-    Cblist* list = AAtree_get_exact(map->cblists, event_name);
+    const Event_type event_type = Event_names_get(event_names, event_name);
+
+    Cblist* list = AAtree_get_exact(map->cblists, CBLIST_KEY(event_type));
     if (list == NULL)
         return NULL;
 
@@ -295,15 +379,17 @@ void del_Bind(Bind* map)
 }
 
 
-static bool Bind_dfs(const Bind* map, char* name);
+static bool Bind_dfs(
+        const Bind* map, const Event_names* event_names, Event_type event_type);
 
 
-static bool Bind_is_cyclic(const Bind* map)
+static bool Bind_is_cyclic(const Bind* map, const Event_names* event_names)
 {
     rassert(map != NULL);
+    rassert(event_names != NULL);
 
     AAiter* iter = AAiter_init(AAITER_AUTO, map->cblists);
-    Cblist* cblist = AAiter_get_at_least(iter, "");
+    Cblist* cblist = AAiter_get_at_least(iter, CBLIST_KEY(Event_NONE));
     while (cblist != NULL)
     {
         rassert(cblist->source_state != SOURCE_STATE_REACHED);
@@ -314,7 +400,7 @@ static bool Bind_is_cyclic(const Bind* map)
         }
 
         rassert(cblist->source_state == SOURCE_STATE_NEW);
-        if (Bind_dfs(map, cblist->event_name))
+        if (Bind_dfs(map, event_names, cblist->event_type))
             return true;
 
         cblist = AAiter_get_next(iter);
@@ -324,12 +410,13 @@ static bool Bind_is_cyclic(const Bind* map)
 }
 
 
-static bool Bind_dfs(const Bind* map, char* name)
+static bool Bind_dfs(
+        const Bind* map, const Event_names* event_names, Event_type event_type)
 {
     rassert(map != NULL);
-    rassert(name != NULL);
+    rassert(event_names != NULL);
 
-    Cblist* cblist = AAtree_get_exact(map->cblists, name);
+    Cblist* cblist = AAtree_get_exact(map->cblists, CBLIST_KEY(event_type));
     if (cblist == NULL || cblist->source_state == SOURCE_STATE_VISITED)
         return false;
 
@@ -351,7 +438,9 @@ static bool Bind_dfs(const Bind* map, char* name)
             Streader_readf(sr, "[%s", READF_STR(KQT_EVENT_NAME_MAX, next_name));
             rassert(!Streader_is_error_set(sr));
 
-            if (Bind_dfs(map, next_name))
+            const Event_type next_type = Event_names_get(event_names, next_name);
+
+            if (Bind_dfs(map, event_names, next_type))
                 return true;
 
             event = event->next;
@@ -440,20 +529,33 @@ static bool read_events(
 }
 
 
-static Cblist* new_Cblist(char* event_name)
+static Cblist* new_Cblist(Event_type event_type)
 {
-    rassert(event_name != NULL);
+    rassert(Event_is_valid(event_type));
 
     Cblist* list = memory_alloc_item(Cblist);
     if (list == NULL)
         return NULL;
 
+    list->event_type = event_type;
     list->source_state = SOURCE_STATE_NEW;
     list->first = list->last = NULL;
-    strncpy(list->event_name, event_name, KQT_EVENT_NAME_MAX);
-    list->event_name[KQT_EVENT_NAME_MAX] = '\0';
 
     return list;
+}
+
+
+static int Cblist_cmp(const Cblist* c1, const Cblist* c2)
+{
+    rassert(c1 != NULL);
+    rassert(c2 != NULL);
+
+    if (c1->event_type < c2->event_type)
+        return -1;
+    else if (c1->event_type > c2->event_type)
+        return 1;
+
+    return 0;
 }
 
 

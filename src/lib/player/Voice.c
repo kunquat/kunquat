@@ -38,6 +38,7 @@ Voice* new_Voice(void)
     voice->ch_num = -1;
     voice->updated = false;
     voice->prio = VOICE_PRIO_INACTIVE;
+    voice->frame_offset = 0;
     voice->use_test_output = false;
     voice->test_proc_index = -1;
     voice->proc = NULL;
@@ -214,6 +215,7 @@ void Voice_reset(Voice* voice)
     // number information, so let's keep it
     //voice->ch_num = -1;
     voice->prio = VOICE_PRIO_INACTIVE;
+    voice->frame_offset = 0;
     Voice_state_clear(voice->state);
     voice->proc = NULL;
     Random_reset(&voice->rand_p);

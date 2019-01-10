@@ -52,6 +52,7 @@ static bool Channel_init(Channel* ch, int num, Env_state* estate, const Module* 
     ch->event_cache = NULL;
     ch->num = num;
     ch->fg_group_temp = *VOICE_GROUP_AUTO;
+    ch->frame_offset_temp = 0;
     ch->mute = false;
 
     Channel_reset(ch);
@@ -157,6 +158,8 @@ void Channel_reset(Channel* ch)
     rassert(ch != NULL);
 
     General_state_reset(&ch->parent);
+
+    Channel_event_buffer_init(&ch->local_events);
 
     ch->fg_group_id = 0;
 

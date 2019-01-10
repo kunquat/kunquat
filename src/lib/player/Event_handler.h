@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2019
  *
  * This file is part of Kunquat.
  *
@@ -134,6 +134,14 @@ bool Event_handler_trigger(
         Event_handler* eh,
         int ch_num,
         const char* name,
+        const Value* arg,
+        bool external);
+
+
+bool Event_handler_trigger_by_type(
+        Event_handler* eh,
+        int ch_num,
+        Event_type type,
         const Value* arg,
         bool external);
 

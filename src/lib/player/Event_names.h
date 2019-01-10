@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2019
  *
  * This file is part of Kunquat.
  *
@@ -16,6 +16,7 @@
 #define KQT_EVENT_NAMES_H
 
 
+#include <decl.h>
 #include <player/Event_type.h>
 #include <player/Param_validator.h>
 #include <Value.h>
@@ -24,40 +25,18 @@
 #include <stdlib.h>
 
 
-typedef struct Event_names Event_names;
+//typedef struct Event_names Event_names;
 
 
 /**
  * Create a new Event name collection.
  *
+ * \param props   The Event properties -- must not be \c NULL.
+ *
  * \return   The Event name collection if successful, or \c NULL if memory
  *           allocation failed.
  */
-Event_names* new_Event_names(void);
-
-
-/**
- * Add an Event name into the Event name collection.
- *
- * \param names   The Event name collection -- must not be \c NULL.
- * \param name    The Event name -- must not be \c NULL, empty string or
- *                longer than KQT_EVENT_NAME_MAX characters. Also, the name
- *                must not already exist in the collection.
- * \param type    The Event type -- must be a valid supported type.
- *
- * \return   \c true if successful, or \c false if memory allocation failed.
- */
-//bool Event_names_add(Event_names* names, const char* name, Event_type type);
-
-
-/**
- * Find out whether a fatal error has occurred when adding Event names.
- *
- * \param names   The Event name collection -- must not be \c NULL.
- *
- * \return   \c true if an error has occurred, otherwise \c false.
- */
-bool Event_names_error(const Event_names* names);
+Event_names* new_Event_names(Event_properties* props);
 
 
 /**

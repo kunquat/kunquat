@@ -48,6 +48,7 @@ typedef struct Voice
     int ch_num;              ///< The last Channel that initialised this Voice.
     bool updated;            ///< Used to cut Voices that are not updated.
     Voice_prio prio;         ///< Current priority of the Voice.
+    int32_t frame_offset;
     bool use_test_output;
     int test_proc_index;
     const Processor* proc;   ///< The Processor.

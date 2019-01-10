@@ -22,6 +22,7 @@
 #include <kunquat/limits.h>
 #include <mathnum/Random.h>
 #include <mathnum/Tstamp.h>
+#include <player/Channel_event_buffer.h>
 #include <player/Channel_stream_state.h>
 #include <player/Env_state.h>
 #include <player/Event_cache.h>
@@ -49,11 +50,13 @@ struct Channel
     Random rand;                   ///< Random source for this channel.
     Event_cache* event_cache;
     Channel_stream_state* csstate;
+    Channel_event_buffer local_events;
 
     Voice_pool* pool;              ///< All Voices.
     Voice_group_reservations* voice_group_res;
     uint64_t fg_group_id;
-    Voice_group fg_group_temp;     ///< NOTE: This is for temporary storage only.
+    Voice_group fg_group_temp;     ///< NOTE: This is for temporary storage only
+    int32_t frame_offset_temp;     ///< NOTE: This is for temporary storage only
 
     bool mute;
     bool use_test_output;
