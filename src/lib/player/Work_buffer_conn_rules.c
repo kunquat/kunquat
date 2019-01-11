@@ -222,7 +222,10 @@ void Work_buffer_conn_rules_mix(
         const Work_buffer_conn_rules* rules, int32_t frame_count)
 {
     rassert(rules != NULL);
-    rassert(frame_count > 0);
+    rassert(frame_count >= 0);
+
+    if (frame_count == 0)
+        return;
 
     uint8_t conn_mask = 0;
 
