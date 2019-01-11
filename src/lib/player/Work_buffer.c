@@ -706,7 +706,7 @@ void Work_buffer_mix_all(
 static void Work_buffer_shift_contents(Work_buffer* buffer, int32_t offset)
 {
     rassert(buffer != NULL);
-    rassert(labs(offset) < Work_buffer_get_size(buffer));
+    rassert(labs(offset) <= Work_buffer_get_size(buffer));
 
     if (offset == 0)
         return;
@@ -759,7 +759,7 @@ void Work_buffer_mix_all_shifted(
     rassert(src != NULL);
     rassert(src != dest);
     rassert(buf_stop >= 0);
-    rassert(buf_stop + dest_offset <= Work_buffer_get_size(dest) + MARGIN_ELEM_COUNT);
+    rassert(buf_stop + dest_offset <= Work_buffer_get_size(dest));
 
     Work_buffer_shift_contents(dest, dest_offset);
 
