@@ -214,6 +214,31 @@ void Event_buffer_add(Event_buffer* ebuf, int ch, const char* name, const Value*
 }
 
 
+void Event_buffer_skip_step(Event_buffer* ebuf)
+{
+    rassert(ebuf != NULL);
+    rassert(ebuf->is_skipping);
+
+    if (ebuf->events_added == 0)
+    {
+        rassert(ebuf->events_skipped == 0);
+        ebuf->is_skipping = false;
+        return;
+    }
+
+    rassert(ebuf->events_skipped < ebuf->events_added);
+
+    ++ebuf->events_skipped;
+    if (ebuf->events_skipped >= ebuf->events_added)
+    {
+        rassert(ebuf->events_skipped == ebuf->events_added);
+        ebuf->is_skipping = false;
+    }
+
+    return;
+}
+
+
 void Event_buffer_clear(Event_buffer* ebuf)
 {
     rassert(ebuf != NULL);

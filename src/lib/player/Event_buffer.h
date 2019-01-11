@@ -134,6 +134,14 @@ void Event_buffer_add(Event_buffer* ebuf, int ch, const char* name, const Value*
 
 
 /**
+ * Skip one step ahead in the Event buffer.
+ *
+ * \param ebuf   The Event buffer -- must not be \c NULL and must be in skipping state.
+ */
+void Event_buffer_skip_step(Event_buffer* ebuf);
+
+
+/**
  * Clear the Event buffer.
  *
  * \param ebuf   The Event buffer -- must not be \c NULL.

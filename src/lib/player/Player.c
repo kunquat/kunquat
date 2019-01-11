@@ -1803,11 +1803,11 @@ void Player_skip(Player* player, int64_t nframes)
         int32_t to_be_skipped = (int32_t)min(nframes - skipped, INT32_MAX);
         to_be_skipped = Player_move_forwards(player, to_be_skipped, true);
 
+        for (int ci = 0; ci < KQT_CHANNELS_MAX; ++ci)
+            Channel_event_buffer_init(&player->channels[ci]->local_events);
+
         if (Player_has_stopped(player))
-        {
-            rassert(to_be_skipped == 0);
-            break;
-        }
+            nframes = skipped + to_be_skipped;
 
         // Update master volume slider
         Slider_skip(&player->master_params.volume_slider, to_be_skipped);
