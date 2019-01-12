@@ -872,6 +872,9 @@ void Player_process_cgiters(Player* player, Tstamp* limit, bool skip)
         // Break if tempo settings changed
         if (player->master_params.tempo_settings_changed)
         {
+            rassert(is_at_global_breakpoint);
+            rassert(Tstamp_cmp(limit_offset, TSTAMP_AUTO) == 0);
+
             Tstamp_copy(limit, limit_offset);
             return;
         }
