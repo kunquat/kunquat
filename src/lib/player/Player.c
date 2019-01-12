@@ -1417,8 +1417,6 @@ static bool Player_update_receive(Player* player)
             Player_check_perform_goto(player);
         }
 
-        Player_process_all_local_events(player);
-
         if (Event_buffer_is_skipping(player->event_buffer))
         {
             return new_events_found;
@@ -1440,8 +1438,6 @@ static bool Player_update_receive(Player* player)
 
         // Process the remainder of the current row
         Player_move_forwards(player, 0, false);
-
-        Player_process_all_local_events(player);
 
         // Check if we reached end of row
         if (old_ch == player->master_params.cur_ch &&
@@ -1989,8 +1985,6 @@ bool Player_fire(Player* player, int ch_num, Streader* event_reader)
             frame_offset,
             skip,
             external);
-
-    Player_process_all_local_events(player);
 
     // Check and perform goto if needed
     Player_check_perform_goto(player);
