@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2019
  *
  * This file is part of Kunquat.
  *
@@ -16,17 +16,20 @@
 #define KQT_NOTE_SETUP_H
 
 
-#include <init/devices/Audio_unit.h>
-#include <player/Channel.h>
+#include <decl.h>
+#include <player/Event_type.h>
 
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
 
 
-bool reserve_voice(
+bool reserve_voices(
         Channel* ch,
-        uint64_t group_id,
-        const Proc_state* proc_state,
+        const Module* module,
+        const Device_states* dstates,
+        Event_type event_type,
+        const Value* arg,
         bool is_external);
 
 

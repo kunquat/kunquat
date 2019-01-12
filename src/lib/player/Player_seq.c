@@ -16,10 +16,9 @@
 
 #include <debug/assert.h>
 #include <expr.h>
-#include <init/devices/Audio_unit.h>
-#include <init/devices/Param_proc_filter.h>
 #include <mathnum/common.h>
 #include <player/Channel_event_buffer.h>
+#include <player/Event_type.h>
 #include <player/events/note_setup.h>
 #include <string/common.h>
 
@@ -199,8 +198,22 @@ void Player_process_event(
     if (!is_skipping_buffer && !Event_is_query(type) && !Event_is_auto(type))
     {
         // TODO: how should we handle errors?
-        if (Event_is_global_breakpoint(type))
+        if (Event_is_global_breakpoint(type) || is_at_global_breakpoint)
         {
+            if (!skip)
+            {
+                if ((type == Event_channel_note_on) || (type == Event_channel_hit))
+                {
+                    reserve_voices(
+                            player->channels[ch_num],
+                            player->module,
+                            player->device_states,
+                            type,
+                            arg,
+                            external);
+                }
+            }
+
             Event_handler_trigger(
                 player->event_handler, ch_num, event_name, arg, external);
         }
@@ -210,82 +223,14 @@ void Player_process_event(
 
             if (!skip)
             {
-                // Reserve voices if needed
-                if (type == Event_channel_note_on)
-                {
-                    Audio_unit* au =
-                        Module_get_au_from_input(player->module, ch->au_input);
-                    if ((au != NULL) && (Audio_unit_get_type(au) == AU_TYPE_INSTRUMENT))
-                    {
-                        // Reserve voices
-                        const uint64_t new_group_id = Voice_pool_new_group_id(ch->pool);
-
-                        for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
-                        {
-                            const Processor* proc = Audio_unit_get_proc(au, i);
-                            if (proc == NULL ||
-                                    !Device_is_existent((const Device*)proc) ||
-                                    !Processor_get_voice_signals(proc))
-                                continue;
-
-                            const Proc_state* proc_state =
-                                (Proc_state*)Device_states_get_state(
-                                        player->device_states,
-                                        Device_get_id((const Device*)proc));
-
-                            reserve_voice(ch, new_group_id, proc_state, external);
-                        }
-
-                        Voice_group_reservations_add_entry(
-                                ch->voice_group_res, ch->num, new_group_id);
-
-                        Voice_pool_sort_groups(ch->pool); // TODO: don't do this for every note
-                    }
-                }
-                else if (type == Event_channel_hit)
-                {
-                    Audio_unit* au =
-                        Module_get_au_from_input(player->module, ch->au_input);
-                    if ((au != NULL) && (Audio_unit_get_type(au) == AU_TYPE_INSTRUMENT))
-                    {
-                        const int hit_index = (int)arg->value.int_type;
-                        if (Audio_unit_get_hit_existence(au, hit_index))
-                        {
-                            const Param_proc_filter* hpf =
-                                Audio_unit_get_hit_proc_filter(au, hit_index);
-
-                            const uint64_t new_group_id =
-                                Voice_pool_new_group_id(ch->pool);
-
-                            // Reserve voices, TODO: move to event handling ASAP
-                            for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
-                            {
-                                const Processor* proc = Audio_unit_get_proc(au, i);
-                                if (proc == NULL ||
-                                        !Device_is_existent((const Device*)proc) ||
-                                        !Processor_get_voice_signals(proc))
-                                    continue;
-
-                                // Skip processors that are filtered out for this hit index
-                                if ((hpf != NULL) &&
-                                        !Param_proc_filter_is_proc_allowed(hpf, i))
-                                    continue;
-
-                                const Proc_state* proc_state =
-                                    (Proc_state*)Device_states_get_state(
-                                            player->device_states,
-                                            Device_get_id((const Device*)proc));
-
-                                reserve_voice(ch, new_group_id, proc_state, external);
-                            }
-
-                            Voice_group_reservations_add_entry(
-                                    ch->voice_group_res, ch->num, new_group_id);
-
-                            Voice_pool_sort_groups(ch->pool); // TODO: don't do this for every note
-                        }
-                    }
-                }
+                if ((type == Event_channel_note_on) || (type == Event_channel_hit))
+                    reserve_voices(
+                            ch,
+                            player->module,
+                            player->device_states,
+                            type,
+                            arg,
+                            external);
             }
 
             Channel_event ch_event;

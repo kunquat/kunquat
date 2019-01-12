@@ -16,6 +16,7 @@
 
 #include <debug/assert.h>
 #include <init/devices/Au_streams.h>
+#include <init/devices/Audio_unit.h>
 #include <init/devices/Param_proc_filter.h>
 #include <init/devices/Proc_type.h>
 #include <init/Input_map.h>

@@ -42,7 +42,7 @@ typedef enum
  * This contains all the playback state information of a single note of a
  * Processor being played.
  */
-typedef struct Voice
+struct Voice
 {
     uint64_t group_id;       ///< The ID of the group this Voice currently belongs to.
     int ch_num;              ///< The last Channel that initialised this Voice.
@@ -57,7 +57,7 @@ typedef struct Voice
     Work_buffer* wb;         ///< The Work buffer associated with this Voice.
     Random rand_p;           ///< Parameter random source.
     Random rand_s;           ///< Signal random source.
-} Voice;
+};
 
 
 /**

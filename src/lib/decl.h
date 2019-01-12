@@ -57,6 +57,7 @@ typedef struct Tuning_state Tuning_state;
 typedef struct Tuning_table Tuning_table;
 typedef struct Value Value;
 typedef struct Vector Vector;
+typedef struct Voice Voice;
 typedef struct Voice_group Voice_group;
 typedef struct Voice_signal_plan Voice_signal_plan;
 typedef struct Voice_state Voice_state;
