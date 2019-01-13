@@ -939,6 +939,8 @@ static void update_tempo_slide(Master_params* master_params)
     if (Tstamp_cmp(&master_params->tempo_slide_left, TSTAMP_AUTO) <= 0)
     {
         // Finish slide
+        master_params->tempo_settings_changed =
+            (master_params->tempo == master_params->tempo_slide_target);
         master_params->tempo = master_params->tempo_slide_target;
         master_params->tempo_slide = 0;
     }
@@ -1028,12 +1030,9 @@ int32_t Player_move_forwards(Player* player, int32_t nframes, bool skip)
     Tstamp* limit = Tstamp_fromframes(
             TSTAMP_AUTO, nframes, player->master_params.tempo, player->audio_rate);
 
+    // Don't render further than our current tempo slide slice
     if (player->master_params.tempo_slide != 0)
-    {
-        // Apply tempo slide slice
         Tstamp_mina(limit, &player->master_params.tempo_slide_slice_left);
-        Tstamp_suba(&player->master_params.tempo_slide_slice_left, limit);
-    }
 
     Tstamp* delay_left = &player->master_params.delay_left;
 
@@ -1048,6 +1047,11 @@ int32_t Player_move_forwards(Player* player, int32_t nframes, bool skip)
         // Process cgiters
         Player_process_cgiters(player, limit, skip);
     }
+
+    // If continuing our previous tempo slide, move along the current slice
+    if (!player->master_params.tempo_settings_changed &&
+            (player->master_params.tempo_slide != 0))
+        Tstamp_suba(&player->master_params.tempo_slide_slice_left, limit);
 
     if (Tstamp_cmp(limit, TSTAMP_AUTO) > 0)
     {
