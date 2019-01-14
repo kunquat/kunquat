@@ -379,6 +379,8 @@ bool Event_channel_note_off_process(
         for (int i = 0; i < Voice_group_get_size(vgroup); ++i)
         {
             Voice* voice = Voice_group_get_voice(vgroup, i);
+            voice->frame_offset = ch->frame_offset_temp;
+
             if (voice->prio == VOICE_PRIO_INACTIVE)
                 continue;
 
@@ -387,7 +389,6 @@ bool Event_channel_note_off_process(
 
             voice->state->note_on = false;
             voice->prio = VOICE_PRIO_BG;
-            voice->frame_offset = ch->frame_offset_temp;
         }
     }
 

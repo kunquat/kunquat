@@ -277,7 +277,7 @@ void Voice_pool_free_inactive(Voice_pool* pool)
     {
         Voice* current = pool->voices[i];
         if (current->prio == VOICE_PRIO_INACTIVE)
-            current->group_id = 0;
+            Voice_reset(current);
     }
 
     return;

@@ -82,7 +82,16 @@ bool Voice_group_is_bg(const Voice_group* vg)
 {
     rassert(vg != NULL);
 
-    return (vg->size > 0) && (vg->voices[0]->prio == VOICE_PRIO_BG);
+    if (vg->size == 0)
+        return false;
+
+    for (int i = 0; i < vg->size; ++i)
+    {
+        if (vg->voices[i]->prio == VOICE_PRIO_BG)
+            return true;
+    }
+
+    return false;
 }
 
 
