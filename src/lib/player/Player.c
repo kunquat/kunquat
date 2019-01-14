@@ -1192,20 +1192,52 @@ static void Player_process_voices(Player* player, int32_t frame_count)
                         ++event_index;
                     }
 
-                    if ((slice_start < slice_stop) && (ch->fg_group_id != 0))
+                    if (slice_start < slice_stop)
                     {
                         const int32_t cur_frame_count = slice_stop - slice_start;
 
-                        Voice_group* vg = &ch->fg_group_temp;
-                        if (Voice_group_get_size(vg) != 0)
-                            Player_process_voice_group(
-                                    player,
-                                    &player->thread_params[0],
-                                    vg,
-                                    cur_frame_count,
-                                    slice_start,
-                                    frame_count,
-                                    stats);
+                        if (ch->fg_group_id != 0)
+                        {
+                            Voice_group* vg = &ch->fg_group_temp;
+                            if (Voice_group_get_size(vg) != 0)
+                            {
+                                //fprintf(stdout, "process foreground voice group %d, frames [%d, %d)\n",
+                                //        (int)Voice_group_get_voice(vg, 0)->group_id,
+                                //        (int)slice_start, (int)slice_stop);
+                                Player_process_voice_group(
+                                        player,
+                                        &player->thread_params[0],
+                                        vg,
+                                        cur_frame_count,
+                                        slice_start,
+                                        frame_count,
+                                        stats);
+                            }
+                        }
+
+                        // Update carried controls
+                        {
+                            Force_controls* fc = &ch->force_controls;
+
+                            if (Slider_in_progress(&fc->slider))
+                                fc->force =
+                                    (float)Slider_skip(&fc->slider, cur_frame_count);
+
+                            if (LFO_active(&fc->tremolo))
+                                LFO_skip(&fc->tremolo, cur_frame_count);
+                        }
+
+                        {
+                            Pitch_controls* pc = &ch->pitch_controls;
+
+                            if (Slider_in_progress(&pc->slider))
+                                pc->pitch = Slider_skip(&pc->slider, cur_frame_count);
+
+                            if (LFO_active(&pc->vibrato))
+                                LFO_skip(&pc->vibrato, cur_frame_count);
+                        }
+
+                        Channel_stream_state_update(ch->csstate, cur_frame_count);
                     }
 
                     if (event != NULL)
@@ -1216,6 +1248,19 @@ static void Player_process_voices(Player* player, int32_t frame_count)
 
                         if (event->type == Event_channel_note_on)
                             ++note_count;
+
+                        /*
+                        {
+                            fprintf(stdout, "processing local event %d", (int)event->type);
+                            if (event->argument.type != VALUE_TYPE_NONE)
+                            {
+                                char arg_s[128] = "";
+                                Value_serialise(&event->argument, 128, arg_s);
+                                fprintf(stdout, " %s", arg_s);
+                            }
+                            fprintf(stdout, ", frame offset %d\n", event->frame_offset);
+                        }
+                        */
 
                         const bool external = false;
                         Event_handler_trigger_by_type(
@@ -1285,6 +1330,12 @@ static void Player_process_voices(Player* player, int32_t frame_count)
                 const int32_t frame_offset = first_voice->frame_offset;
                 const int32_t cur_frame_count = frame_count - frame_offset;
 
+                /*
+                fprintf(stdout, "process background voice group %d, frames [%d, %d)\n",
+                        (int)Voice_group_get_voice(vg, 0)->group_id,
+                        (int)frame_offset, (int)frame_count);
+                */
+
                 Player_process_voice_group(
                         player,
                         &player->thread_params[0],
@@ -1300,6 +1351,8 @@ static void Player_process_voices(Player* player, int32_t frame_count)
                 vg = Voice_pool_get_next_bg_group(player->voices, vgroup);
             }
         }
+
+        //fprintf(stdout, "---\n");
 
         active_voice_count = stats->voice_count;
         active_vgroup_count = stats->vgroup_count;
@@ -1685,34 +1738,6 @@ void Player_play(Player* player, int32_t nframes)
 
         if (!Event_buffer_is_skipping(player->event_buffer))
             Voice_group_reservations_init(&player->voice_group_res);
-
-        // Update carried controls
-        for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
-        {
-            Channel* ch = player->channels[i];
-
-            {
-                Force_controls* fc = &ch->force_controls;
-
-                if (Slider_in_progress(&fc->slider))
-                    fc->force = (float)Slider_skip(&fc->slider, to_be_rendered);
-
-                if (LFO_active(&fc->tremolo))
-                    LFO_skip(&fc->tremolo, to_be_rendered);
-            }
-
-            {
-                Pitch_controls* pc = &ch->pitch_controls;
-
-                if (Slider_in_progress(&pc->slider))
-                    pc->pitch = Slider_skip(&pc->slider, to_be_rendered);
-
-                if (LFO_active(&pc->vibrato))
-                    LFO_skip(&pc->vibrato, to_be_rendered);
-            }
-
-            Channel_stream_state_update(ch->csstate, to_be_rendered);
-        }
 
         // Process mixed signals in the connection graph
         {
