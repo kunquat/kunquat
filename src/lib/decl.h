@@ -37,7 +37,6 @@ typedef struct Device_thread_state Device_thread_state;
 typedef struct Envelope Envelope;
 typedef struct Event_names Event_names;
 typedef struct Event_params Event_params;
-typedef struct Event_properties Event_properties;
 typedef struct Etable Etable;
 typedef struct General_state General_state;
 typedef struct Linear_controls Linear_controls;

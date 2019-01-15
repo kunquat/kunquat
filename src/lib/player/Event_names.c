@@ -65,22 +65,18 @@ static Name_info event_specs[] =
 struct Event_names
 {
     AAtree* names;
-    Event_properties* props;
 };
 
 
 static int event_name_cmp(const char* e1, const char* e2);
 
 
-Event_names* new_Event_names(Event_properties* props)
+Event_names* new_Event_names(void)
 {
-    rassert(props != NULL);
-
     Event_names* names = memory_alloc_item(Event_names);
     if (names == NULL)
         return NULL;
 
-    names->props = props;
     names->names = new_AAtree(
             (AAtree_item_cmp*)event_name_cmp, (AAtree_item_destroy*)del_Name_info);
     if (names->names == NULL)
@@ -148,7 +144,7 @@ Value_type Event_names_get_param_type(const Event_names* names, const char* name
     rassert(names != NULL);
     rassert(name != NULL);
 
-    return Event_properties_get_param_type(names->props, Event_names_get(names, name));
+    return Event_properties_get_param_type(Event_names_get(names, name));
 }
 
 
@@ -158,8 +154,7 @@ Param_validator* Event_names_get_param_validator(
     rassert(names != NULL);
     rassert(name != NULL);
 
-    return Event_properties_get_param_validator(
-            names->props, Event_names_get(names, name));
+    return Event_properties_get_param_validator(Event_names_get(names, name));
 }
 
 
@@ -169,7 +164,7 @@ const char* Event_names_get_name_event(const Event_names* names, const char* nam
     rassert(name != NULL);
 
     const char* name_setter =
-        Event_properties_get_name_event(names->props, Event_names_get(names, name));
+        Event_properties_get_name_event(Event_names_get(names, name));
 
     return (name_setter[0] != '\0') ? name_setter : NULL;
 }

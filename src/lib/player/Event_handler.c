@@ -50,7 +50,6 @@ struct Event_handler
     Device_states* device_states;
     Master_params* master_params;
     Au_table* au_table;
-    Event_properties* event_props;
     Event_names* event_names;
 
     Event_control_interface* control_process[Event_control_STOP];
@@ -76,17 +75,9 @@ Event_handler* new_Event_handler(
     if (eh == NULL)
         return NULL;
 
-    eh->event_props = NULL;
     eh->event_names = NULL;
 
-    eh->event_props = new_Event_properties();
-    if (eh->event_props == NULL)
-    {
-        del_Event_handler(eh);
-        return NULL;
-    }
-
-    eh->event_names = new_Event_names(eh->event_props);
+    eh->event_names = new_Event_names();
     if (eh->event_names == NULL)
     {
         del_Event_handler(eh);
@@ -282,8 +273,7 @@ bool Event_handler_trigger_by_type(
     rassert(!Event_is_auto(type));
     rassert(arg != NULL);
 
-    Param_validator* validator =
-        Event_properties_get_param_validator(eh->event_props, type);
+    Param_validator* validator = Event_properties_get_param_validator(type);
     if ((validator != NULL) && !validator(arg))
     {
         // TODO: proper warning system
@@ -366,7 +356,6 @@ void del_Event_handler(Event_handler* eh)
         return;
 
     del_Event_names(eh->event_names);
-    del_Event_properties(eh->event_props);
     memory_free(eh);
 
     return;

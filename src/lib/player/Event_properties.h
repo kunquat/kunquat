@@ -24,22 +24,13 @@
 #include <stdlib.h>
 
 
-Event_properties* new_Event_properties(void);
+Value_type Event_properties_get_param_type(Event_type event_type);
 
 
-Value_type Event_properties_get_param_type(
-        const Event_properties* props, Event_type event_type);
+Param_validator* Event_properties_get_param_validator(Event_type event_type);
 
 
-Param_validator* Event_properties_get_param_validator(
-        const Event_properties* props, Event_type event_type);
-
-
-const char* Event_properties_get_name_event(
-        const Event_properties* props, Event_type event_type);
-
-
-void del_Event_properties(Event_properties* props);
+const char* Event_properties_get_name_event(Event_type event_type);
 
 
 #endif // KQT_EVENT_PROPERTIES_H
