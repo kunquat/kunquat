@@ -105,25 +105,6 @@ bool Cgiter_get_local_bp_dist(const Cgiter* cgiter, Tstamp* dist);
 
 
 /**
- * Get distance to the next global breakpoint following the current Cgiter position.
- *
- * \param cgiter        The Cgiter -- must not be \c NULL.
- * \param bind          The Bind -- must not be \c NULL.
- * \param event_names   The Event names -- must not be \c NULL.
- * \param dist          Address where the distance will be stored -- must be valid.
- *                      NOTE: The passed value is used to determine maximum
- *                      distance to be searched.
- *
- * \return   \c true if \a dist was modified, otherwise \c false.
- */
-bool Cgiter_get_global_bp_dist(
-        const Cgiter* cgiter,
-        const Bind* bind,
-        const Event_names* event_names,
-        Tstamp* dist);
-
-
-/**
  * Move the iterator forwards.
  *
  * \param cgiter   The Cgiter -- must not be \c NULL.

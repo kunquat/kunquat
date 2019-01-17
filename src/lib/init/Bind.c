@@ -255,49 +255,6 @@ Event_cache* Bind_create_cache(const Bind* map)
 }
 
 
-bool Bind_event_is_global_breakpoint(
-        const Bind* map, const Event_names* event_names, const char* event_desc)
-{
-    rassert(map != NULL);
-    rassert(event_names != NULL);
-    rassert(event_desc != NULL);
-
-    Streader* sr = Streader_init(STREADER_AUTO, event_desc, (int64_t)strlen(event_desc));
-    char event_name[KQT_EVENT_NAME_MAX + 1] = "";
-    Streader_readf(sr, "[%s", READF_STR(KQT_EVENT_NAME_MAX, event_name));
-    rassert(!Streader_is_error_set(sr));
-
-    if (Event_is_global_breakpoint(Event_names_get(event_names, event_name)))
-        return true;
-
-    Event_type event_type = Event_names_get(event_names, event_name);
-
-    Cblist* list = AAtree_get_exact(map->cblists, CBLIST_KEY(event_type));
-    if (list == NULL)
-        return false;
-
-    Cblist_item* item = list->first;
-    while (item != NULL)
-    {
-        if (item->constraints != NULL)
-            return true;
-
-        Target_event* event = item->first_event;
-        while (event != NULL)
-        {
-            if (Bind_event_is_global_breakpoint(map, event_names, event->desc))
-                return true;
-
-            event = event->next;
-        }
-
-        item = item->next;
-    }
-
-    return false;
-}
-
-
 bool Bind_event_has_constraints(const Bind* map, Event_type event_type)
 {
     rassert(map != NULL);

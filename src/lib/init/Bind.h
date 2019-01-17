@@ -69,20 +69,6 @@ Event_cache* Bind_create_cache(const Bind* map);
 
 
 /**
- * Find out if a given event is a global mixing breakpoint.
- *
- * \param map           The Bind -- must not be \c NULL.
- * \param event_names   The Event names -- must not be \c NULL.
- * \param event_name    The event name -- must not be \c NULL.
- *
- * \return   \c true if the behaviour of \a event_name depends on constraints,
- *           otherwise \c false.
- */
-bool Bind_event_is_global_breakpoint(
-        const Bind* map, const Event_names* event_names, const char* event_desc);
-
-
-/**
  */
 bool Bind_event_has_constraints(const Bind* map, Event_type event_type);
 
