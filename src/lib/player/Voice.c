@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2019
  *
  * This file is part of Kunquat.
  *
@@ -34,11 +34,11 @@ Voice* new_Voice(void)
     if (voice == NULL)
         return NULL;
 
-    voice->id = 0;
     voice->group_id = 0;
     voice->ch_num = -1;
     voice->updated = false;
     voice->prio = VOICE_PRIO_INACTIVE;
+    voice->frame_offset = 0;
     voice->use_test_output = false;
     voice->test_proc_index = -1;
     voice->proc = NULL;
@@ -90,13 +90,6 @@ int Voice_cmp(const Voice* v1, const Voice* v2)
 }
 
 
-uint64_t Voice_id(const Voice* voice)
-{
-    rassert(voice != NULL);
-    return voice->id;
-}
-
-
 uint64_t Voice_get_group_id(const Voice* voice)
 {
     rassert(voice != NULL);
@@ -126,24 +119,33 @@ void Voice_set_work_buffer(Voice* voice, Work_buffer* wb)
 }
 
 
+void Voice_reserve(Voice* voice, uint64_t group_id, int ch_num)
+{
+    rassert(voice != NULL);
+    rassert(group_id != 0);
+    rassert(ch_num >= -1);
+    rassert(ch_num < KQT_CHANNELS_MAX);
+
+    voice->prio = VOICE_PRIO_NEW;
+    voice->proc = NULL;
+    voice->group_id = group_id;
+    voice->ch_num = ch_num;
+
+    return;
+}
+
+
 void Voice_init(
         Voice* voice,
         const Processor* proc,
-        uint64_t group_id,
-        int ch_num,
         const Proc_state* proc_state,
         uint64_t seed)
 {
     rassert(voice != NULL);
     rassert(proc != NULL);
     rassert(proc_state != NULL);
-    rassert(ch_num >= -1);
-    rassert(ch_num < KQT_CHANNELS_MAX);
 
-    voice->prio = VOICE_PRIO_NEW;
     voice->proc = proc;
-    voice->group_id = group_id;
-    voice->ch_num = ch_num;
     voice->use_test_output = false;
     voice->test_proc_index = -1;
     Random_set_seed(&voice->rand_p, seed);
@@ -207,16 +209,16 @@ void Voice_reset(Voice* voice)
 {
     rassert(voice != NULL);
 
-    voice->id = 0;
     voice->group_id = 0;
-    // The voice may be part of an active group that needs the channel
-    // number information, so let's keep it
-    //voice->ch_num = -1;
+    voice->ch_num = -1;
     voice->prio = VOICE_PRIO_INACTIVE;
+    voice->frame_offset = 0;
     Voice_state_clear(voice->state);
     voice->proc = NULL;
     Random_reset(&voice->rand_p);
     Random_reset(&voice->rand_s);
+
+    //fprintf(stderr, "reset voice %p\n", (void*)voice);
 
     return;
 }
@@ -272,7 +274,7 @@ int32_t Voice_render(
 
         if (!voice->state->active)
         {
-            Voice_reset(voice);
+            voice->prio = VOICE_PRIO_INACTIVE;
             return 0;
         }
 

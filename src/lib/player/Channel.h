@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2019
  *
  * This file is part of Kunquat.
  *
@@ -22,6 +22,7 @@
 #include <kunquat/limits.h>
 #include <mathnum/Random.h>
 #include <mathnum/Tstamp.h>
+#include <player/Channel_event_buffer.h>
 #include <player/Channel_stream_state.h>
 #include <player/Env_state.h>
 #include <player/Event_cache.h>
@@ -29,6 +30,8 @@
 #include <player/General_state.h>
 #include <player/LFO.h>
 #include <player/Pitch_controls.h>
+#include <player/Voice_group.h>
+#include <player/Voice_group_reservations.h>
 #include <player/Voice_pool.h>
 
 #include <stdbool.h>
@@ -47,11 +50,13 @@ struct Channel
     Random rand;                   ///< Random source for this channel.
     Event_cache* event_cache;
     Channel_stream_state* csstate;
+    Channel_event_buffer local_events;
 
     Voice_pool* pool;              ///< All Voices.
-    Voice* fg[KQT_PROCESSORS_MAX]; ///< Foreground Voices.
-    uint64_t fg_id[KQT_PROCESSORS_MAX]; ///< Voice reservation IDs.
-    int fg_count;
+    Voice_group_reservations* voice_group_res;
+    uint64_t fg_group_id;
+    Voice_group fg_group_temp;     ///< NOTE: This is for temporary storage only
+    int32_t frame_offset_temp;     ///< NOTE: This is for temporary storage only
 
     bool mute;
     bool use_test_output;
@@ -95,14 +100,15 @@ struct Channel
 /**
  * Create a new Channel.
  *
- * \param module       The Module -- must not be \c NULL.
- * \param num          The Channel number -- must be >= \c 0 and
- *                     < \c KQT_CHANNELS_MAX.
- * \param au_table     The audio unit table -- must not be \c NULL.
- * \param estate       The Environment state -- must not be \c NULL.
- * \param voices       The Voice pool -- must not be \c NULL.
- * \param tempo        The current tempo -- must be finite and positive.
- * \param audio_rate   The current audio rate -- must be positive.
+ * \param module            The Module -- must not be \c NULL.
+ * \param num               The Channel number -- must be >= \c 0 and
+ *                          < \c KQT_CHANNELS_MAX.
+ * \param au_table          The audio unit table -- must not be \c NULL.
+ * \param estate            The Environment state -- must not be \c NULL.
+ * \param voices            The Voice pool -- must not be \c NULL.
+ * \param voice_group_res   The Voice group reservations -- must not be \c NULL.
+ * \param tempo             The current tempo -- must be finite and positive.
+ * \param audio_rate        The current audio rate -- must be positive.
  *
  * \return   The new Channel state if successful, or \c NULL if memory
  *           allocation failed.
@@ -113,6 +119,7 @@ Channel* new_Channel(
         Au_table* au_table,
         Env_state* estate,
         Voice_pool* voices,
+        Voice_group_reservations* voice_group_res,
         double tempo,
         int32_t audio_rate);
 
@@ -200,23 +207,11 @@ Random* Channel_get_random_source(Channel* ch);
 
 
 /**
- * Get current foreground Voice of the Channel.
- *
- * \param ch           The Channel -- must not be \c NULL.
- * \param proc_index   The Processor index -- must be >= \c 0 and
- *                     < \c KQT_PROCESSORS_MAX.
- *
- * \return   The foreground Voice at \a proc_index if one exists, otherwise \c NULL.
- */
-Voice* Channel_get_fg_voice(Channel* ch, int proc_index);
-
-
-/**
- * Return an actual force of a current foreground Voice.
+ * Return actual force applied to current foreground Voices.
  *
  * \param ch   The Channel -- must not be \c NULL.
  *
- * \return   The actual force if the active foreground Voice exists, otherwise NAN.
+ * \return   The actual force if an active foreground Voice group exists, otherwise NAN.
  */
 double Channel_get_fg_force(const Channel* ch);
 

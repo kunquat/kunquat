@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2019
  *
  * This file is part of Kunquat.
  *
@@ -17,6 +17,9 @@
 #include <debug/assert.h>
 #include <expr.h>
 #include <mathnum/common.h>
+#include <player/Channel_event_buffer.h>
+#include <player/Event_type.h>
+#include <player/events/note_setup.h>
 #include <string/common.h>
 
 #include <limits.h>
@@ -148,6 +151,8 @@ static void Player_process_expr_event(
         int ch_num,
         const char* trigger_desc,
         const Value* meta,
+        bool is_at_global_breakpoint,
+        int32_t frame_offset,
         bool skip,
         bool external);
 
@@ -157,6 +162,8 @@ void Player_process_event(
         int ch_num,
         const char* event_name,
         const Value* arg,
+        bool is_at_global_breakpoint,
+        int32_t frame_offset,
         bool skip,
         bool external)
 {
@@ -166,29 +173,86 @@ void Player_process_event(
     rassert(ch_num < KQT_CHANNELS_MAX);
     rassert(event_name != NULL);
     rassert(arg != NULL);
+    rassert(frame_offset >= 0);
 
     const Event_names* event_names = Event_handler_get_names(player->event_handler);
     const Event_type type = Event_names_get(event_names, event_name);
     rassert(type != Event_NONE);
 
-    if (!Event_is_query(type) &&
-            !Event_is_auto(type) &&
-            !Event_handler_trigger(
-                player->event_handler, ch_num, event_name, arg, external))
+    const bool is_skipping_buffer =
+        Event_buffer_is_skipping(player->event_buffer) &&
+        !Event_buffer_is_zero_skipping(player->event_buffer);
+
+    rassert(implies(is_skipping_buffer, is_at_global_breakpoint));
+
+    if (!is_skipping_buffer &&
+            !is_at_global_breakpoint &&
+            (Event_is_global_breakpoint(type) ||
+             ((player->module->bind != NULL) &&
+              Bind_event_has_constraints(player->module->bind, type))))
     {
-        // FIXME: add a proper way of reporting event errors
-        fprintf(stderr, "`%s` not fired\n", event_name);
+        Event_buffer_start_skipping(player->event_buffer);
         return;
+    }
+
+    if (!is_skipping_buffer && !Event_is_query(type) && !Event_is_auto(type))
+    {
+        // TODO: how should we handle errors?
+        if (Event_is_global_breakpoint(type) || is_at_global_breakpoint)
+        {
+            if (!skip)
+            {
+                if ((type == Event_channel_note_on) || (type == Event_channel_hit))
+                {
+                    reserve_voices(
+                            player->channels[ch_num],
+                            player->module,
+                            player->device_states,
+                            type,
+                            arg,
+                            external);
+                }
+            }
+
+            Event_handler_trigger(
+                player->event_handler, ch_num, event_name, arg, external);
+        }
+        else
+        {
+            Channel* ch = player->channels[ch_num];
+
+            if (!skip)
+            {
+                if ((type == Event_channel_note_on) || (type == Event_channel_hit))
+                    reserve_voices(
+                            ch,
+                            player->module,
+                            player->device_states,
+                            type,
+                            arg,
+                            external);
+            }
+
+            Channel_event ch_event;
+            ch_event.frame_offset = frame_offset;
+            ch_event.type = type;
+            Value_copy(&ch_event.argument, arg);
+
+            Channel_event_buffer_add_event(&ch->local_events, &ch_event);
+        }
     }
 
     if (!skip)
         Event_buffer_add(player->event_buffer, ch_num, event_name, arg);
+    else if (Event_buffer_is_skipping(player->event_buffer))
+        Event_buffer_skip_step(player->event_buffer);
 
     // Handle bind
     if (player->module->bind != NULL)
     {
         Target_event* bound = Bind_get_first(
                 player->module->bind,
+                Event_handler_get_names(player->event_handler),
                 player->channels[ch_num]->event_cache,
                 player->estate,
                 event_name,
@@ -209,27 +273,43 @@ void Player_process_event(
                     (ch_num + bound->ch_offset + KQT_CHANNELS_MAX) % KQT_CHANNELS_MAX,
                     bound->desc,
                     arg,
+                    is_at_global_breakpoint,
+                    frame_offset,
                     skip,
                     external);
+
+            if (!is_skipping_buffer && Event_buffer_is_skipping(player->event_buffer))
+                return;
 
             bound = bound->next;
         }
     }
 
     // Handle query events
-    if (!skip && Event_is_query(type))
+    if (!is_skipping_buffer && !skip && Event_is_query(type))
     {
-#define try_process(name, value)                                                   \
-        if (true)                                                                  \
-        {                                                                          \
-            if (Event_buffer_is_full(player->event_buffer))                        \
-            {                                                                      \
-                Event_buffer_start_skipping(player->event_buffer);                 \
-                return;                                                            \
-            }                                                                      \
-            else                                                                   \
-                Player_process_event(player, ch_num, name, value, skip, external); \
-        }                                                                          \
+#define try_process(name, value)                                    \
+        if (true)                                                   \
+        {                                                           \
+            if (Event_buffer_is_full(player->event_buffer))         \
+            {                                                       \
+                Event_buffer_start_skipping(player->event_buffer);  \
+                return;                                             \
+            }                                                       \
+            else                                                    \
+                Player_process_event(                               \
+                        player,                                     \
+                        ch_num,                                     \
+                        name,                                       \
+                        value,                                      \
+                        is_at_global_breakpoint,                    \
+                        frame_offset,                               \
+                        skip,                                       \
+                        external);                                  \
+                                                                    \
+            if (Event_buffer_is_skipping(player->event_buffer))     \
+                return;                                             \
+        }                                                           \
         else ignore(0)
 
         switch (type)
@@ -311,6 +391,8 @@ static void Player_process_expr_event(
         int ch_num,
         const char* trigger_desc,
         const Value* meta,
+        bool is_at_global_breakpoint,
+        int32_t frame_offset,
         bool skip,
         bool external)
 {
@@ -319,6 +401,7 @@ static void Player_process_expr_event(
     rassert(ch_num >= 0);
     rassert(ch_num < KQT_CHANNELS_MAX);
     rassert(trigger_desc != NULL);
+    rassert(frame_offset >= 0);
 
     Streader* sr =
         Streader_init(STREADER_AUTO, trigger_desc, (int64_t)strlen(trigger_desc));
@@ -367,10 +450,15 @@ static void Player_process_expr_event(
     }
 
     if (!Event_is_control(type) || player->master_params.is_infinite)
-        Player_process_event(player, ch_num, event_name, arg, skip, external);
-
-    if (Event_buffer_is_full(player->event_buffer))
-        return;
+        Player_process_event(
+                player,
+                ch_num,
+                event_name,
+                arg,
+                is_at_global_breakpoint,
+                frame_offset,
+                skip,
+                external);
 
     return;
 }
@@ -560,250 +648,284 @@ void Player_process_cgiters(Player* player, Tstamp* limit, bool skip)
         Cgiter* cgiter = &player->cgiters[i];
 
         Tstamp* dist = Tstamp_copy(TSTAMP_AUTO, limit);
-        if (Cgiter_peek(cgiter, dist))
+        if (Cgiter_get_local_bp_dist(cgiter, dist))
             Tstamp_mina(limit, dist);
     }
 
-    // Process trigger rows at current position
-    for (int i = player->master_params.cur_ch; i < KQT_CHANNELS_MAX; ++i)
+    Tstamp* limit_offset = Tstamp_set(TSTAMP_AUTO, 0, 0);
+
+    do
     {
-        Cgiter* cgiter = &player->cgiters[i];
+        // Update current position
+        // FIXME: we should really have a well-defined single source of current position
+        player->master_params.cur_pos = player->cgiters[0].pos;
 
-        if (Cgiter_has_finished(cgiter)) // implies empty playback
-            break;
+        const bool is_at_global_breakpoint =
+            (Tstamp_cmp(limit_offset, TSTAMP_AUTO) == 0);
 
-        const Trigger_row* tr = Cgiter_get_trigger_row(cgiter);
-        if (tr != NULL)
+        const double dframes = Tstamp_toframes(
+                limit_offset, player->master_params.tempo, player->audio_rate);
+        int32_t frame_offset = (int32_t)dframes;
+        const double frame_remainder =
+            player->frame_remainder + (dframes - frame_offset);
+        if (frame_remainder > 0.5)
+            ++frame_offset;
+
+        Tstamp* local_limit = Tstamp_sub(TSTAMP_AUTO, limit, limit_offset);
+
+        // Process trigger rows at current position
+        for (int i = player->master_params.cur_ch; i < KQT_CHANNELS_MAX; ++i)
         {
-            // Process trigger row
-            rassert(tr->head->next != NULL);
-            Trigger_list* trl = tr->head->next;
+            Cgiter* cgiter = &player->cgiters[i];
 
-            // Skip triggers if resuming
-            int trigger_index = 0;
-            while (trigger_index < player->master_params.cur_trigger &&
-                    trl->trigger != NULL)
+            if (Cgiter_has_finished(cgiter)) // implies empty playback
+                break;
+
+            const Trigger_row* tr = Cgiter_get_trigger_row(cgiter);
+            if (tr != NULL)
             {
-                ++trigger_index;
-                trl = trl->next;
-            }
+                // Process trigger row
+                rassert(tr->head->next != NULL);
+                Trigger_list* trl = tr->head->next;
 
-            // Process triggers
-            while (trl->trigger != NULL)
-            {
-                const Event_type event_type = Trigger_get_type(trl->trigger);
-
-                const bool at_active_jump =
-                    Tstamp_cmp(next_jump_row, &cgiter->pos.pat_pos) == 0 &&
-                    next_jump_ch == i &&
-                    next_jump_trigger == player->master_params.cur_trigger;
-
-                if (at_active_jump)
+                // Skip triggers if resuming
+                int trigger_index = 0;
+                while (trigger_index < player->master_params.cur_trigger &&
+                        trl->trigger != NULL)
                 {
-                    // Process our next Jump context
-                    rassert(next_jc != NULL);
-                    if (next_jc->counter > 0)
+                    ++trigger_index;
+                    trl = trl->next;
+                }
+
+                // Process triggers
+                while (trl->trigger != NULL)
+                {
+                    const Event_type event_type = Trigger_get_type(trl->trigger);
+
+                    const bool at_active_jump =
+                        Tstamp_cmp(next_jump_row, &cgiter->pos.pat_pos) == 0 &&
+                        next_jump_ch == i &&
+                        next_jump_trigger == player->master_params.cur_trigger;
+
+                    if (at_active_jump)
                     {
-                        player->master_params.do_jump = true;
+                        // Process our next Jump context
+                        rassert(next_jc != NULL);
+                        if (next_jc->counter > 0)
+                        {
+                            player->master_params.do_jump = true;
+                        }
+                        else
+                        {
+                            // Release our consumed Jump context
+                            AAnode* handle = Active_jumps_remove_context(
+                                    player->master_params.active_jumps, next_jc);
+                            Jump_cache_release_context(
+                                    player->master_params.jump_cache, handle);
+
+                            // Update next Jump context
+                            Tstamp_set(next_jump_row, INT64_MAX, 0);
+                            next_jump_ch = KQT_CHANNELS_MAX;
+                            next_jump_trigger = INT64_MAX;
+                            next_jc = Active_jumps_get_next_context(
+                                    player->master_params.active_jumps,
+                                    &player->master_params.cur_pos.piref,
+                                    &player->master_params.cur_pos.pat_pos,
+                                    i,
+                                    player->master_params.cur_trigger);
+                            if (next_jc != NULL)
+                            {
+                                Tstamp_copy(next_jump_row, &next_jc->row);
+                                next_jump_ch = next_jc->ch_num;
+                                next_jump_trigger = next_jc->order;
+                            }
+                        }
                     }
                     else
                     {
-                        // Release our consumed Jump context
-                        AAnode* handle = Active_jumps_remove_context(
-                                player->master_params.active_jumps, next_jc);
-                        Jump_cache_release_context(
-                                player->master_params.jump_cache, handle);
+                        // Process trigger normally
+                        if (!skip ||
+                                Event_is_control(event_type) ||
+                                Event_is_general(event_type) ||
+                                Event_is_master(event_type))
+                        {
+                            if (!Event_is_control(event_type) ||
+                                    player->master_params.is_infinite)
+                            {
+                                // Break if event buffer is full
+                                if (!skip && Event_buffer_is_full(player->event_buffer))
+                                {
+                                    Tstamp_copy(limit, limit_offset);
 
-                        // Update next Jump context
-                        Tstamp_set(next_jump_row, INT64_MAX, 0);
-                        next_jump_ch = KQT_CHANNELS_MAX;
-                        next_jump_trigger = INT64_MAX;
-                        next_jc = Active_jumps_get_next_context(
+                                    // Make sure we get this row again next time
+                                    Cgiter_clear_returned_status(cgiter);
+                                    return;
+                                }
+
+                                const bool external = false;
+
+                                Player_process_expr_event(
+                                        player,
+                                        i,
+                                        Trigger_get_desc(trl->trigger),
+                                        NULL, // no meta value
+                                        is_at_global_breakpoint,
+                                        frame_offset,
+                                        skip,
+                                        external);
+
+                                // Break if started event skipping
+                                if (Event_buffer_is_skipping(player->event_buffer))
+                                {
+                                    //rassert(Event_buffer_is_full(player->event_buffer));
+                                    Tstamp_copy(limit, limit_offset);
+
+                                    // Make sure we get this row again next time
+                                    Cgiter_clear_returned_status(cgiter);
+                                    return;
+                                }
+
+                                // Event fully processed
+                                Event_buffer_reset_add_counter(player->event_buffer);
+                            }
+                        }
+                    }
+
+                    // Check pattern playback start
+                    if (player->master_params.pattern_playback_flag)
+                        Player_start_pattern_playback_mode(player);
+
+                    // Perform goto
+                    if (Player_check_perform_goto(player))
+                    {
+                        Tstamp_copy(limit, limit_offset);
+                        return;
+                    }
+
+                    // Perform jump
+                    if (player->master_params.do_jump)
+                    {
+                        player->master_params.do_jump = false;
+
+                        if (!at_active_jump)
+                        {
+                            // We just got a new Jump context
+                            next_jc = Active_jumps_get_next_context(
                                 player->master_params.active_jumps,
                                 &player->master_params.cur_pos.piref,
                                 &player->master_params.cur_pos.pat_pos,
                                 i,
                                 player->master_params.cur_trigger);
-                        if (next_jc != NULL)
-                        {
-                            Tstamp_copy(next_jump_row, &next_jc->row);
-                            next_jump_ch = next_jc->ch_num;
-                            next_jump_trigger = next_jc->order;
+                            rassert(next_jc != NULL);
                         }
+
+                        --next_jc->counter;
+
+                        // Get target pattern instance
+                        Pat_inst_ref target_piref = next_jc->target_piref;
+                        if (target_piref.pat < 0)
+                            target_piref = player->master_params.cur_pos.piref;
+
+                        // Get target row
+                        Tstamp* target_row = TSTAMP_AUTO;
+                        Tstamp_copy(target_row, &next_jc->target_row);
+
+                        Player_set_new_playback_position(player, &target_piref, target_row);
+
+                        Tstamp_copy(limit, limit_offset);
+                        return;
                     }
-                }
-                else
-                {
-                    // Process trigger normally
-                    if (!skip ||
-                            Event_is_control(event_type) ||
-                            Event_is_general(event_type) ||
-                            Event_is_master(event_type))
+
+                    ++player->master_params.cur_trigger;
+
+                    // Break if delay was added
+                    if (Tstamp_cmp(&player->master_params.delay_left,
+                                TSTAMP_AUTO) > 0)
                     {
-                        if (!Event_is_control(event_type) ||
-                                player->master_params.is_infinite)
-                        {
-                            // Break if event buffer is full
-                            if (!skip && Event_buffer_is_full(player->event_buffer))
-                            {
-                                Tstamp_set(limit, 0, 0);
+                        Tstamp_copy(limit, limit_offset);
 
-                                // Make sure we get this row again next time
-                                Cgiter_clear_returned_status(cgiter);
-                                return;
-                            }
-
-                            const bool external = false;
-
-                            Player_process_expr_event(
-                                    player,
-                                    i,
-                                    Trigger_get_desc(trl->trigger),
-                                    NULL, // no meta value
-                                    skip,
-                                    external);
-
-                            // Break if started event skipping
-                            if (Event_buffer_is_skipping(player->event_buffer))
-                            {
-                                rassert(Event_buffer_is_full(player->event_buffer));
-                                Tstamp_set(limit, 0, 0);
-
-                                // Make sure we get this row again next time
-                                Cgiter_clear_returned_status(cgiter);
-                                return;
-                            }
-
-                            // Event fully processed
-                            Event_buffer_reset_add_counter(player->event_buffer);
-                        }
-                    }
-                }
-
-                // Check pattern playback start
-                if (player->master_params.pattern_playback_flag)
-                    Player_start_pattern_playback_mode(player);
-
-                // Perform goto
-                if (Player_check_perform_goto(player))
-                {
-                    Tstamp_set(limit, 0, 0);
-                    return;
-                }
-
-                // Perform jump
-                if (player->master_params.do_jump)
-                {
-                    player->master_params.do_jump = false;
-
-                    if (!at_active_jump)
-                    {
-                        // We just got a new Jump context
-                        next_jc = Active_jumps_get_next_context(
-                            player->master_params.active_jumps,
-                            &player->master_params.cur_pos.piref,
-                            &player->master_params.cur_pos.pat_pos,
-                            i,
-                            player->master_params.cur_trigger);
-                        rassert(next_jc != NULL);
+                        // Make sure we get this row again next time
+                        Cgiter_clear_returned_status(cgiter);
+                        return;
                     }
 
-                    --next_jc->counter;
-
-                    // Get target pattern instance
-                    Pat_inst_ref target_piref = next_jc->target_piref;
-                    if (target_piref.pat < 0)
-                        target_piref = player->master_params.cur_pos.piref;
-
-                    // Get target row
-                    Tstamp* target_row = TSTAMP_AUTO;
-                    Tstamp_copy(target_row, &next_jc->target_row);
-
-                    Player_set_new_playback_position(player, &target_piref, target_row);
-
-                    Tstamp_set(limit, 0, 0);
-                    return;
+                    trl = trl->next;
                 }
-
-                ++player->master_params.cur_trigger;
-
-                // Break if delay was added
-                if (Tstamp_cmp(&player->master_params.delay_left,
-                            TSTAMP_AUTO) > 0)
-                {
-                    Tstamp_set(limit, 0, 0);
-
-                    // Make sure we get this row again next time
-                    Cgiter_clear_returned_status(cgiter);
-                    return;
-                }
-
-                trl = trl->next;
             }
+
+            // All triggers processed in this column
+            player->master_params.cur_trigger = 0;
+            ++player->master_params.cur_ch;
+
+            // See how much we can move forwards
+            // TODO: Note that zero distance implies pattern change -- make sure this
+            //       is handled correctly with out-of-sync Cgiters!
+            Tstamp* dist = Tstamp_copy(TSTAMP_AUTO, local_limit);
+            if (Cgiter_get_local_bp_dist(cgiter, dist))
+                Tstamp_mina(local_limit, dist);
         }
 
-        // All triggers processed in this column
+        // All trigger rows processed
+        player->master_params.cur_ch = 0;
         player->master_params.cur_trigger = 0;
-        ++player->master_params.cur_ch;
 
-        // See how much we can move forwards
-        Tstamp* dist = Tstamp_copy(TSTAMP_AUTO, limit);
-        if (Cgiter_peek(cgiter, dist))
-            Tstamp_mina(limit, dist);
-    }
-
-    // All trigger rows processed
-    player->master_params.cur_ch = 0;
-    player->master_params.cur_trigger = 0;
-
-    // Break if tempo settings changed
-    if (player->master_params.tempo_settings_changed)
-    {
-        Tstamp_set(limit, 0, 0);
-        return;
-    }
-
-    // TODO: Find our next Jump context
-
-    bool any_cgiter_active = false;
-
-    // Move cgiters forwards and check for playback end
-    for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
-    {
-        Cgiter* cgiter = &player->cgiters[i];
-        Cgiter_move(cgiter, limit);
-        any_cgiter_active |= !Cgiter_has_finished(cgiter);
-    }
-
-    // Stop if all cgiters have finished
-    if (!any_cgiter_active)
-    {
-        // TODO: safety check for zero-length playback!
-        if (player->master_params.is_infinite)
+        // Break if tempo settings changed
+        if (player->master_params.tempo_settings_changed)
         {
-#if 0
-            fprintf(stderr, "Resetting to %d %d " PRIts " %d %d\n",
-                    (int)player->master_params.start_pos.track,
-                    (int)player->master_params.start_pos.system,
-                    PRIVALts(player->master_params.start_pos.pat_pos),
-                    (int)player->master_params.start_pos.piref.pat,
-                    (int)player->master_params.start_pos.piref.inst);
-#endif
-            for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
+            rassert(is_at_global_breakpoint);
+            rassert(Tstamp_cmp(limit_offset, TSTAMP_AUTO) == 0);
+
+            Tstamp_copy(limit, limit_offset);
+            return;
+        }
+
+        // TODO: Find our next Jump context
+        // TODO: On second thought, shouldn't it be handled above
+        //       where the current jump context is processed?
+
+        bool any_cgiter_active = false;
+
+        // Move cgiters forwards and check for playback end
+        for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
+        {
+            Cgiter* cgiter = &player->cgiters[i];
+            Cgiter_move(cgiter, local_limit);
+            any_cgiter_active |= !Cgiter_has_finished(cgiter);
+        }
+
+        // Stop if all cgiters have finished
+        if (!any_cgiter_active)
+        {
+            // TODO: safety check for zero-length playback!
+            if (player->master_params.is_infinite)
             {
-                Cgiter_reset(
-                        &player->cgiters[i],
-                        &player->master_params.start_pos);
+#if 0
+                fprintf(stderr, "Resetting to %d %d " PRIts " %d %d\n",
+                        (int)player->master_params.start_pos.track,
+                        (int)player->master_params.start_pos.system,
+                        PRIVALts(player->master_params.start_pos.pat_pos),
+                        (int)player->master_params.start_pos.piref.pat,
+                        (int)player->master_params.start_pos.piref.inst);
+#endif
+                for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
+                {
+                    Cgiter_reset(
+                            &player->cgiters[i],
+                            &player->master_params.start_pos);
+                }
             }
-        }
-        else
-        {
-            player->master_params.playback_state = PLAYBACK_STOPPED;
+            else
+            {
+                player->master_params.playback_state = PLAYBACK_STOPPED;
+            }
+
+            Tstamp_copy(limit, limit_offset);
+            return;
         }
 
-        Tstamp_set(limit, 0, 0);
-        return;
+        Tstamp_adda(limit_offset, local_limit);
     }
+    while (Tstamp_cmp(limit_offset, limit) < 0);
 
     return;
 }
@@ -817,6 +939,8 @@ static void update_tempo_slide(Master_params* master_params)
     if (Tstamp_cmp(&master_params->tempo_slide_left, TSTAMP_AUTO) <= 0)
     {
         // Finish slide
+        master_params->tempo_settings_changed =
+            (master_params->tempo == master_params->tempo_slide_target);
         master_params->tempo = master_params->tempo_slide_target;
         master_params->tempo_slide = 0;
     }
@@ -906,12 +1030,9 @@ int32_t Player_move_forwards(Player* player, int32_t nframes, bool skip)
     Tstamp* limit = Tstamp_fromframes(
             TSTAMP_AUTO, nframes, player->master_params.tempo, player->audio_rate);
 
+    // Don't render further than our current tempo slide slice
     if (player->master_params.tempo_slide != 0)
-    {
-        // Apply tempo slide slice
         Tstamp_mina(limit, &player->master_params.tempo_slide_slice_left);
-        Tstamp_suba(&player->master_params.tempo_slide_slice_left, limit);
-    }
 
     Tstamp* delay_left = &player->master_params.delay_left;
 
@@ -927,6 +1048,11 @@ int32_t Player_move_forwards(Player* player, int32_t nframes, bool skip)
         Player_process_cgiters(player, limit, skip);
     }
 
+    // If continuing our previous tempo slide, move along the current slice
+    if (!player->master_params.tempo_settings_changed &&
+            (player->master_params.tempo_slide != 0))
+        Tstamp_suba(&player->master_params.tempo_slide_slice_left, limit);
+
     if (Tstamp_cmp(limit, TSTAMP_AUTO) > 0)
     {
         // We are moving forwards, so reset our goto safety counter
@@ -934,7 +1060,7 @@ int32_t Player_move_forwards(Player* player, int32_t nframes, bool skip)
     }
 
     // Get actual number of frames to be rendered
-    double dframes =
+    const double dframes =
         Tstamp_toframes(limit, player->master_params.tempo, player->audio_rate);
     rassert(dframes >= 0.0);
 

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2019
  *
  * This file is part of Kunquat.
  *
@@ -28,12 +28,12 @@
 
 
 bool Event_channel_set_ch_expression_process(
-        Channel* channel,
+        Channel* ch,
         Device_states* dstates,
         const Master_params* master_params,
         const Event_params* params)
 {
-    rassert(channel != NULL);
+    rassert(ch != NULL);
     rassert(dstates != NULL);
     rassert(master_params != NULL);
     rassert(params != NULL);
@@ -41,17 +41,21 @@ bool Event_channel_set_ch_expression_process(
     rassert(params->arg->type == VALUE_TYPE_NONE ||
             params->arg->type == VALUE_TYPE_STRING);
 
-    const char* expr = channel->init_ch_expression;
+    const char* expr = ch->init_ch_expression;
     if (params->arg->type == VALUE_TYPE_STRING)
         expr = params->arg->value.string_type;
 
-    Active_names_set(channel->parent.active_names, ACTIVE_CAT_CH_EXPRESSION, expr);
+    Active_names_set(ch->parent.active_names, ACTIVE_CAT_CH_EXPRESSION, expr);
 
-    for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
+    Voice_group* vgroup = Event_get_voice_group(ch);
+    if (vgroup == NULL)
+        return true;
+
+    for (int i = 0; i < Voice_group_get_size(vgroup); ++i)
     {
-        Event_check_voice(channel, i);
+        Voice* voice = Voice_group_get_voice(vgroup, i);
 
-        Voice_state* vstate = channel->fg[i]->state;
+        Voice_state* vstate = voice->state;
         if (!vstate->expr_filters_applied)
             strcpy(vstate->ch_expr_name, expr);
     }
@@ -61,12 +65,12 @@ bool Event_channel_set_ch_expression_process(
 
 
 bool Event_channel_set_note_expression_process(
-        Channel* channel,
+        Channel* ch,
         Device_states* dstates,
         const Master_params* master_params,
         const Event_params* params)
 {
-    rassert(channel != NULL);
+    rassert(ch != NULL);
     rassert(dstates != NULL);
     rassert(master_params != NULL);
     rassert(params != NULL);
@@ -85,13 +89,17 @@ bool Event_channel_set_note_expression_process(
             expr = params->arg->value.string_type;
     }
 
-    Active_names_set(channel->parent.active_names, ACTIVE_CAT_NOTE_EXPRESSION, expr);
+    Active_names_set(ch->parent.active_names, ACTIVE_CAT_NOTE_EXPRESSION, expr);
 
-    for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
+    Voice_group* vgroup = Event_get_voice_group(ch);
+    if (vgroup == NULL)
+        return true;
+
+    for (int i = 0; i < Voice_group_get_size(vgroup); ++i)
     {
-        Event_check_voice(channel, i);
+        Voice* voice = Voice_group_get_voice(vgroup, i);
 
-        Voice_state* vstate = channel->fg[i]->state;
+        Voice_state* vstate = voice->state;
         if (!vstate->expr_filters_applied)
             strcpy(vstate->note_expr_name, expr);
     }
@@ -101,34 +109,34 @@ bool Event_channel_set_note_expression_process(
 
 
 bool Event_channel_carry_note_expression_on_process(
-        Channel* channel,
+        Channel* ch,
         Device_states* dstates,
         const Master_params* master_params,
         const Event_params* params)
 {
-    rassert(channel != NULL);
+    rassert(ch != NULL);
     rassert(dstates != NULL);
     rassert(master_params != NULL);
     ignore(params);
 
-    channel->carry_note_expression = true;
+    ch->carry_note_expression = true;
 
     return true;
 }
 
 
 bool Event_channel_carry_note_expression_off_process(
-        Channel* channel,
+        Channel* ch,
         Device_states* dstates,
         const Master_params* master_params,
         const Event_params* params)
 {
-    rassert(channel != NULL);
+    rassert(ch != NULL);
     rassert(dstates != NULL);
     rassert(master_params != NULL);
     ignore(params);
 
-    channel->carry_note_expression = false;
+    ch->carry_note_expression = false;
 
     return true;
 }

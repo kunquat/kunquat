@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2019
  *
  * This file is part of Kunquat.
  *
@@ -24,6 +24,7 @@
 #include <memory.h>
 #include <player/Channel.h>
 #include <player/Event_names.h>
+#include <player/Event_properties.h>
 #include <player/Event_type.h>
 #include <player/events/Event_au_decl.h>
 #include <player/events/Event_channel_decl.h>
@@ -73,6 +74,8 @@ Event_handler* new_Event_handler(
     Event_handler* eh = memory_alloc_item(Event_handler);
     if (eh == NULL)
         return NULL;
+
+    eh->event_names = NULL;
 
     eh->event_names = new_Event_names();
     if (eh->event_names == NULL)
@@ -259,6 +262,32 @@ static bool Event_handler_handle(
 }
 
 
+bool Event_handler_trigger_by_type(
+        Event_handler* eh, int ch_num, Event_type type, const Value* arg, bool external)
+{
+    rassert(eh != NULL);
+    rassert(ch_num >= 0);
+    rassert(ch_num < KQT_CHANNELS_MAX);
+    rassert(type != Event_NONE);
+    rassert(!Event_is_query(type));
+    rassert(!Event_is_auto(type));
+    rassert(arg != NULL);
+
+    Param_validator* validator = Event_properties_get_param_validator(type);
+    if ((validator != NULL) && !validator(arg))
+    {
+        // TODO: proper warning system
+        //fprintf(stdout, "Invalid argument for event %s\n", name);
+        return false;
+    }
+
+    rassert(eh->channels[ch_num]->audio_rate > 0);
+    rassert(eh->channels[ch_num]->tempo > 0);
+
+    return Event_handler_handle(eh, ch_num, type, arg, external);
+}
+
+
 bool Event_handler_trigger(
         Event_handler* eh, int ch_num, const char* name, const Value* arg, bool external)
 {
@@ -268,23 +297,9 @@ bool Event_handler_trigger(
     rassert(name != NULL);
     rassert(arg != NULL);
 
-    Param_validator* validator = Event_names_get_param_validator(eh->event_names, name);
-    if ((validator != NULL) && !validator(arg))
-    {
-        // TODO: proper warning system
-        //fprintf(stdout, "Invalid argument for event %s\n", name);
-        return false;
-    }
+    const Event_type type = Event_names_get(eh->event_names, name);
 
-    Event_type type = Event_names_get(eh->event_names, name);
-    rassert(type != Event_NONE);
-    rassert(!Event_is_query(type));
-    rassert(!Event_is_auto(type));
-
-    rassert(eh->channels[ch_num]->audio_rate > 0);
-    rassert(eh->channels[ch_num]->tempo > 0);
-
-    return Event_handler_handle(eh, ch_num, type, arg, external);
+    return Event_handler_trigger_by_type(eh, ch_num, type, arg, external);
 }
 
 

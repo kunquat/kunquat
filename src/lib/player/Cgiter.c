@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2019
  *
  * This file is part of Kunquat.
  *
@@ -12,6 +12,9 @@
  */
 
 
+#include <init/Bind.h>
+#include <init/sheet/Column.h>
+#include <init/sheet/Trigger.h>
 #include <player/Cgiter.h>
 
 #include <debug/assert.h>
@@ -31,7 +34,6 @@ void Cgiter_init(Cgiter* cgiter, const Module* module, int col_index)
     cgiter->module = module;
     cgiter->col_index = col_index;
     Position_init(&cgiter->pos);
-    Column_iter_init(&cgiter->citer);
 
     cgiter->cur_tr.head = NULL;
 
@@ -111,8 +113,6 @@ void Cgiter_reset(Cgiter* cgiter, const Position* start_pos)
             (int)cgiter->pos.piref.inst);
 #endif
 
-    // TODO: Prepare for the first Cgiter_peek call
-
     return;
 }
 
@@ -150,8 +150,9 @@ const Trigger_row* Cgiter_get_trigger_row(Cgiter* cgiter)
     if (column == NULL)
         return NULL;
 
-    Column_iter_change_col(&cgiter->citer, column);
-    cgiter->cur_tr.head = Column_iter_get_row(&cgiter->citer, &cgiter->pos.pat_pos);
+    Column_iter* citer = Column_iter_init(COLUMN_ITER_AUTO);
+    Column_iter_change_col(citer, column);
+    cgiter->cur_tr.head = Column_iter_get_row(citer, &cgiter->pos.pat_pos);
     if (cgiter->cur_tr.head == NULL)
         return NULL;
     rassert(cgiter->cur_tr.head->next != NULL);
@@ -174,7 +175,24 @@ void Cgiter_clear_returned_status(Cgiter* cgiter)
 }
 
 
-bool Cgiter_peek(Cgiter* cgiter, Tstamp* dist)
+static const Pattern* find_pattern(const Cgiter* cgiter)
+{
+    rassert(cgiter != NULL);
+
+    const Pat_inst_ref* piref = NULL;
+    if (cgiter->is_pattern_playback_state)
+        piref = &cgiter->pos.piref;
+    else
+        piref = find_pat_inst_ref(cgiter->module, cgiter->pos.track, cgiter->pos.system);
+
+    if (piref != NULL)
+        return Module_get_pattern(cgiter->module, piref);
+
+    return NULL;
+}
+
+
+bool Cgiter_get_local_bp_dist(const Cgiter* cgiter, Tstamp* dist)
 {
     rassert(cgiter != NULL);
     rassert(dist != NULL);
@@ -183,17 +201,7 @@ bool Cgiter_peek(Cgiter* cgiter, Tstamp* dist)
     if (Cgiter_has_finished(cgiter))
         return false;
 
-    // Find pattern
-    const Pattern* pattern = NULL;
-    const Pat_inst_ref* piref = NULL;
-    if (cgiter->is_pattern_playback_state)
-        piref = &cgiter->pos.piref;
-    else
-        piref = find_pat_inst_ref(cgiter->module, cgiter->pos.track, cgiter->pos.system);
-
-    if (piref != NULL)
-        pattern = Module_get_pattern(cgiter->module, piref);
-
+    const Pattern* pattern = find_pattern(cgiter);
     if (pattern == NULL)
         return false;
 
@@ -212,11 +220,12 @@ bool Cgiter_peek(Cgiter* cgiter, Tstamp* dist)
     // Check next trigger row
     Column* column = Pattern_get_column(pattern, cgiter->col_index);
     rassert(column != NULL);
-    Column_iter_change_col(&cgiter->citer, column);
+    Column_iter* citer = Column_iter_init(COLUMN_ITER_AUTO);
+    Column_iter_change_col(citer, column);
 
     const Tstamp* epsilon = Tstamp_set(TSTAMP_AUTO, 0, 1);
     Tstamp* next_pos_min = Tstamp_add(TSTAMP_AUTO, &cgiter->pos.pat_pos, epsilon);
-    Trigger_list* row = Column_iter_get_row(&cgiter->citer, next_pos_min);
+    const Trigger_list* row = Column_iter_get_row(citer, next_pos_min);
 
     if (row != NULL)
     {

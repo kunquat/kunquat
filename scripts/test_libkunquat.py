@@ -74,7 +74,7 @@ def test_libkunquat(builder, options, cc):
     finished_tests = set()
 
     # Specify tests that should always run without memory debugging (for performance)
-    force_disable_mem_tests = set(['fast_sin', 'fast_exp2', 'fast_log2'])
+    force_disable_mem_tests = set(['fast_sin', 'fast_exp2', 'fast_log2', 'fast_tan'])
 
     echo = '\n   Testing libkunquat\n'
 

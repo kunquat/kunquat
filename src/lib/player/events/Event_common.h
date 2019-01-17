@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2019
  *
  * This file is part of Kunquat.
  *
@@ -22,20 +22,10 @@
 #include <stdlib.h>
 
 
-#define Event_check_voice(ch_state, proc)              \
-    if (true)                                          \
-    {                                                  \
-        if ((ch_state)->fg[(proc)] == NULL)            \
-            continue;                                  \
-                                                       \
-        (ch_state)->fg[(proc)] = Voice_pool_get_voice( \
-                        (ch_state)->pool,              \
-                        (ch_state)->fg[(proc)],        \
-                        (ch_state)->fg_id[(proc)]);    \
-        if ((ch_state)->fg[(proc)] == NULL)            \
-            continue;                                  \
-    }                                                  \
-    else ignore(0)
+#define Event_get_voice_group(ch)                                           \
+    ((ch)->fg_group_id != 0                                                 \
+    ? Voice_pool_get_group((ch)->pool, (ch)->fg_group_id, VOICE_GROUP_AUTO) \
+    : NULL)
 
 
 #endif // KQT_EVENT_COMMON_H

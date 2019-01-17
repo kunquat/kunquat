@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2019
  *
  * This file is part of Kunquat.
  *
@@ -373,13 +373,56 @@ double LFO_skip(LFO* lfo, int64_t steps)
         LFO_start_with_init_values(lfo);
     }
 
+    // Skip speed changes while giving a reasonable estimate of the final phase
+    {
+        int64_t process_steps_left = steps;
+        while (process_steps_left > 0)
+        {
+            int32_t steps32 = (process_steps_left > (int64_t)INT32_MAX)
+                ? INT32_MAX : (int32_t)process_steps_left;
+
+            const double init_speed_progress = Slider_get_value(&lfo->speed_slider);
+
+            const int32_t slider_active_steps_left =
+                Slider_estimate_active_steps_left(&lfo->speed_slider);
+            const int32_t sliding_steps = min(steps32, slider_active_steps_left);
+            const int32_t fixed_steps = steps32 - sliding_steps;
+
+            const double final_speed_progress = Slider_skip(&lfo->speed_slider, steps32);
+
+            double phase_add = 0;
+
+            if (sliding_steps > 0)
+            {
+                const double avg_speed_progress =
+                    (init_speed_progress + final_speed_progress) * 0.5;
+                const double avg_speed =
+                    lerp(lfo->prev_speed, lfo->target_speed, avg_speed_progress);
+                phase_add += avg_speed * (2 * PI) * sliding_steps / lfo->audio_rate;
+            }
+
+            const double cur_speed =
+                lerp(lfo->prev_speed, lfo->target_speed, final_speed_progress);
+            lfo->update = (cur_speed * (2 * PI)) / lfo->audio_rate;
+
+            if (fixed_steps > 0)
+                phase_add += lfo->update * fixed_steps;
+
+            lfo->phase = fmod(lfo->phase + phase_add, 2 * PI);
+
+            process_steps_left -= steps32;
+        }
+    }
+
+    /*
     const double speed_progress = Slider_skip(&lfo->speed_slider, steps);
     const double cur_speed = lerp(lfo->prev_speed, lfo->target_speed, speed_progress);
     lfo->update = (cur_speed * (2 * PI)) / lfo->audio_rate;
+    lfo->phase = fmod(lfo->phase + (lfo->update * (double)steps), 2 * PI);
+    */
 
     const double depth_progress = Slider_skip(&lfo->depth_slider, steps);
     const double cur_depth = lerp(lfo->prev_depth, lfo->target_depth, depth_progress);
-    lfo->phase = fmod(lfo->phase + (lfo->update * (double)steps), 2 * PI);
 
     const double value = fast_sin(lfo->phase) * cur_depth;
     if (lfo->mode == LFO_MODE_EXP)

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2019
  *
  * This file is part of Kunquat.
  *
@@ -18,6 +18,7 @@
 #include <debug/assert.h>
 #include <kunquat/limits.h>
 #include <memory.h>
+#include <player/Event_properties.h>
 #include <player/Event_type.h>
 #include <player/Param_validator.h>
 #include <string/common.h>
@@ -31,9 +32,11 @@ typedef struct Name_info
 {
     char name[KQT_EVENT_NAME_MAX + 1];
     Event_type type;
+    /*
     Value_type param_type;
     Param_validator* validator;
     char name_setter[KQT_EVENT_NAME_MAX + 1];
+    */
 } Name_info;
 
 
@@ -50,19 +53,18 @@ static void del_Name_info(Name_info* ni)
 static Name_info event_specs[] =
 {
 #define EVENT_TYPE_DEF(name, category, type_suffix, arg_type, validator) \
-    { name, Event_##category##_##type_suffix, VALUE_TYPE_##arg_type, validator, "" },
+    { name, Event_##category##_##type_suffix },
 #define EVENT_TYPE_NS_DEF(name, category, type_suffix, arg_type, validator, ns) \
-    { name, Event_##category##_##type_suffix, VALUE_TYPE_##arg_type, validator, ns },
+    { name, Event_##category##_##type_suffix },
 #include <player/Event_types.h>
 
-    { "", Event_NONE, VALUE_TYPE_NONE, NULL, "" }
+    { "", Event_NONE }
 };
 
 
 struct Event_names
 {
     AAtree* names;
-    bool error;
 };
 
 
@@ -75,7 +77,6 @@ Event_names* new_Event_names(void)
     if (names == NULL)
         return NULL;
 
-    names->error = false;
     names->names = new_AAtree(
             (AAtree_item_cmp*)event_name_cmp, (AAtree_item_destroy*)del_Name_info);
     if (names->names == NULL)
@@ -88,7 +89,7 @@ Event_names* new_Event_names(void)
     {
         rassert(strlen(event_specs[i].name) > 0);
         rassert(strlen(event_specs[i].name) < KQT_EVENT_NAME_MAX);
-        rassert(!AAtree_contains(names->names, event_specs[i].name));
+        rassert(!AAtree_contains(names->names, &event_specs[i]));
 
         if (!AAtree_ins(names->names, &event_specs[i]))
         {
@@ -125,13 +126,6 @@ static int event_name_cmp(const char* e1, const char* e2)
 }
 
 
-bool Event_names_error(const Event_names* names)
-{
-    rassert(names != NULL);
-    return names->error;
-}
-
-
 Event_type Event_names_get(const Event_names* names, const char* name)
 {
     rassert(names != NULL);
@@ -150,10 +144,7 @@ Value_type Event_names_get_param_type(const Event_names* names, const char* name
     rassert(names != NULL);
     rassert(name != NULL);
 
-    const Name_info* info = AAtree_get_exact(names->names, name);
-    rassert(info != NULL);
-
-    return info->param_type;
+    return Event_properties_get_param_type(Event_names_get(names, name));
 }
 
 
@@ -163,10 +154,7 @@ Param_validator* Event_names_get_param_validator(
     rassert(names != NULL);
     rassert(name != NULL);
 
-    const Name_info* info = AAtree_get_exact(names->names, name);
-    rassert(info != NULL);
-
-    return info->validator;
+    return Event_properties_get_param_validator(Event_names_get(names, name));
 }
 
 
@@ -175,10 +163,10 @@ const char* Event_names_get_name_event(const Event_names* names, const char* nam
     rassert(names != NULL);
     rassert(name != NULL);
 
-    const Name_info* info = AAtree_get_exact(names->names, name);
-    rassert(info != NULL);
+    const char* name_setter =
+        Event_properties_get_name_event(Event_names_get(names, name));
 
-    return (info->name_setter[0] != '\0') ? info->name_setter : NULL;
+    return (name_setter[0] != '\0') ? name_setter : NULL;
 }
 
 

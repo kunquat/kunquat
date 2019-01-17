@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2019
  *
  * This file is part of Kunquat.
  *
@@ -16,11 +16,21 @@
 #define KQT_NOTE_SETUP_H
 
 
-#include <init/devices/Audio_unit.h>
-#include <player/Channel.h>
+#include <decl.h>
+#include <player/Event_type.h>
 
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
+
+
+bool reserve_voices(
+        Channel* ch,
+        const Module* module,
+        const Device_states* dstates,
+        Event_type event_type,
+        const Value* arg,
+        bool is_external);
 
 
 /**
@@ -40,14 +50,14 @@
  * \return   \c true if a Voice was allocated, otherwise \c false (this implies
  *           that the associated Processor uses stateless voice rendering).
  */
-bool reserve_voice(
+bool init_voice(
         Channel* ch,
+        Voice* voice,
         const Audio_unit* au,
         uint64_t group_id,
         const Proc_state* proc_state,
         int proc_num,
-        uint64_t rand_seed,
-        bool is_external);
+        uint64_t rand_seed);
 
 
 #endif // KQT_NOTE_SETUP_H

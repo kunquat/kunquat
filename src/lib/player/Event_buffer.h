@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2019
  *
  * This file is part of Kunquat.
  *
@@ -108,6 +108,9 @@ void Event_buffer_start_skipping(Event_buffer* ebuf);
 bool Event_buffer_is_skipping(const Event_buffer* ebuf);
 
 
+bool Event_buffer_is_zero_skipping(const Event_buffer* ebuf);
+
+
 /**
  * Get the Event buffer contents.
  *
@@ -128,6 +131,14 @@ const char* Event_buffer_get_events(const Event_buffer* ebuf);
  * \param arg    The event argument -- must not be \c NULL.
  */
 void Event_buffer_add(Event_buffer* ebuf, int ch, const char* name, const Value* arg);
+
+
+/**
+ * Skip one step ahead in the Event buffer.
+ *
+ * \param ebuf   The Event buffer -- must not be \c NULL and must be in skipping state.
+ */
+void Event_buffer_skip_step(Event_buffer* ebuf);
 
 
 /**

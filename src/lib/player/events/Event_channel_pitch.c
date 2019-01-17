@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2019
  *
  * This file is part of Kunquat.
  *
@@ -71,11 +71,13 @@ bool Event_channel_slide_pitch_process(
     else
         Slider_start(&ch->pitch_controls.slider, pitch, start_pitch);
 
-    for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
-    {
-        Event_check_voice(ch, i);
-        Voice* voice = ch->fg[i];
+    Voice_group* vgroup = Event_get_voice_group(ch);
+    if (vgroup == NULL)
+        return true;
 
+    for (int i = 0; i < Voice_group_get_size(vgroup); ++i)
+    {
+        Voice* voice = Voice_group_get_voice(vgroup, i);
         Voice_state* vs = voice->state;
 
         if (vs->proc_type == Proc_type_pitch)
@@ -103,10 +105,14 @@ bool Event_channel_slide_pitch_length_process(
 
     Slider_set_length(&ch->pitch_controls.slider, &ch->pitch_slide_length);
 
-    for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
+    Voice_group* vgroup = Event_get_voice_group(ch);
+    if (vgroup == NULL)
+        return true;
+
+    for (int i = 0; i < Voice_group_get_size(vgroup); ++i)
     {
-        Event_check_voice(ch, i);
-        Voice_state* vs = ch->fg[i]->state;
+        Voice* voice = Voice_group_get_voice(vgroup, i);
+        Voice_state* vs = voice->state;
 
         if (vs->proc_type == Proc_type_pitch)
             Pitch_vstate_set_controls(vs, &ch->pitch_controls);
@@ -137,11 +143,14 @@ bool Event_channel_vibrato_speed_process(
 
     LFO_turn_on(&ch->pitch_controls.vibrato);
 
-    for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
-    {
-        Event_check_voice(ch, i);
+    Voice_group* vgroup = Event_get_voice_group(ch);
+    if (vgroup == NULL)
+        return true;
 
-        Voice_state* vs = ch->fg[i]->state;
+    for (int i = 0; i < Voice_group_get_size(vgroup); ++i)
+    {
+        Voice* voice = Voice_group_get_voice(vgroup, i);
+        Voice_state* vs = voice->state;
 
         if (vs->proc_type == Proc_type_pitch)
             Pitch_vstate_set_controls(vs, &ch->pitch_controls);
@@ -173,11 +182,14 @@ bool Event_channel_vibrato_depth_process(
     LFO_set_depth(&ch->pitch_controls.vibrato, actual_depth);
     LFO_turn_on(&ch->pitch_controls.vibrato);
 
-    for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
-    {
-        Event_check_voice(ch, i);
+    Voice_group* vgroup = Event_get_voice_group(ch);
+    if (vgroup == NULL)
+        return true;
 
-        Voice_state* vs = ch->fg[i]->state;
+    for (int i = 0; i < Voice_group_get_size(vgroup); ++i)
+    {
+        Voice* voice = Voice_group_get_voice(vgroup, i);
+        Voice_state* vs = voice->state;
 
         if (vs->proc_type == Proc_type_pitch)
             Pitch_vstate_set_controls(vs, &ch->pitch_controls);
@@ -204,10 +216,14 @@ bool Event_channel_vibrato_speed_slide_process(
 
     LFO_set_speed_slide(&ch->pitch_controls.vibrato, &ch->vibrato_speed_slide);
 
-    for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
+    Voice_group* vgroup = Event_get_voice_group(ch);
+    if (vgroup == NULL)
+        return true;
+
+    for (int i = 0; i < Voice_group_get_size(vgroup); ++i)
     {
-        Event_check_voice(ch, i);
-        Voice_state* vs = ch->fg[i]->state;
+        Voice* voice = Voice_group_get_voice(vgroup, i);
+        Voice_state* vs = voice->state;
 
         if (vs->proc_type == Proc_type_pitch)
             Pitch_vstate_set_controls(vs, &ch->pitch_controls);
@@ -234,10 +250,14 @@ bool Event_channel_vibrato_depth_slide_process(
 
     LFO_set_depth_slide(&ch->pitch_controls.vibrato, &ch->vibrato_depth_slide);
 
-    for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
+    Voice_group* vgroup = Event_get_voice_group(ch);
+    if (vgroup == NULL)
+        return true;
+
+    for (int i = 0; i < Voice_group_get_size(vgroup); ++i)
     {
-        Event_check_voice(ch, i);
-        Voice_state* vs = ch->fg[i]->state;
+        Voice* voice = Voice_group_get_voice(vgroup, i);
+        Voice_state* vs = voice->state;
 
         if (vs->proc_type == Proc_type_pitch)
             Pitch_vstate_set_controls(vs, &ch->pitch_controls);

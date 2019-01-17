@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2018
+ * Author: Tomi Jylhä-Ollila, Finland 2018-2019
  *
  * This file is part of Kunquat.
  *
@@ -40,16 +40,20 @@ Voice_signal_plan* new_Voice_signal_plan(
 /**
  * Execute the Voice signal plan.
  *
- * \param plan            The Voice signal plan -- must not be \c NULL.
- * \param dstates         The Device states -- must not be \c NULL.
- * \param thread_id       The ID of the rendering thread -- must be valid.
- * \param vgroup          The Voice group -- must not be \c NULL.
- * \param wbs             The Work buffers -- must not be \c NULL.
- * \param frame_count     Number of frames to be processed
- *                        -- must be >= \c 0 and not greater than the buffer size.
- * \param tempo           The current tempo -- must be > \c 0.
- * \param enable_mixing   \c true if voice signals should be added to mixed
- *                        outputs, otherwise \c false.
+ * \param plan                The Voice signal plan -- must not be \c NULL.
+ * \param dstates             The Device states -- must not be \c NULL.
+ * \param thread_id           The ID of the rendering thread -- must be valid.
+ * \param vgroup              The Voice group -- must not be \c NULL.
+ * \param wbs                 The Work buffers -- must not be \c NULL.
+ * \param frame_count         Number of frames to be processed
+ *                            -- must be >= \c 0 and not greater than the buffer size.
+ * \param frame_offset        Frame offset for mixed destination buffer -- must be
+ *                            > \c 0.
+ * \param total_frame_count   Total number of frames to be processed for the ongoing
+ *                            mixing cycle -- must be >= \a frame_count.
+ * \param tempo               The current tempo -- must be > \c 0.
+ * \param enable_mixing       \c true if voice signals should be added to mixed
+ *                            outputs, otherwise \c false.
  *
  * \return   The stop index of complete frames rendered to voice buffers. This
  *           is always <= \a frame_count. If the stop index is < \a frame_count,
@@ -62,6 +66,8 @@ int32_t Voice_signal_plan_execute(
         Voice_group* vgroup,
         const Work_buffers* wbs,
         int32_t frame_count,
+        int32_t frame_offset,
+        int32_t total_frame_count,
         double tempo,
         bool enable_mixing);
 

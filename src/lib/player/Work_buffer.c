@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2019
  *
  * This file is part of Kunquat.
  *
@@ -536,7 +536,7 @@ void Work_buffer_mix(
     const bool in_has_final_value =
         (Work_buffer_is_final(src, src_sub_index) && (src_const_start < buf_stop));
 
-    float* dest_contents = Work_buffer_get_contents_mut(dest, dest_sub_index);
+    float* dest_contents = (float*)dest->contents + dest_sub_index;
     const float* src_contents = Work_buffer_get_contents(src, src_sub_index);
 
     const bool buffer_has_neg_inf_final_value =
@@ -641,7 +641,7 @@ void Work_buffer_mix_all(
             (Work_buffer_is_final(src, i) && (src_const_starts[i] < buf_stop));
     }
 
-    float* dest_contents = Work_buffer_get_contents_mut(dest, 0);
+    float* dest_contents = (float*)dest->contents;
     const float* src_contents = Work_buffer_get_contents(src, 0);
 
     bool dest_has_neg_inf_final_value_at[WORK_BUFFER_SUB_COUNT_MAX] = { false };
@@ -698,6 +698,75 @@ void Work_buffer_mix_all(
         Work_buffer_set_const_start(dest, i, new_const_start);
         Work_buffer_set_final(dest, i, result_is_const_final);
     }
+
+    return;
+}
+
+
+static void Work_buffer_shift_contents(Work_buffer* buffer, int32_t offset)
+{
+    rassert(buffer != NULL);
+    rassert(labs(offset) <= Work_buffer_get_size(buffer));
+
+    if (offset == 0)
+        return;
+
+    // FIXME: This ugly hack breaks alignment properties of the buffer
+    //        contents and it would be really nice to get rid of it
+
+    char* contents = buffer->contents;
+
+    const int32_t stride = Work_buffer_get_stride(buffer);
+    const int32_t frame_size = stride * WORK_BUFFER_ELEM_SIZE;
+
+    buffer->contents = contents + (offset * frame_size);
+
+    if (offset > 0)
+    {
+        for (int i = 0; i < buffer->sub_count; ++i)
+        {
+            if (buffer->const_start[i] < INT32_MAX)
+            {
+                buffer->const_start[i] -= offset;
+                buffer->const_start[i] = max(buffer->const_start[i], 0);
+            }
+        }
+    }
+    else
+    {
+        for (int i = 0; i < buffer->sub_count; ++i)
+        {
+            if (buffer->const_start[i] < INT32_MAX)
+            {
+                buffer->const_start[i] = (buffer->const_start[i] < INT32_MAX + offset)
+                    ? buffer->const_start[i] - offset : INT32_MAX;
+            }
+        }
+    }
+
+    return;
+}
+
+
+void Work_buffer_mix_all_shifted(
+        Work_buffer* restrict dest,
+        int32_t dest_offset,
+        const Work_buffer* restrict src,
+        int32_t buf_stop)
+{
+    rassert(dest != NULL);
+    rassert(dest_offset >= 0);
+    rassert(src != NULL);
+    rassert(src != dest);
+    rassert(buf_stop >= 0);
+    rassert(buf_stop + dest_offset <= Work_buffer_get_size(dest));
+
+    Work_buffer_shift_contents(dest, dest_offset);
+
+    const uint8_t mask = (uint8_t)((1 << Work_buffer_get_sub_count(dest)) - 1);
+    Work_buffer_mix_all(dest, src, 0, buf_stop, mask);
+
+    Work_buffer_shift_contents(dest, -dest_offset);
 
     return;
 }

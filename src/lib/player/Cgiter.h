@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2019
  *
  * This file is part of Kunquat.
  *
@@ -16,6 +16,7 @@
 #define KQT_CGITER_H
 
 
+#include <decl.h>
 #include <init/Module.h>
 #include <init/sheet/Column.h>
 #include <player/Position.h>
@@ -40,7 +41,6 @@ typedef struct Cgiter
     int col_index;
 
     Position pos;
-    Column_iter citer;
     Trigger_row cur_tr; // TODO: remove
 
     bool row_returned;
@@ -92,7 +92,7 @@ void Cgiter_clear_returned_status(Cgiter* cgiter);
 
 
 /**
- * Get distance to the next breakpoint following the current Cgiter position.
+ * Get distance to the next local breakpoint following the current Cgiter position.
  *
  * \param cgiter   The Cgiter -- must not be \c NULL.
  * \param dist     Address where the distance will be stored -- must be valid.
@@ -101,7 +101,7 @@ void Cgiter_clear_returned_status(Cgiter* cgiter);
  *
  * \return   \c true if \a dist was modified, otherwise \c false.
  */
-bool Cgiter_peek(Cgiter* cgiter, Tstamp* dist);
+bool Cgiter_get_local_bp_dist(const Cgiter* cgiter, Tstamp* dist);
 
 
 /**

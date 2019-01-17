@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2019
  *
  * This file is part of Kunquat.
  *
@@ -242,17 +242,20 @@ Work_buffer* Device_thread_state_get_voice_buffer(
 /**
  * Mix rendered Voice signals to mixed signal buffers.
  *
- * \param ts           The Device thread state -- must not be \c NULL.
- * \param buf_start    The start index of mixing -- must be >= \c 0.
- * \param mix_stop     The stop index of mixing -- must be less than or equal
- *                     to the audio buffer size.
- * \param clear_stop   The stop index of buffer clearing -- must be >= \a mix_stop
- *                     and less than or equal to the audio buffer size.
+ * \param ts             The Device thread state -- must not be \c NULL.
+ * \param buf_start      The start index of mixing -- must be >= \c 0.
+ * \param mix_stop       The stop index of mixing -- must be less than or equal
+ *                       to the audio buffer size.
+ * \param frame_offset   Buffer offset for mixed destination buffer
+ *                       -- must be >= \c 0.
+ * \param clear_stop     The stop index of buffer clearing -- must be >= \a mix_stop
+ *                       and less than or equal to the audio buffer size.
  */
 void Device_thread_state_mix_voice_signals(
         Device_thread_state* ts,
         int32_t buf_start,
         int32_t mix_stop,
+        int32_t frame_offset,
         int32_t clear_stop);
 
 

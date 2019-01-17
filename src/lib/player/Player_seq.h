@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2019
  *
  * This file is part of Kunquat.
  *
@@ -39,6 +39,8 @@ void Player_process_event(
         int ch_num,
         const char* event_name,
         const Value* arg,
+        bool is_at_global_breakpoint,
+        int32_t frame_offset,
         bool skip,
         bool external);
 

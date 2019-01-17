@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2019
  *
  * This file is part of Kunquat.
  *
@@ -19,9 +19,12 @@
 #include <init/devices/Audio_unit.h>
 #include <init/devices/Device.h>
 #include <init/devices/Device_impl.h>
+#include <init/devices/Param_proc_filter.h>
+#include <init/Module.h>
 #include <kunquat/limits.h>
 #include <player/Channel.h>
 #include <player/devices/Voice_state.h>
+#include <player/Voice.h>
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -29,38 +32,143 @@
 #include <string.h>
 
 
-bool reserve_voice(
+static bool reserve_voice(
         Channel* ch,
+        uint64_t group_id,
+        const Proc_state* proc_state,
+        bool is_external)
+{
+    rassert(ch != NULL);
+    rassert(proc_state != NULL);
+
+    Voice_state_get_size_func* get_vstate_size =
+        proc_state->parent.device->dimpl->get_vstate_size;
+    if ((get_vstate_size != NULL) && (get_vstate_size() == 0))
+        return false;
+
+    Voice* voice = Voice_pool_get_voice(ch->pool, group_id);
+    rassert(voice != NULL);
+    Voice_reserve(voice, group_id, is_external ? -1 : ch->num);
+
+    //fprintf(stderr, "reserved Voice %p\n", (void*)voice);
+
+    return true;
+}
+
+
+bool reserve_voices(
+        Channel* ch,
+        const Module* module,
+        const Device_states* dstates,
+        Event_type event_type,
+        const Value* arg,
+        bool is_external)
+{
+    rassert(ch != NULL);
+    rassert(module != NULL);
+    rassert(dstates != NULL);
+    rassert(arg != NULL);
+
+    int reserve_count = 0;
+
+    if (event_type == Event_channel_note_on)
+    {
+        Audio_unit* au = Module_get_au_from_input(module, ch->au_input);
+        if ((au != NULL) && (Audio_unit_get_type(au) == AU_TYPE_INSTRUMENT))
+        {
+            const uint64_t new_group_id = Voice_pool_new_group_id(ch->pool);
+
+            for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
+            {
+                const Processor* proc = Audio_unit_get_proc(au, i);
+                if (proc == NULL ||
+                        !Device_is_existent((const Device*)proc) ||
+                        !Processor_get_voice_signals(proc))
+                    continue;
+
+                const Proc_state* proc_state = (Proc_state*)Device_states_get_state(
+                        dstates, Device_get_id((const Device*)proc));
+
+                if (reserve_voice(ch, new_group_id, proc_state, is_external))
+                    ++reserve_count;
+            }
+
+            Voice_group_reservations_add_entry(
+                    ch->voice_group_res, ch->num, new_group_id);
+
+            Voice_pool_sort_groups(ch->pool); // TODO: don't do this for every note
+        }
+    }
+    else if (event_type == Event_channel_hit)
+    {
+        Audio_unit* au = Module_get_au_from_input(module, ch->au_input);
+        if ((au != NULL) && (Audio_unit_get_type(au) == AU_TYPE_INSTRUMENT))
+        {
+            const int hit_index = (int)arg->value.int_type;
+            if (Audio_unit_get_hit_existence(au, hit_index))
+            {
+                const Param_proc_filter* hpf =
+                    Audio_unit_get_hit_proc_filter(au, hit_index);
+
+                const uint64_t new_group_id = Voice_pool_new_group_id(ch->pool);
+
+                for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
+                {
+                    const Processor* proc = Audio_unit_get_proc(au, i);
+                    if (proc == NULL ||
+                            !Device_is_existent((const Device*)proc) ||
+                            !Processor_get_voice_signals(proc))
+                        continue;
+
+                    // Skip processors that are filtered out for this hit index
+                    if ((hpf != NULL) && !Param_proc_filter_is_proc_allowed(hpf, i))
+                        continue;
+
+                    const Proc_state* proc_state = (Proc_state*)Device_states_get_state(
+                            dstates, Device_get_id((const Device*)proc));
+
+                    if (reserve_voice(ch, new_group_id, proc_state, is_external))
+                        ++reserve_count;
+                }
+
+                Voice_group_reservations_add_entry(
+                        ch->voice_group_res, ch->num, new_group_id);
+
+                Voice_pool_sort_groups(ch->pool); // TODO: don't do this for every note
+            }
+        }
+    }
+    else
+    {
+        rassert(false);
+    }
+
+    return (reserve_count > 0);
+}
+
+
+bool init_voice(
+        Channel* ch,
+        Voice* voice,
         const Audio_unit* au,
         uint64_t group_id,
         const Proc_state* proc_state,
         int proc_num,
-        uint64_t rand_seed,
-        bool is_external)
+        uint64_t rand_seed)
 {
     rassert(ch != NULL);
     rassert(ch->audio_rate > 0);
     rassert(ch->tempo > 0);
+    rassert(voice != NULL);
     rassert(au != NULL);
     rassert(proc_state != NULL);
     rassert(proc_num >= 0);
     rassert(proc_num < KQT_PROCESSORS_MAX);
 
-    Voice_state_get_size_func* get_vstate_size =
-        proc_state->parent.device->dimpl->get_vstate_size;
-    if ((get_vstate_size != NULL) && (get_vstate_size() == 0))
-    {
-        ch->fg[proc_num] = NULL;
+    if (Voice_get_group_id(voice) != group_id)
         return false;
-    }
 
-    ++ch->fg_count;
-    ch->fg[proc_num] = Voice_pool_get_voice(ch->pool, NULL, 0);
-//    fprintf(stderr, "allocated Voice %p\n", (void*)ch->fg[proc_num]);
-
-    Voice* voice = ch->fg[proc_num];
-    rassert(voice != NULL);
-    ch->fg_id[proc_num] = Voice_id(voice);
+    //fprintf(stderr, "initialised Voice %p\n", (void*)voice);
 
     // Get expression settings
     const char* ch_expr =
@@ -73,8 +181,6 @@ bool reserve_voice(
     Voice_init(
             voice,
             Audio_unit_get_proc(au, proc_num),
-            group_id,
-            is_external ? -1 : ch->num,
             proc_state,
             rand_seed);
 

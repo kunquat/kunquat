@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2019
  *
  * This file is part of Kunquat.
  *
@@ -34,7 +34,6 @@ struct Voice_pool
     Voice_work_buffers* voice_wbs;
 
     int group_iter_offset;
-    Voice_group group_iter;
 
     Mutex group_iter_lock;
 };
@@ -54,7 +53,6 @@ Voice_pool* new_Voice_pool(int size)
     pool->voices = NULL;
     pool->voice_wbs = NULL;
     pool->group_iter_offset = 0;
-    pool->group_iter = *VOICE_GROUP_AUTO;
 
     pool->group_iter_lock = *MUTEX_AUTO;
 
@@ -229,36 +227,38 @@ uint64_t Voice_pool_new_group_id(Voice_pool* pool)
 }
 
 
-Voice* Voice_pool_get_voice(Voice_pool* pool, Voice* voice, uint64_t id)
+Voice* Voice_pool_get_voice(Voice_pool* pool, uint64_t group_id)
 {
     rassert(pool != NULL);
+    rassert(group_id != 0);
 
     if (pool->size == 0)
         return NULL;
 
-    if (voice == NULL)
+    // Find a voice of lowest priority available
+    unsigned int new_prio = VOICE_PRIO_NEW + 1;
+    Voice* new_voice = NULL;
+    for (uint16_t i = 0; i < pool->size; ++i)
     {
-        // Find a voice of lowest priority available
-        Voice* new_voice = pool->voices[0];
-        for (uint16_t i = 1; i < pool->size; ++i)
+        Voice* voice = pool->voices[i];
+        if ((voice->prio < new_prio) && (voice->group_id != group_id))
         {
-            if (Voice_cmp(pool->voices[i], new_voice) < 0)
-                new_voice = pool->voices[i];
+            new_voice = voice;
+            new_prio = voice->prio;
         }
-
-        // Pre-init the voice
-        static uint64_t running_id = 1;
-        new_voice->id = running_id;
-        new_voice->prio = VOICE_PRIO_INACTIVE;
-        ++running_id;
-
-        return new_voice;
     }
 
-    if (voice->id == id)
-        return voice;
+    rassert(new_voice != NULL);
+    rassert(new_voice->group_id != group_id);
 
-    return NULL;
+    if (new_voice->group_id != 0)
+        Voice_pool_reset_group(pool, new_voice->group_id);
+
+    // Pre-init the voice
+    new_voice->prio = VOICE_PRIO_INACTIVE;
+    new_voice->group_id = group_id;
+
+    return new_voice;
 }
 
 
@@ -269,7 +269,22 @@ static uint64_t get_voice_group_prio(const Voice* voice)
 }
 
 
-static void Voice_pool_sort_groups(Voice_pool* pool)
+void Voice_pool_free_inactive(Voice_pool* pool)
+{
+    rassert(pool != NULL);
+
+    for (uint16_t i = 0; i < pool->size; ++i)
+    {
+        Voice* current = pool->voices[i];
+        if (current->prio == VOICE_PRIO_INACTIVE)
+            Voice_reset(current);
+    }
+
+    return;
+}
+
+
+void Voice_pool_sort_groups(Voice_pool* pool)
 {
     rassert(pool != NULL);
 
@@ -295,6 +310,42 @@ static void Voice_pool_sort_groups(Voice_pool* pool)
 }
 
 
+void Voice_pool_reset_group(Voice_pool* pool, uint64_t group_id)
+{
+    rassert(pool != NULL);
+    rassert(group_id != 0);
+
+    for (int i = 0; i < pool->size; ++i)
+    {
+        Voice* voice = pool->voices[i];
+        if (voice->group_id == group_id)
+            Voice_reset(voice);
+    }
+
+    return;
+}
+
+
+Voice_group* Voice_pool_get_group(
+        const Voice_pool* pool, uint64_t group_id, Voice_group* vgroup)
+{
+    rassert(pool != NULL);
+    rassert(group_id != 0);
+    rassert(vgroup != NULL);
+
+    for (int i = 0; i < pool->size; ++i)
+    {
+        if (pool->voices[i]->group_id == group_id)
+        {
+            Voice_group_init(vgroup, pool->voices, i, pool->size);
+            return vgroup;
+        }
+    }
+
+    return NULL;
+}
+
+
 void Voice_pool_start_group_iteration(Voice_pool* pool)
 {
     rassert(pool != NULL);
@@ -307,21 +358,47 @@ void Voice_pool_start_group_iteration(Voice_pool* pool)
 }
 
 
-Voice_group* Voice_pool_get_next_group(Voice_pool* pool)
+Voice_group* Voice_pool_get_next_group(Voice_pool* pool, Voice_group* vgroup)
 {
     rassert(pool != NULL);
+    rassert(vgroup != NULL);
 
     if (pool->group_iter_offset >= pool->size)
         return NULL;
 
-    Voice_group_init(
-            &pool->group_iter, pool->voices, pool->group_iter_offset, pool->size);
-    pool->group_iter_offset += Voice_group_get_size(&pool->group_iter);
+    Voice_group_init(vgroup, pool->voices, pool->group_iter_offset, pool->size);
+    pool->group_iter_offset += Voice_group_get_size(vgroup);
 
-    if (Voice_group_get_size(&pool->group_iter) == 0)
+    if (Voice_group_get_size(vgroup) == 0)
         return NULL;
 
-    return &pool->group_iter;
+    return vgroup;
+}
+
+
+Voice_group* Voice_pool_get_next_fg_group(Voice_pool* pool, Voice_group* vgroup)
+{
+    rassert(pool != NULL);
+    rassert(vgroup != NULL);
+
+    Voice_group* vg = Voice_pool_get_next_group(pool, vgroup);
+    while ((vg != NULL) && Voice_group_is_bg(vg))
+        vg = Voice_pool_get_next_group(pool, vgroup);
+
+    return vg;
+}
+
+
+Voice_group* Voice_pool_get_next_bg_group(Voice_pool* pool, Voice_group* vgroup)
+{
+    rassert(pool != NULL);
+    rassert(vgroup != NULL);
+
+    Voice_group* vg = Voice_pool_get_next_group(pool, vgroup);
+    while ((vg != NULL) && !Voice_group_is_bg(vg))
+        vg = Voice_pool_get_next_group(pool, vgroup);
+
+    return vg;
 }
 
 
@@ -350,6 +427,36 @@ Voice_group* Voice_pool_get_next_group_synced(Voice_pool* pool, Voice_group* vgr
         return NULL;
 
     return vgroup;
+}
+
+
+Voice_group* Voice_pool_get_next_fg_group_synced(Voice_pool* pool, Voice_group* vgroup)
+{
+    rassert(pool != NULL);
+    rassert(vgroup != NULL);
+
+    Mutex_lock(&pool->group_iter_lock);
+
+    Voice_group* vg = Voice_pool_get_next_fg_group(pool, vgroup);
+
+    Mutex_unlock(&pool->group_iter_lock);
+
+    return vg;
+}
+
+
+Voice_group* Voice_pool_get_next_bg_group_synced(Voice_pool* pool, Voice_group* vgroup)
+{
+    rassert(pool != NULL);
+    rassert(vgroup != NULL);
+
+    Mutex_lock(&pool->group_iter_lock);
+
+    Voice_group* vg = Voice_pool_get_next_bg_group(pool, vgroup);
+
+    Mutex_unlock(&pool->group_iter_lock);
+
+    return vg;
 }
 #endif
 

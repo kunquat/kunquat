@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2019
  *
  * This file is part of Kunquat.
  *
@@ -113,25 +113,28 @@ uint64_t Voice_pool_new_group_id(Voice_pool* pool);
 /**
  * Get a Voice from the Voice pool.
  *
- * In case all the Voices are in use, the Voice considered least important is
- * reinitialised and returned.
+ * In case all the Voices are in use, an existing Voice group (other than
+ * one of given ID) will be reset and one of its Voices is returned.
  *
- * If the caller gives an existing Voice as a parameter, no new Voice will be
- * returned. Instead, the Voice pool will check whether this Voice has the
- * same ID as the caller provides (if yes, the caller is still allowed to use
- * this Voice and the \a voice parameter itself will be returned; otherwise
- * \c NULL).
+ * \param pool       The Voice pool -- must not be \c NULL.
+ * \param group_id   The Voice group ID of the new Voice.
  *
- * \param pool      The Voice pool -- must not be \c NULL.
- * \param voice     An existing Voice. If \c NULL is returned, the caller must
- *                  not access this Voice.
- * \param id        An identification number for an existing Voice that needs
- *                  to be matched.
- *
- * \return   The Voice reserved for use, or \c NULL if \a voice is no longer
- *           under the control of the caller or the pool size is \c 0.
+ * \return   The new Voice.
  */
-Voice* Voice_pool_get_voice(Voice_pool* pool, Voice* voice, uint64_t id);
+Voice* Voice_pool_get_voice(Voice_pool* pool, uint64_t group_id);
+
+
+void Voice_pool_free_inactive(Voice_pool* pool);
+
+
+void Voice_pool_sort_groups(Voice_pool* pool);
+
+
+void Voice_pool_reset_group(Voice_pool* pool, uint64_t group_id);
+
+
+Voice_group* Voice_pool_get_group(
+        const Voice_pool* pool, uint64_t group_id, Voice_group* vgroup);
 
 
 /**
@@ -145,12 +148,19 @@ void Voice_pool_start_group_iteration(Voice_pool* pool);
 /**
  * Get the next Voice group.
  *
- * \param pool   The Voice pool -- must not be \c NULL.
+ * \param pool     The Voice pool -- must not be \c NULL.
+ * \param vgroup   Destination for the Voice group data -- must not be \c NULL.
  *
- * \return   The next Voice group, or \c NULL if there are no groups left to
+ * \return   The parameter \a vgroup, or \c NULL if there are no groups left to
  *           be processed.
  */
-Voice_group* Voice_pool_get_next_group(Voice_pool* pool);
+Voice_group* Voice_pool_get_next_group(Voice_pool* pool, Voice_group* vgroup);
+
+
+Voice_group* Voice_pool_get_next_fg_group(Voice_pool* pool, Voice_group* vgroup);
+
+
+Voice_group* Voice_pool_get_next_bg_group(Voice_pool* pool, Voice_group* vgroup);
 
 
 #ifdef ENABLE_THREADS
@@ -164,6 +174,12 @@ Voice_group* Voice_pool_get_next_group(Voice_pool* pool);
  *           be processed.
  */
 Voice_group* Voice_pool_get_next_group_synced(Voice_pool* pool, Voice_group* vgroup);
+
+
+Voice_group* Voice_pool_get_next_fg_group_synced(Voice_pool* pool, Voice_group* vgroup);
+
+
+Voice_group* Voice_pool_get_next_bg_group_synced(Voice_pool* pool, Voice_group* vgroup);
 #endif
 
 

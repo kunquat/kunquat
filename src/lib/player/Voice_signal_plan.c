@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2018
+ * Author: Tomi Jylhä-Ollila, Finland 2018-2019
  *
  * This file is part of Kunquat.
  *
@@ -220,19 +220,22 @@ static void Voice_signal_task_info_mix(
         Device_states* dstates,
         int thread_id,
         int32_t keep_alive_stop,
+        int32_t frame_offset,
         int32_t frame_count)
 {
     rassert(task_info != NULL);
     rassert(dstates != NULL);
     rassert(thread_id >= 0);
     rassert(thread_id < KQT_THREADS_MAX);
+    rassert(frame_offset >= 0);
     rassert(frame_count >= 0);
 
     if (task_info->is_connected_to_mixed)
     {
         Device_thread_state* dev_ts =
             Device_states_get_thread_state(dstates, thread_id, task_info->device_id);
-        Device_thread_state_mix_voice_signals(dev_ts, 0, keep_alive_stop, frame_count);
+        Device_thread_state_mix_voice_signals(
+                dev_ts, 0, keep_alive_stop, frame_offset, frame_count);
     }
 
     return;
@@ -543,6 +546,8 @@ int32_t Voice_signal_plan_execute(
         Voice_group* vgroup,
         const Work_buffers* wbs,
         int32_t frame_count,
+        int32_t frame_offset,
+        int32_t total_frame_count,
         double tempo,
         bool enable_mixing)
 {
@@ -553,6 +558,9 @@ int32_t Voice_signal_plan_execute(
     rassert(vgroup != NULL);
     rassert(wbs != NULL);
     rassert(frame_count >= 0);
+    rassert(frame_offset >= 0);
+    rassert(total_frame_count >= frame_count);
+    rassert(frame_count + frame_offset <= total_frame_count);
     rassert(tempo > 0);
 
     int32_t keep_alive_stop = 0;
@@ -598,7 +606,11 @@ int32_t Voice_signal_plan_execute(
         {
             const Voice_signal_task_info* task_info = Etable_get(tasks, i);
             Voice_signal_task_info_mix(
-                    task_info, dstates, thread_id, keep_alive_stop, frame_count);
+                    task_info, dstates,
+                    thread_id,
+                    keep_alive_stop,
+                    frame_offset,
+                    total_frame_count);
         }
     }
 

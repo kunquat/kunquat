@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2019
  *
  * This file is part of Kunquat.
  *
@@ -16,6 +16,7 @@
 #define KQT_BIND_H
 
 
+#include <decl.h>
 #include <kunquat/limits.h>
 #include <mathnum/Random.h>
 #include <player/Env_state.h>
@@ -24,13 +25,14 @@
 #include <string/Streader.h>
 #include <Value.h>
 
+#include <stdbool.h>
 #include <stdlib.h>
 
 
 /**
  * A collection of conditions for automatic events.
  */
-typedef struct Bind Bind;
+//typedef struct Bind Bind;
 
 
 /**
@@ -67,9 +69,15 @@ Event_cache* Bind_create_cache(const Bind* map);
 
 
 /**
+ */
+bool Bind_event_has_constraints(const Bind* map, Event_type event_type);
+
+
+/**
  * Get the first event that is a result from binding.
  *
  * \param map          The Bind -- must not be \c NULL.
+ * \param event_names  The Event names -- must not be \c NULL.
  * \param cache        The Event cache -- must not be \c NULL.
  * \param estate       The Environment state -- must not be \c NULL.
  * \param event_name   The name of the fired event -- must not be \c NULL.
@@ -81,6 +89,7 @@ Event_cache* Bind_create_cache(const Bind* map);
  */
 Target_event* Bind_get_first(
         const Bind* map,
+        const Event_names* event_names,
         Event_cache* cache,
         Env_state* estate,
         const char* event_name,

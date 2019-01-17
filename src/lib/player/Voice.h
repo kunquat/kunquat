@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2019
  *
  * This file is part of Kunquat.
  *
@@ -42,13 +42,13 @@ typedef enum
  * This contains all the playback state information of a single note of a
  * Processor being played.
  */
-typedef struct Voice
+struct Voice
 {
-    uint64_t id;             ///< An identification number for this initialisation.
-    uint64_t group_id;       ///< The ID of the group this Voice currently belogns to.
+    uint64_t group_id;       ///< The ID of the group this Voice currently belongs to.
     int ch_num;              ///< The last Channel that initialised this Voice.
     bool updated;            ///< Used to cut Voices that are not updated.
     Voice_prio prio;         ///< Current priority of the Voice.
+    int32_t frame_offset;
     bool use_test_output;
     int test_proc_index;
     const Processor* proc;   ///< The Processor.
@@ -57,7 +57,7 @@ typedef struct Voice
     Work_buffer* wb;         ///< The Work buffer associated with this Voice.
     Random rand_p;           ///< Parameter random source.
     Random rand_s;           ///< Signal random source.
-} Voice;
+};
 
 
 /**
@@ -92,19 +92,6 @@ bool Voice_reserve_state_space(Voice* voice, int32_t state_size);
  *           \a v2 in priority.
  */
 int Voice_cmp(const Voice* v1, const Voice* v2);
-
-
-/**
- * Retrieve the Voice identification.
- *
- * The user should store the ID after retrieving the Voice from the Voice
- * pool.
- *
- * \param voice   The Voice -- must not be \c NULL.
- *
- * \return   The ID.
- */
-uint64_t Voice_id(const Voice* voice);
 
 
 /**
@@ -147,23 +134,29 @@ void Voice_set_work_buffer(Voice* voice, Work_buffer* wb);
 
 
 /**
+ * Reserve the Voice for a new note.
+ *
+ * \param voice      The Voice -- must not be \c NULL.
+ * \param group_id   The ID of the group this Voice belongs to. This is used
+ *                   to identify which Voices are connected.
+ * \param ch_num     The Channel number associated with this initialisation
+ *                   -- must be >= \c 0 and < \c KQT_CHANNELS_MAX, or \c -1
+ *                   which indicates indeterminate Channel.
+ */
+void Voice_reserve(Voice* voice, uint64_t group_id, int ch_num);
+
+
+/**
  * Initialise the Voice for mixing.
  *
  * \param voice        The Voice -- must not be \c NULL.
  * \param proc         The Processor used -- must not be \c NULL.
- * \param group_id     The ID of the group this Voice belongs to. This is used
- *                     to identify which Voices are connected.
- * \param ch_num       The Channel number associated with this initialisation
- *                     -- must be >= \c 0 and < \c KQT_CHANNELS_MAX, or \c -1
- *                     which indicates indeterminate Channel.
  * \param proc_state   The Processor state -- must not be \c NULL.
  * \param seed         The random seed.
  */
 void Voice_init(
         Voice* voice,
         const Processor* proc,
-        uint64_t group_id,
-        int ch_num,
         const Proc_state* proc_state,
         uint64_t seed);
 

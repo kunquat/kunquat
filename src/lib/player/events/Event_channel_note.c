@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2019
  *
  * This file is part of Kunquat.
  *
@@ -16,6 +16,7 @@
 
 #include <debug/assert.h>
 #include <init/devices/Au_streams.h>
+#include <init/devices/Audio_unit.h>
 #include <init/devices/Param_proc_filter.h>
 #include <init/devices/Proc_type.h>
 #include <init/Input_map.h>
@@ -110,6 +111,20 @@ static void init_streams(Channel* ch, const Audio_unit* au)
 }
 
 
+static void reset_channel_voices(Channel* ch)
+{
+    rassert(ch != NULL);
+
+    if (ch->fg_group_id != 0)
+        Voice_pool_reset_group(ch->pool, ch->fg_group_id);
+
+    ch->fg_group_id = 0;
+    Channel_reset_test_output(ch);
+
+    return;
+}
+
+
 bool Event_channel_note_on_process(
         Channel* ch,
         Device_states* dstates,
@@ -128,15 +143,10 @@ bool Event_channel_note_on_process(
     // Move the old Voices to the background
     Event_channel_note_off_process(ch, dstates, master_params, NULL);
 
-    ch->fg_count = 0;
-
     // Find our audio unit
     Audio_unit* au = Module_get_au_from_input(ch->parent.module, ch->au_input);
     if (au == NULL)
         return true;
-
-    // Allocate new Voices
-    const uint64_t new_group_id = Voice_pool_new_group_id(ch->pool);
 
     double pitch_param = params->arg->value.float_type;
 
@@ -186,6 +196,19 @@ bool Event_channel_note_on_process(
     if (Audio_unit_get_type(au) != AU_TYPE_INSTRUMENT)
         return true;
 
+    // Find reserved voices
+    Voice_group* vgroup = VOICE_GROUP_AUTO;
+
+    if (!Voice_group_reservations_get_clear_entry(
+                ch->voice_group_res, ch->num, &ch->fg_group_id) ||
+            (Voice_pool_get_group(ch->pool, ch->fg_group_id, vgroup) == NULL))
+    {
+        reset_channel_voices(ch);
+        return true;
+    }
+
+    int voice_index = 0;
+
     for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
         const Processor* proc = Audio_unit_get_proc(au, i);
@@ -199,12 +222,24 @@ bool Event_channel_note_on_process(
 
         const uint64_t voice_rand_seed = Random_get_uint64(&ch->rand);
 
-        const bool voice_allocated = reserve_voice(
-                ch, au, new_group_id, proc_state, i, voice_rand_seed, params->external);
-        if (!voice_allocated)
+        Voice_state_get_size_func* get_vstate_size =
+            proc_state->parent.device->dimpl->get_vstate_size;
+        if ((get_vstate_size != NULL) && (get_vstate_size() == 0))
             continue;
 
-        Voice* voice = ch->fg[i];
+        Voice* voice = Voice_group_get_voice(vgroup, voice_index);
+
+        const bool voice_allocated = init_voice(
+                ch, voice, au, ch->fg_group_id, proc_state, i, voice_rand_seed);
+        if (!voice_allocated)
+        {
+            // Some of our voices were reallocated
+            reset_channel_voices(ch);
+            return true;
+        }
+
+        ++voice_index;
+
         Voice_state* vs = voice->state;
 
         if (vs->proc_type == Proc_type_pitch)
@@ -243,14 +278,10 @@ bool Event_channel_hit_process(
     // Move the old Voices to the background
     Event_channel_note_off_process(ch, dstates, master_params, NULL);
 
-    ch->fg_count = 0;
-
     // Find our audio unit
     Audio_unit* au = Module_get_au_from_input(ch->parent.module, ch->au_input);
     if (au == NULL)
         return true;
-
-    const uint64_t new_group_id = Voice_pool_new_group_id(ch->pool);
 
     init_force_controls(ch, master_params);
 
@@ -264,6 +295,19 @@ bool Event_channel_hit_process(
         return true;
 
     const Param_proc_filter* hpf = Audio_unit_get_hit_proc_filter(au, hit_index);
+
+    // Find reserved voices
+    Voice_group* vgroup = VOICE_GROUP_AUTO;
+
+    if (!Voice_group_reservations_get_clear_entry(
+                ch->voice_group_res, ch->num, &ch->fg_group_id) ||
+            (Voice_pool_get_group(ch->pool, ch->fg_group_id, vgroup) == NULL))
+    {
+        reset_channel_voices(ch);
+        return true;
+    }
+
+    int voice_index = 0;
 
     for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
     {
@@ -282,12 +326,24 @@ bool Event_channel_hit_process(
 
         const uint64_t voice_rand_seed = Random_get_uint64(&ch->rand);
 
-        const bool voice_allocated = reserve_voice(
-                ch, au, new_group_id, proc_state, i, voice_rand_seed, params->external);
-        if (!voice_allocated)
+        Voice_state_get_size_func* get_vstate_size =
+            proc_state->parent.device->dimpl->get_vstate_size;
+        if ((get_vstate_size != NULL) && (get_vstate_size() == 0))
             continue;
 
-        Voice* voice = ch->fg[i];
+        Voice* voice = Voice_group_get_voice(vgroup, voice_index);
+
+        const bool voice_allocated = init_voice(
+                ch, voice, au, ch->fg_group_id, proc_state, i, voice_rand_seed);
+        if (!voice_allocated)
+        {
+            // Some of our voices were reallocated
+            reset_channel_voices(ch);
+            return true;
+        }
+
+        ++voice_index;
+
         Voice_state* vs = voice->state;
         vs->hit_index = hit_index;
 
@@ -317,22 +373,26 @@ bool Event_channel_note_off_process(
     rassert(master_params != NULL);
     ignore(params);
 
-    for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
+    Voice_group* vgroup = Event_get_voice_group(ch);
+    if (vgroup != NULL)
     {
-        if (ch->fg[i] != NULL)
+        for (int i = 0; i < Voice_group_get_size(vgroup); ++i)
         {
-            ch->fg[i] = Voice_pool_get_voice(ch->pool, ch->fg[i], ch->fg_id[i]);
-            if (ch->fg[i] == NULL)
-            {
-                // The Voice has been given to another channel
+            Voice* voice = Voice_group_get_voice(vgroup, i);
+            voice->frame_offset = ch->frame_offset_temp;
+
+            if (voice->prio == VOICE_PRIO_INACTIVE)
                 continue;
-            }
-            ch->fg[i]->state->note_on = false;
-            ch->fg[i]->prio = VOICE_PRIO_BG;
-            ch->fg[i] = NULL;
+
+            rassert(voice->prio >= VOICE_PRIO_FG);
+            rassert(voice->group_id == ch->fg_group_id);
+
+            voice->state->note_on = false;
+            voice->prio = VOICE_PRIO_BG;
         }
     }
-    ch->fg_count = 0;
+
+    ch->fg_group_id = 0;
 
     return true;
 }

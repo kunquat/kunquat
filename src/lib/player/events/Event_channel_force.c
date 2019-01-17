@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2019
  *
  * This file is part of Kunquat.
  *
@@ -61,10 +61,14 @@ bool Event_channel_set_force_process(
     ch->force_controls.force = force;
     Slider_break(&ch->force_controls.slider);
 
-    for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
+    Voice_group* vgroup = Event_get_voice_group(ch);
+    if (vgroup == NULL)
+        return true;
+
+    for (int i = 0; i < Voice_group_get_size(vgroup); ++i)
     {
-        Event_check_voice(ch, i);
-        Voice_state* vs = ch->fg[i]->state;
+        Voice* voice = Voice_group_get_voice(vgroup, i);
+        Voice_state* vs = voice->state;
 
         Force_controls* fc = get_force_controls(vs);
         if (fc != NULL)
@@ -102,10 +106,14 @@ bool Event_channel_slide_force_process(
     else
         Slider_start(&ch->force_controls.slider, slide_target, start_force);
 
-    for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
+    Voice_group* vgroup = Event_get_voice_group(ch);
+    if (vgroup == NULL)
+        return true;
+
+    for (int i = 0; i < Voice_group_get_size(vgroup); ++i)
     {
-        Event_check_voice(ch, i);
-        Voice_state* vs = ch->fg[i]->state;
+        Voice* voice = Voice_group_get_voice(vgroup, i);
+        Voice_state* vs = voice->state;
 
         Force_controls* fc = get_force_controls(vs);
         if (fc != NULL)
@@ -138,10 +146,14 @@ bool Event_channel_slide_force_length_process(
 
     Slider_set_length(&ch->force_controls.slider, &ch->force_slide_length);
 
-    for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
+    Voice_group* vgroup = Event_get_voice_group(ch);
+    if (vgroup == NULL)
+        return true;
+
+    for (int i = 0; i < Voice_group_get_size(vgroup); ++i)
     {
-        Event_check_voice(ch, i);
-        Voice_state* vs = ch->fg[i]->state;
+        Voice* voice = Voice_group_get_voice(vgroup, i);
+        Voice_state* vs = voice->state;
 
         Force_controls* fc = get_force_controls(vs);
         if (fc != NULL)
@@ -174,10 +186,14 @@ bool Event_channel_tremolo_speed_process(
 
     LFO_turn_on(&ch->force_controls.tremolo);
 
-    for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
+    Voice_group* vgroup = Event_get_voice_group(ch);
+    if (vgroup == NULL)
+        return true;
+
+    for (int i = 0; i < Voice_group_get_size(vgroup); ++i)
     {
-        Event_check_voice(ch, i);
-        Voice_state* vs = ch->fg[i]->state;
+        Voice* voice = Voice_group_get_voice(vgroup, i);
+        Voice_state* vs = voice->state;
 
         Force_controls* fc = get_force_controls(vs);
         if (fc != NULL)
@@ -217,10 +233,14 @@ bool Event_channel_tremolo_depth_process(
     LFO_set_depth(&ch->force_controls.tremolo, actual_depth);
     LFO_turn_on(&ch->force_controls.tremolo);
 
-    for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
+    Voice_group* vgroup = Event_get_voice_group(ch);
+    if (vgroup == NULL)
+        return true;
+
+    for (int i = 0; i < Voice_group_get_size(vgroup); ++i)
     {
-        Event_check_voice(ch, i);
-        Voice_state* vs = ch->fg[i]->state;
+        Voice* voice = Voice_group_get_voice(vgroup, i);
+        Voice_state* vs = voice->state;
 
         Force_controls* fc = get_force_controls(vs);
         if (fc != NULL)
@@ -254,10 +274,14 @@ bool Event_channel_tremolo_speed_slide_process(
 
     LFO_set_speed_slide(&ch->force_controls.tremolo, &params->arg->value.Tstamp_type);
 
-    for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
+    Voice_group* vgroup = Event_get_voice_group(ch);
+    if (vgroup == NULL)
+        return true;
+
+    for (int i = 0; i < Voice_group_get_size(vgroup); ++i)
     {
-        Event_check_voice(ch, i);
-        Voice_state* vs = ch->fg[i]->state;
+        Voice* voice = Voice_group_get_voice(vgroup, i);
+        Voice_state* vs = voice->state;
 
         Force_controls* fc = get_force_controls(vs);
         if (fc != NULL)
@@ -285,10 +309,14 @@ bool Event_channel_tremolo_depth_slide_process(
 
     LFO_set_depth_slide(&ch->force_controls.tremolo, &params->arg->value.Tstamp_type);
 
-    for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
+    Voice_group* vgroup = Event_get_voice_group(ch);
+    if (vgroup == NULL)
+        return true;
+
+    for (int i = 0; i < Voice_group_get_size(vgroup); ++i)
     {
-        Event_check_voice(ch, i);
-        Voice_state* vs = ch->fg[i]->state;
+        Voice* voice = Voice_group_get_voice(vgroup, i);
+        Voice_state* vs = voice->state;
 
         Force_controls* fc = get_force_controls(vs);
         if (fc != NULL)

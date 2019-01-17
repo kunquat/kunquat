@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2019
  *
  * This file is part of Kunquat.
  *
@@ -21,6 +21,7 @@
 #include <init/Module.h>
 #include <player/Channel.h>
 #include <player/devices/Voice_state.h>
+#include <player/events/Event_common.h>
 #include <player/Voice_pool.h>
 #include <string/var_name.h>
 
@@ -48,20 +49,24 @@ Voice_state* get_target_stream_vstate(Channel* channel, const char* stream_name)
         return NULL;
 
     rassert(proc_index < KQT_PROCESSORS_MAX);
-    if (channel->fg[proc_index] == NULL)
+
+    Voice_group* vgroup = Event_get_voice_group(channel);
+    if (vgroup == NULL)
         return NULL;
 
-    // Check that we still own the Voice
-    channel->fg[proc_index] = Voice_pool_get_voice(
-            channel->pool, channel->fg[proc_index], channel->fg_id[proc_index]);
-    if (channel->fg[proc_index] == NULL)
-        return NULL;
+    for (int i = 0; i < Voice_group_get_size(vgroup); ++i)
+    {
+        Voice* voice = Voice_group_get_voice(vgroup, i);
+        rassert(voice->proc != NULL);
+        if (voice->proc->index != proc_index)
+            continue;
 
-    Voice_state* vstate = channel->fg[proc_index]->state;
-    if (vstate->proc_type != Proc_type_stream)
-        return NULL;
+        Voice_state* vstate = voice->state;
+        if (vstate->proc_type == Proc_type_stream)
+            return vstate;
+    }
 
-    return vstate;
+    return NULL;
 }
 
 

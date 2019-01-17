@@ -27,6 +27,7 @@
 #include <player/Event_handler.h>
 #include <player/Master_params.h>
 #include <player/Player.h>
+#include <player/Voice_group_reservations.h>
 #include <player/Voice_pool.h>
 #include <player/Work_buffer.h>
 #include <player/Work_buffers.h>
@@ -75,6 +76,7 @@ struct Player
     Env_state*     estate;
     Event_buffer*  event_buffer;
     Voice_pool*    voices;
+    Voice_group_reservations voice_group_res;
     Mixed_signal_plan* mixed_signal_plan;
     Master_params  master_params;
     Channel*       channels[KQT_CHANNELS_MAX];

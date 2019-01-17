@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2019
  *
  * This file is part of Kunquat.
  *
@@ -112,7 +112,7 @@ Column_iter* new_Column_iter(Column* col)
 }
 
 
-void Column_iter_init(Column_iter* iter)
+Column_iter* Column_iter_init(Column_iter* iter)
 {
     rassert(iter != NULL);
 
@@ -121,7 +121,7 @@ void Column_iter_init(Column_iter* iter)
     iter->tree_iter = *AAITER_AUTO;
     iter->trlist = NULL;
 
-    return;
+    return iter;
 }
 
 

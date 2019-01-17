@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2019
  *
  * This file is part of Kunquat.
  *
@@ -20,6 +20,7 @@
 #include <mathnum/Tstamp.h>
 #include <memory.h>
 #include <player/Channel_stream_state.h>
+#include <player/Voice_group.h>
 
 #include <math.h>
 #include <stdio.h>
@@ -50,6 +51,8 @@ static bool Channel_init(Channel* ch, int num, Env_state* estate, const Module* 
 
     ch->event_cache = NULL;
     ch->num = num;
+    ch->fg_group_temp = *VOICE_GROUP_AUTO;
+    ch->frame_offset_temp = 0;
     ch->mute = false;
 
     Channel_reset(ch);
@@ -64,6 +67,7 @@ Channel* new_Channel(
         Au_table* au_table,
         Env_state* estate,
         Voice_pool* voices,
+        Voice_group_reservations* voice_group_res,
         double tempo,
         int32_t audio_rate)
 {
@@ -72,6 +76,7 @@ Channel* new_Channel(
     rassert(au_table != NULL);
     rassert(estate != NULL);
     rassert(voices != NULL);
+    rassert(voice_group_res != NULL);
     rassert(isfinite(tempo));
     rassert(tempo > 0);
     rassert(audio_rate > 0);
@@ -88,6 +93,7 @@ Channel* new_Channel(
 
     ch->au_table = au_table;
     ch->pool = voices;
+    ch->voice_group_res = voice_group_res;
     ch->tempo = tempo;
     ch->audio_rate = audio_rate;
 
@@ -153,12 +159,9 @@ void Channel_reset(Channel* ch)
 
     General_state_reset(&ch->parent);
 
-    for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
-    {
-        ch->fg[i] = NULL;
-        ch->fg_id[i] = 0;
-    }
-    ch->fg_count = 0;
+    Channel_event_buffer_init(&ch->local_events);
+
+    ch->fg_group_id = 0;
 
     ch->use_test_output = false;
     ch->test_proc_index = -1;
@@ -240,30 +243,11 @@ Random* Channel_get_random_source(Channel* ch)
 }
 
 
-Voice* Channel_get_fg_voice(Channel* ch, int proc_index)
-{
-    rassert(ch != NULL);
-    rassert(proc_index >= 0);
-    rassert(proc_index < KQT_PROCESSORS_MAX);
-
-    return ch->fg[proc_index];
-}
-
-
 double Channel_get_fg_force(const Channel* ch)
 {
     rassert(ch != NULL);
 
-    bool has_fg_voice = false;
-    for (int i = 0; i < KQT_PROCESSORS_MAX; ++i)
-    {
-        if (ch->fg[i] != NULL)
-        {
-            has_fg_voice = true;
-            break;
-        }
-    }
-    if (!has_fg_voice)
+    if (ch->fg_group_id == 0)
         return NAN;
 
     return ch->force_controls.force;
