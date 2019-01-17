@@ -24,12 +24,33 @@
 #include <stdlib.h>
 
 
+/**
+ * Get the parameter type of a given Event type.
+ *
+ * \param event_type   The Event type -- must be valid.
+ *
+ * \return   The parameter type.
+ */
 Value_type Event_properties_get_param_type(Event_type event_type);
 
 
+/**
+ * Get the parameter validator for a given Event type.
+ *
+ * \param event_type   The Event type -- must be valid.
+ *
+ * \return   The parameter type, or \c NULL.
+ */
 Param_validator* Event_properties_get_param_validator(Event_type event_type);
 
 
+/**
+ * Get the name setter event associated with a given Event type.
+ *
+ * \param event_type   The Event type -- must be valid.
+ *
+ * \return   The name of the setter event, or an empty string if not applicable.
+ */
 const char* Event_properties_get_name_event(Event_type event_type);
 
 
