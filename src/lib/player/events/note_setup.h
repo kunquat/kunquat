@@ -24,6 +24,20 @@
 #include <stdlib.h>
 
 
+/**
+ * Reserve a Voice group for a given note.
+ *
+ * \param ch            The Channel -- must not be \c NULL.
+ * \param module        The Module -- must not be \c NULL.
+ * \param dstates       The Device states -- must not be \c NULL.
+ * \param event_type    The Event type -- must be either \c Event_channel_note_on
+ *                      or \c Event_channel_hit.
+ * \param arg           The event argument -- must not be \c NULL.
+ * \param is_external   \c true if the note or hit originates from an
+ *                      external event, otherwise \c false.
+ *
+ * \return   \c true if a Voice group was reserved, otherwise \c false.
+ */
 bool reserve_voices(
         Channel* ch,
         const Module* module,
@@ -34,7 +48,7 @@ bool reserve_voices(
 
 
 /**
- * Reserve a Voice for a processor in an Audio unit.
+ * Initialise a Voice for a processor in an Audio unit.
  *
  * \param ch            The Channel -- must not be \c NULL.
  * \param au            The Audio unit -- must not be \c NULL.
@@ -44,8 +58,6 @@ bool reserve_voices(
  *                      < \c KQT_PROCESSORS_MAX.
  * \param rand_seed     The random seed passed to the Voice (NOTE: should be
  *                      the same for every Voice with the same group!)
- * \param is_external   \c true if the note or hit originates from an
- *                      external event, otherwise \c false.
  *
  * \return   \c true if a Voice was allocated, otherwise \c false (this implies
  *           that the associated Processor uses stateless voice rendering).
