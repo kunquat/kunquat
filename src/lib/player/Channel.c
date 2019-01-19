@@ -45,9 +45,17 @@ static bool Channel_init(Channel* ch, int num, Env_state* estate, const Module* 
         return false;
     }
 
-    char context[] = "chXX";
-    snprintf(context, strlen(context) + 1, "ch%02x", num);
-    Random_init(&ch->rand, context);
+    {
+        char context[] = "chXX";
+        snprintf(context, strlen(context) + 1, "ch%02x", num);
+        Random_init(&ch->rand, context);
+    }
+
+    {
+        char context[] = "chexprXX";
+        snprintf(context, strlen(context) + 1, "chexpr%02x", num);
+        Random_init(&ch->expr_rand, context);
+    }
 
     ch->event_cache = NULL;
     ch->num = num;
@@ -136,6 +144,7 @@ void Channel_set_random_seed(Channel* ch, uint64_t seed)
     rassert(ch != NULL);
 
     Random_set_seed(&ch->rand, seed);
+    Random_set_seed(&ch->expr_rand, seed);
 
     return;
 }
@@ -199,6 +208,7 @@ void Channel_reset(Channel* ch)
     Channel_stream_state_reset(ch->csstate);
 
     Random_reset(&ch->rand);
+    Random_reset(&ch->expr_rand);
     if (ch->event_cache != NULL)
         Event_cache_reset(ch->event_cache);
 
