@@ -32,7 +32,8 @@
  * \param dstates       The Device states -- must not be \c NULL.
  * \param event_type    The Event type -- must be either \c Event_channel_note_on
  *                      or \c Event_channel_hit.
- * \param arg           The event argument -- must not be \c NULL.
+ * \param arg           The event argument -- must not be \c NULL and must have
+ *                      the type expected with \a event_type.
  * \param is_external   \c true if the note or hit originates from an
  *                      external event, otherwise \c false.
  *
