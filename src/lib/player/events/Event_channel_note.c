@@ -196,6 +196,10 @@ bool Event_channel_note_on_process(
     if (Audio_unit_get_type(au) != AU_TYPE_INSTRUMENT)
         return true;
 
+    // Generate our next note random seed here so that random generation
+    // is consistent even if we run out of voices
+    const uint64_t note_rand_seed = Random_get_uint64(&ch->rand);
+
     // Find reserved voices
     Voice_group* vgroup = VOICE_GROUP_AUTO;
 
@@ -220,12 +224,16 @@ bool Event_channel_note_on_process(
         const Proc_state* proc_state = (Proc_state*)Device_states_get_state(
                 dstates, Device_get_id((const Device*)proc));
 
-        const uint64_t voice_rand_seed = Random_get_uint64(&ch->rand);
-
         Voice_state_get_size_func* get_vstate_size =
             proc_state->parent.device->dimpl->get_vstate_size;
         if ((get_vstate_size != NULL) && (get_vstate_size() == 0))
             continue;
+
+        char context_str[16] = "";
+        snprintf(context_str, 16, "np%hd", (short)i);
+        Random* random = Random_init(RANDOM_AUTO, context_str);
+        Random_set_seed(random, note_rand_seed);
+        const uint64_t voice_rand_seed = Random_get_uint64(random);
 
         Voice* voice = Voice_group_get_voice(vgroup, voice_index);
 
@@ -296,6 +304,10 @@ bool Event_channel_hit_process(
 
     const Param_proc_filter* hpf = Audio_unit_get_hit_proc_filter(au, hit_index);
 
+    // Generate our next note random seed here so that random generation
+    // is consistent even if we run out of voices
+    const uint64_t note_rand_seed = Random_get_uint64(&ch->rand);
+
     // Find reserved voices
     Voice_group* vgroup = VOICE_GROUP_AUTO;
 
@@ -324,12 +336,16 @@ bool Event_channel_hit_process(
         const Proc_state* proc_state = (Proc_state*)Device_states_get_state(
                 dstates, Device_get_id((const Device*)proc));
 
-        const uint64_t voice_rand_seed = Random_get_uint64(&ch->rand);
-
         Voice_state_get_size_func* get_vstate_size =
             proc_state->parent.device->dimpl->get_vstate_size;
         if ((get_vstate_size != NULL) && (get_vstate_size() == 0))
             continue;
+
+        char context_str[16] = "";
+        snprintf(context_str, 16, "np%hd", (short)i);
+        Random* random = Random_init(RANDOM_AUTO, context_str);
+        Random_set_seed(random, note_rand_seed);
+        const uint64_t voice_rand_seed = Random_get_uint64(random);
 
         Voice* voice = Voice_group_get_voice(vgroup, voice_index);
 

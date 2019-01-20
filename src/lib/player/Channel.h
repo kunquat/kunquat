@@ -48,6 +48,7 @@ struct Channel
     General_state parent;
     int num;                       ///< Channel number.
     Random rand;                   ///< Random source for this channel.
+    Random expr_rand;              ///< Random source for trigger expressions.
     Event_cache* event_cache;
     Channel_stream_state* csstate;
     Channel_event_buffer local_events;

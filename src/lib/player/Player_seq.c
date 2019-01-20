@@ -435,7 +435,7 @@ static void Player_process_expr_event(
                 sr,
                 Event_names_get_param_type(event_names, event_name),
                 player->estate,
-                &player->channels[ch_num]->rand,
+                &player->channels[ch_num]->expr_rand,
                 meta,
                 arg);
     }

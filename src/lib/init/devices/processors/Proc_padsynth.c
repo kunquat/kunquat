@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2019
  *
  * This file is part of Kunquat.
  *
@@ -454,7 +454,7 @@ static void make_padsynth_sample(Error* error, void* user_data)
     rassert(cb_data->freq_phase != NULL);
 
     char context_str[16] = "";
-    snprintf(context_str, 16, "PADsynth%hd", (unsigned short)cb_data->context_index);
+    snprintf(context_str, 16, "PADsynth%hd", (short)cb_data->context_index);
     Random* random = Random_init(RANDOM_AUTO, context_str);
 
     double* freq_amp = cb_data->freq_amp;

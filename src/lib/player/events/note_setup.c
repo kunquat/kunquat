@@ -73,6 +73,8 @@ bool reserve_voices(
 
     if (event_type == Event_channel_note_on)
     {
+        rassert(arg->type == VALUE_TYPE_FLOAT);
+
         Audio_unit* au = Module_get_au_from_input(module, ch->au_input);
         if ((au != NULL) && (Audio_unit_get_type(au) == AU_TYPE_INSTRUMENT))
         {
@@ -101,6 +103,8 @@ bool reserve_voices(
     }
     else if (event_type == Event_channel_hit)
     {
+        rassert(arg->type == VALUE_TYPE_INT);
+
         Audio_unit* au = Module_get_au_from_input(module, ch->au_input);
         if ((au != NULL) && (Audio_unit_get_type(au) == AU_TYPE_INSTRUMENT))
         {

@@ -92,7 +92,7 @@ static void apply_range(
     rassert(frame_count > 0);
     rassert(isfinite(mul));
     rassert(isfinite(add));
-    rassert(min_val < max_val);
+    rassert(min_val <= max_val);
 
     const float* in = Work_buffer_get_contents(in_wb, 0);
     float* out = Work_buffer_get_contents_mut(out_wb, 0);
