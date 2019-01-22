@@ -32,10 +32,10 @@ class FileDialog(QDialog):
 
         self._ui_model = ui_model
         self._mode = mode
-
-        self._current_dir = start_dir
-
+        self._current_dir = None
         self._final_paths = None
+
+        self._dir_history = [os.path.abspath(os.path.expanduser('~'))]
 
         self.setWindowTitle(title)
 
@@ -49,9 +49,9 @@ class FileDialog(QDialog):
         }
         select_text = select_texts[self._mode]
 
-        self._dir_branch = DirectoryBranch(self._ui_model, self._current_dir)
-        self._dir_view = DirectoryView(self._ui_model, self._current_dir)
-        self._file_name = FileName(self._current_dir)
+        self._dir_branch = DirectoryBranch(self._ui_model)
+        self._dir_view = DirectoryView(self._ui_model)
+        self._file_name = FileName()
         self._cancel_button = QPushButton('Cancel')
         self._select_button = QPushButton(select_text)
         self._select_button.setEnabled(False)
@@ -86,6 +86,8 @@ class FileDialog(QDialog):
 
         self._cancel_button.clicked.connect(self.close)
         self._select_button.clicked.connect(self._on_select)
+
+        self._set_current_dir(start_dir)
 
     def get_paths(self):
         self.exec_()
@@ -156,10 +158,39 @@ class FileDialog(QDialog):
             new_dir = os.path.join(self._current_dir, name)
 
         if os.path.exists(new_dir):
-            self._current_dir = new_dir
+            self._set_current_dir(new_dir)
+
+    def _set_current_dir(self, new_dir):
+        if self._current_dir == new_dir:
+            return
+
+        self._current_dir = new_dir
+        try:
             self._dir_branch.set_current_dir(self._current_dir)
             self._dir_view.set_current_dir(self._current_dir)
             self._file_name.set_current_dir(self._current_dir)
+        except OSError as e:
+            # Display access error dialog
+            base, dir_name = os.path.split(new_dir)
+            if not dir_name:
+                _, dir_name = os.path.split(base)
+            message = 'Could not access directory "{}":\n{}'.format(
+                    dir_name, e.strerror)
+            err_dialog = ErrorDialog(
+                    self._ui_model,
+                    'Could not access directory',
+                    message)
+            err_dialog.exec_()
+
+            # Return to previous directory
+            if self._dir_history:
+                prev_dir = self._dir_history.pop()
+            else:
+                prev_dir = os.path.abspath(os.sep)
+            self._set_current_dir(prev_dir)
+            return
+
+        self._dir_history.append(new_dir)
 
     def sizeHint(self):
         return get_abs_window_size(0.5, 0.5)
@@ -167,13 +198,13 @@ class FileDialog(QDialog):
 
 class DirectoryBranch(QWidget):
 
-    def __init__(self, ui_model, start_dir):
+    def __init__(self, ui_model):
         super().__init__()
 
         self._ui_model = ui_model
-        self._current_dir = start_dir
+        self._current_dir = None
 
-        self._path = QLabel(start_dir)
+        self._path = QLabel()
 
         style_mgr = self._ui_model.get_style_manager()
 
@@ -358,11 +389,11 @@ class DirectoryView(QTreeView):
     selectedEntriesChanged = Signal(name='selectedEntriesChanged')
     commitEntries = Signal(name='commitEntries')
 
-    def __init__(self, ui_model, start_dir):
+    def __init__(self, ui_model):
         super().__init__()
 
         self._ui_model = ui_model
-        self._current_dir = start_dir
+        self._current_dir = None
         self._model = DirectoryModel()
 
         self._entries = []
@@ -382,15 +413,13 @@ class DirectoryView(QTreeView):
         self.selectionModel().selectionChanged.connect(self._on_selection_changed)
         self.doubleClicked.connect(self._on_double_clicked)
 
+    def set_current_dir(self, new_dir):
+        self._current_dir = new_dir
         self._model.set_directory(self._current_dir)
 
     def get_entries(self):
         assert self._is_selection_valid(self._entries)
         return self._entries
-
-    def set_current_dir(self, new_dir):
-        self._current_dir = new_dir
-        self._model.set_directory(self._current_dir)
 
     def _get_selected_entries(self, selection):
         all_entries = self._model.get_entries()
@@ -474,14 +503,11 @@ class FileNameValidator(QValidator):
 
 class FileName(QLineEdit):
 
-    fileNameChanged = Signal(name='filaNameChanged')
+    fileNameChanged = Signal(name='fileNameChanged')
 
-    def __init__(self, start_dir):
+    def __init__(self):
         super().__init__()
         self._current_dir = None
-
-        self.set_current_dir(start_dir)
-
         self.textEdited.connect(self._on_name_changed)
 
     def set_current_dir(self, new_dir):
@@ -500,5 +526,52 @@ class FileName(QLineEdit):
 
     def _on_name_changed(self, new_text):
         self.fileNameChanged.emit()
+
+
+class ErrorDialog(QDialog):
+
+    def __init__(self, ui_model, title, message):
+        super().__init__()
+        style_mgr = ui_model.get_style_manager()
+        icon_bank = ui_model.get_icon_bank()
+
+        self.setWindowTitle(title)
+
+        error_img_orig = QPixmap(icon_bank.get_icon_path('error'))
+        error_img = error_img_orig.scaledToWidth(
+                style_mgr.get_scaled_size_param('dialog_icon_size'),
+                Qt.SmoothTransformation)
+        error_label = QLabel()
+        error_label.setPixmap(error_img)
+
+        self._message = QLabel()
+        self._message.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Preferred)
+
+        h = QHBoxLayout()
+        margin = style_mgr.get_scaled_size_param('large_padding')
+        h.setContentsMargins(margin, margin, margin, margin)
+        h.setSpacing(margin * 2)
+        h.addWidget(error_label)
+        h.addWidget(self._message)
+
+        self._button_layout = QHBoxLayout()
+
+        v = QVBoxLayout()
+        v.addLayout(h)
+        v.addLayout(self._button_layout)
+
+        self.setLayout(v)
+
+        # Dialog contents, TODO: make a common ErrorDialog class
+        msg_lines = message.split('\n')
+        format_msg = '<p>{}</p>'.format('<br>'.join(msg_lines))
+        self._message.setText(format_msg)
+
+        ok_button = QPushButton('OK')
+        self._button_layout.addStretch(1)
+        self._button_layout.addWidget(ok_button)
+        self._button_layout.addStretch(1)
+
+        ok_button.clicked.connect(self.close)
 
 
