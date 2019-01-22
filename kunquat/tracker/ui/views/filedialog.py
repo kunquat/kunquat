@@ -309,9 +309,14 @@ class DirectoryModel(QAbstractTableModel):
 
         self._entries = []
 
-        with os.scandir(self._current_dir) as es:
-            for e in es:
-                self._entries.append(DirEntry(e))
+        self.beginResetModel()
+        try:
+            with os.scandir(self._current_dir) as es:
+                for e in es:
+                    self._entries.append(DirEntry(e))
+        except Exception as e:
+            self.endResetModel()
+            raise e
 
         self._entries.sort(key=lambda e: e.get_sort_key())
 
@@ -321,15 +326,14 @@ class DirectoryModel(QAbstractTableModel):
             parent_entry = DirEntry(('..', 'Directory', pstat))
             self._entries = [parent_entry] + self._entries
 
-        self._update_data()
-
-    def get_entries(self):
-        return self._entries
-
-    def _update_data(self):
         self.dataChanged.emit(
                 self.index(0, 0),
                 self.index(len(self._entries) - 1, DirEntry.get_header_count() - 1))
+
+        self.endResetModel()
+
+    def get_entries(self):
+        return self._entries
 
     def _to_size_desc(self, byte_count):
         if byte_count == 1:
@@ -403,6 +407,9 @@ class DirectoryView(QTreeView):
 
         self.setModel(self._model)
 
+        self.setUniformRowHeights(True)
+        self.setRootIsDecorated(False)
+
         header = self.header()
         header.setStretchLastSection(True)
         header.resizeSection(0, style_mgr.get_scaled_size(40))
@@ -414,8 +421,23 @@ class DirectoryView(QTreeView):
         self.doubleClicked.connect(self._on_double_clicked)
 
     def set_current_dir(self, new_dir):
+        if self._current_dir == new_dir:
+            return
+
         self._current_dir = new_dir
         self._model.set_directory(self._current_dir)
+
+        sm = self.selectionModel()
+        new_entries = self._model.get_entries()
+        if new_entries:
+            left_index = self._model.createIndex(0, 0)
+            right_index = self._model.createIndex(0, DirEntry.get_header_count() - 1)
+            new_selection = QItemSelection(left_index, right_index)
+            sm.select(new_selection, QItemSelectionModel.ClearAndSelect)
+            sm.setCurrentIndex(left_index, QItemSelectionModel.Select)
+        else:
+            sm.select(QItemSelection(), QItemSelectionModel.ClearAndSelect)
+            sm.setCurrentIndex(QModelIndex(), QItemSelectionModel.Select)
 
     def get_entries(self):
         assert self._is_selection_valid(self._entries)
