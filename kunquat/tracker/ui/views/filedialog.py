@@ -280,7 +280,7 @@ class DirEntry():
         return dt.isoformat(sep=' ', timespec='seconds')
 
     def get_sort_key(self):
-        return (0 if self.is_dir() else 1, self.name)
+        return (0 if self.is_dir() else 1, self.name.lower())
 
     def get_field_by_index(self, index):
         if index == 0:
