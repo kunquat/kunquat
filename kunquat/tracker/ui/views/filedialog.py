@@ -14,6 +14,7 @@
 import datetime
 import os
 import os.path
+import time
 
 from kunquat.tracker.ui.qt import *
 
@@ -22,12 +23,23 @@ from .utils import get_abs_window_size
 
 class FileDialog(QDialog):
 
+    FILTER_KQT      = 0x1
+    FILTER_KQTI     = 0x2
+    FILTER_KQTE     = 0x4
+    FILTER_ALL_KQT  = FILTER_KQT | FILTER_KQTI | FILTER_KQTE
+    FILTER_WAV      = 0x100
+    FILTER_AIFF     = 0x200
+    FILTER_AU       = 0x400
+    FILTER_WAVPACK  = 0x800
+    FILTER_FLAC     = 0x1000
+    FILTER_ALL_PCM  = FILTER_WAV | FILTER_AIFF | FILTER_AU | FILTER_WAVPACK | FILTER_FLAC
+
     MODE_OPEN = 'open'
     MODE_OPEN_MULT = 'open_mult'
     MODE_SAVE = 'save'
     MODE_CHOOSE_DIR = 'choose_dir'
 
-    def __init__(self, ui_model, mode, title, start_dir):
+    def __init__(self, ui_model, mode, title, start_dir, filters=0):
         super().__init__()
 
         self._ui_model = ui_model
@@ -50,7 +62,7 @@ class FileDialog(QDialog):
         select_text = select_texts[self._mode]
 
         self._dir_branch = DirectoryBranch(self._ui_model)
-        self._dir_view = DirectoryView(self._ui_model)
+        self._dir_view = DirectoryView(self._ui_model, filters)
         self._file_name = FileName()
         self._cancel_button = QPushButton('Cancel')
         self._select_button = QPushButton(select_text)
@@ -299,12 +311,16 @@ class DirectoryModel(QAbstractTableModel):
 
     _HEADERS = [DirEntry.get_header_by_index(i) for i in range(4)]
 
-    def __init__(self):
+    def __init__(self, filter_mask):
         super().__init__()
         self._current_dir = None
         self._entries = []
+        self._entry_filters = EntryFilters(filter_mask)
+        self._entry_checker = None
 
     def set_directory(self, new_dir):
+        self._entry_checker = None
+
         self._current_dir = new_dir
 
         self._entries = []
@@ -332,8 +348,55 @@ class DirectoryModel(QAbstractTableModel):
 
         self.endResetModel()
 
+        self._entry_checker = self._check_entries()
+
+    def has_unchecked_entries(self):
+        return (self._entry_checker != None)
+
+    def step_check_entries(self):
+        if not self._entry_checker:
+            return
+
+        try:
+            next(self._entry_checker)
+        except StopIteration:
+            self._entry_checker = None
+
     def get_entries(self):
         return self._entries
+
+    def _check_entries(self):
+        current_dir = self._current_dir
+        entries = list(self._entries)
+
+        run_start_time = time.time()
+        run_count = 1
+
+        row = 0
+        for entry in entries:
+            if entry.is_dir():
+                row += 1
+                continue
+
+            # Apply filtering
+            path = os.path.join(current_dir, entry.name)
+            if self._entry_filters.filter_entry(path, entry):
+                self.dataChanged.emit(
+                        self.index(row, 0),
+                        self.index(row, DirEntry.get_header_count() - 1))
+                row += 1
+            else:
+                self.beginRemoveRows(QModelIndex(), row, row)
+                assert self._entries[row] == entry
+                self._entries[row:row + 1] = []
+                self.endRemoveRows()
+
+            # Yield if needed to keep the dialog responsive
+            cur_time = time.time()
+            if (cur_time - run_start_time) > 0.02:
+                yield
+                run_count += 1
+                run_start_time = time.time()
 
     def _to_size_desc(self, byte_count):
         if byte_count == 1:
@@ -392,13 +455,14 @@ class DirectoryView(QTreeView):
 
     selectedEntriesChanged = Signal(name='selectedEntriesChanged')
     commitEntries = Signal(name='commitEntries')
+    stepCheckEntries = Signal(name='stepCheckEntries')
 
-    def __init__(self, ui_model):
+    def __init__(self, ui_model, filter_mask):
         super().__init__()
 
         self._ui_model = ui_model
         self._current_dir = None
-        self._model = DirectoryModel()
+        self._model = DirectoryModel(filter_mask)
 
         self._entries = []
         self._prev_selection = QItemSelection()
@@ -420,6 +484,8 @@ class DirectoryView(QTreeView):
         self.selectionModel().selectionChanged.connect(self._on_selection_changed)
         self.doubleClicked.connect(self._on_double_clicked)
 
+        self.stepCheckEntries.connect(self._step_check_entries, Qt.QueuedConnection)
+
     def set_current_dir(self, new_dir):
         if self._current_dir == new_dir:
             return
@@ -439,9 +505,17 @@ class DirectoryView(QTreeView):
             sm.select(QItemSelection(), QItemSelectionModel.ClearAndSelect)
             sm.setCurrentIndex(QModelIndex(), QItemSelectionModel.Select)
 
+        if self._model.has_unchecked_entries():
+            self.stepCheckEntries.emit()
+
     def get_entries(self):
         assert self._is_selection_valid(self._entries)
         return self._entries
+
+    def _step_check_entries(self):
+        self._model.step_check_entries()
+        if self._model.has_unchecked_entries():
+            self.stepCheckEntries.emit()
 
     def _get_selected_entries(self, selection):
         all_entries = self._model.get_entries()
@@ -595,5 +669,51 @@ class ErrorDialog(QDialog):
         self._button_layout.addStretch(1)
 
         ok_button.clicked.connect(self.close)
+
+
+def filter_kqt_entry(path, dir_entry):
+    if not path.endswith('.kqt'):
+        return False
+    dir_entry.type = 'Kunquat module'
+    return True
+
+
+def filter_kqti_entry(path, dir_entry):
+    if not path.endswith('.kqti'):
+        return False
+    dir_entry.type = 'Kunquat instrument'
+    return True
+
+
+def filter_kqte_entry(path, dir_entry):
+    if not path.endswith('.kqte'):
+        return False
+    dir_entry.type = 'Kunquat effect'
+    return True
+
+
+class EntryFilters():
+
+    _FUNCS = {
+        FileDialog.FILTER_KQT   : filter_kqt_entry,
+        FileDialog.FILTER_KQTI  : filter_kqti_entry,
+        FileDialog.FILTER_KQTE  : filter_kqte_entry,
+    }
+
+    def __init__(self, filter_mask):
+        self._used_filters = []
+        mask_left = filter_mask
+        filter_bit = 1
+        while mask_left:
+            if (mask_left & 1) != 0:
+                self._used_filters.append(EntryFilters._FUNCS[filter_bit])
+            filter_bit <<= 1
+            mask_left >>= 1
+
+    def filter_entry(self, path, entry):
+        for f in self._used_filters:
+            if f(path, entry):
+                return True
+        return False
 
 
