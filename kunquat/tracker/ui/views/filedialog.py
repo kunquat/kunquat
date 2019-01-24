@@ -12,9 +12,11 @@
 #
 
 import datetime
+import json
 import os
 import os.path
 import time
+import zipfile
 
 from kunquat.tracker.ui.qt import *
 
@@ -393,7 +395,7 @@ class DirectoryModel(QAbstractTableModel):
 
             # Yield if needed to keep the dialog responsive
             cur_time = time.time()
-            if (cur_time - run_start_time) > 0.02:
+            if (cur_time - run_start_time) > 0.03:
                 yield
                 run_count += 1
                 run_start_time = time.time()
@@ -671,23 +673,102 @@ class ErrorDialog(QDialog):
         ok_button.clicked.connect(self.close)
 
 
-def filter_kqt_entry(path, dir_entry):
-    if not path.endswith('.kqt'):
+def is_valid_kqt_key(key, magic_id):
+    key_components = key.split('/')
+    if key_components[0] != magic_id:
         return False
+    if not key_components[1:]:
+        return False
+    if not key_components[-1]:
+        return True # ignore directories
+    return ('.' in key_components[-1])
+
+
+def filter_kqt_entry(path, dir_entry):
+    magic_id = 'kqtc00'
+
+    try:
+        with zipfile.ZipFile(path, mode='r') as zfile:
+            found_magic_id = False
+            for entry in zfile.infolist():
+                if not is_valid_kqt_key(entry.filename, magic_id):
+                    return False
+                found_magic_id = True
+            if not found_magic_id:
+                return False
+    except zipfile.BadZipFile:
+        return False
+
     dir_entry.type = 'Kunquat module'
     return True
 
 
+def get_au_type(manifest_data):
+    try:
+        decoded = json.loads(str(manifest_data, encoding='utf-8'))
+        version, manifest_dict = decoded
+        if version != 0:
+            return False
+        au_type = manifest_dict['type']
+    except (KeyError, ValueError):
+        return None
+    return au_type
+
+
 def filter_kqti_entry(path, dir_entry):
-    if not path.endswith('.kqti'):
+    magic_id = 'kqti00'
+
+    try:
+        with zipfile.ZipFile(path, mode='r') as zfile:
+            found_magic_id = False
+            found_manifest = False
+            for entry in zfile.infolist():
+                if not is_valid_kqt_key(entry.filename, magic_id):
+                    return False
+                found_magic_id = True
+
+                key_components = entry.filename.split('/')
+                if len(key_components) == 2 and key_components[-1] == 'p_manifest.json':
+                    data = zfile.read(entry)
+                    if get_au_type(data) == 'instrument':
+                        found_manifest = True
+                    else:
+                        return False
+
+            if (not found_magic_id) or (not found_manifest):
+                return False
+    except zipfile.BadZipFile:
         return False
+
     dir_entry.type = 'Kunquat instrument'
     return True
 
 
 def filter_kqte_entry(path, dir_entry):
-    if not path.endswith('.kqte'):
+    magic_id = 'kqti00'
+
+    try:
+        with zipfile.ZipFile(path, mode='r') as zfile:
+            found_magic_id = False
+            found_manifest = False
+            for entry in zfile.infolist():
+                if not is_valid_kqt_key(entry.filename, magic_id):
+                    return False
+                found_magic_id = True
+
+                key_components = entry.filename.split('/')
+                if len(key_components) == 2 and key_components[-1] == 'p_manifest.json':
+                    data = zfile.read(entry)
+                    if get_au_type(data) == 'effect':
+                        found_manifest = True
+                    else:
+                        return False
+
+            if (not found_magic_id) or (not found_manifest):
+                return False
+    except zipfile.BadZipFile:
         return False
+
     dir_entry.type = 'Kunquat effect'
     return True
 
