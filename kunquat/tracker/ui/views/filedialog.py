@@ -923,8 +923,11 @@ class EntryFilters():
 
     def filter_entry(self, path, entry):
         for f in self._used_filters:
-            if f(path, entry):
-                return True
+            try:
+                if f(path, entry):
+                    return True
+            except OSError:
+                entry.type = 'Inaccessible'
         return False
 
 
