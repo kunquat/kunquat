@@ -12,6 +12,7 @@
 #
 
 import datetime
+import errno
 import json
 import os
 import os.path
@@ -36,6 +37,7 @@ class FileDialog(QDialog):
     FILTER_WAVPACK  = 0x800
     FILTER_FLAC     = 0x1000
     FILTER_ALL_PCM  = FILTER_WAV | FILTER_AIFF | FILTER_AU | FILTER_WAVPACK | FILTER_FLAC
+    FILTER_ANY      = 0x100000
 
     MODE_OPEN = 'open'
     MODE_OPEN_MULT = 'open_mult'
@@ -49,6 +51,9 @@ class FileDialog(QDialog):
         self._mode = mode
         self._current_dir = None
         self._final_paths = None
+
+        if self._mode == FileDialog.MODE_SAVE:
+            filters |= FileDialog.FILTER_ANY
 
         self._dir_history = [os.path.abspath(os.path.expanduser('~'))]
 
@@ -99,6 +104,10 @@ class FileDialog(QDialog):
         self._dir_view.selectedEntriesChanged.connect(self._update_entries)
         self._dir_view.commitEntries.connect(self._commit_entries)
 
+        if self._mode == FileDialog.MODE_SAVE:
+            self._file_name.fileNameChanged.connect(self._on_file_name_changed)
+            self._file_name.selectFileName.connect(self._on_select)
+
         self._cancel_button.clicked.connect(self.close)
         self._select_button.clicked.connect(self._on_select)
 
@@ -108,7 +117,22 @@ class FileDialog(QDialog):
         self.exec_()
         return self._final_paths
 
+    def get_path(self):
+        assert self._mode != FileDialog.MODE_OPEN_MULT
+        paths = self.get_paths()
+        if paths:
+            assert len(paths) == 1
+            return paths[0]
+        return None
+
     def _update_entries(self):
+        if self._mode == FileDialog.MODE_SAVE:
+            entries = self._dir_view.get_entries()
+            if entries:
+                assert len(entries) == 1
+                entry = entries[0]
+                self._file_name.set_file_name(entry.name if not entry.is_dir() else '')
+
         self._update_select_enabled()
 
     def _update_select_enabled(self):
@@ -124,9 +148,12 @@ class FileDialog(QDialog):
             if paths:
                 enabled = all(not e.is_dir() for e in entries)
         elif self._mode == FileDialog.MODE_SAVE:
-            assert len(entries) == 1
-            entry = entries[0]
-            raise NotImplementedError
+            file_name = self._file_name.get_file_name()
+            path = os.path.join(self._current_dir, file_name)
+            if os.path.exists(path) and os.path.isdir(path):
+                enabled = False
+            else:
+                enabled = bool(file_name)
         elif self._mode == FileDialog.MODE_CHOOSE_DIR:
             assert len(entries) == 1
             entry = entries[0]
@@ -145,16 +172,7 @@ class FileDialog(QDialog):
             self._update_current_dir(entry.name)
             return
 
-        paths = [os.path.join(self._current_dir, e.name) for e in entries]
-
-        if self._mode in (FileDialog.MODE_OPEN, FileDialog.MODE_OPEN_MULT):
-            self._return_paths(paths)
-        elif self._mode == FileDialog.MODE_SAVE:
-            self._return_paths(paths)
-        elif self._mode == FileDialog.MODE_CHOOSE_DIR:
-            assert False # We cannot select a directory through directory view
-        else:
-            assert False
+        self._on_select()
 
     def _on_select(self):
         if self._mode in (FileDialog.MODE_OPEN, FileDialog.MODE_OPEN_MULT):
@@ -172,6 +190,8 @@ class FileDialog(QDialog):
                 confirm = lambda: paths.append(path)
                 dialog = OverwriteConfirmDialog(self._ui_model, path, confirm)
                 dialog.exec_()
+            else:
+                paths = [path]
 
             if not paths:
                 return
@@ -190,6 +210,13 @@ class FileDialog(QDialog):
 
         self._final_paths = paths
         self.close()
+
+    def _on_file_name_changed(self):
+        assert self._mode == FileDialog.MODE_SAVE
+        file_name = self._file_name.get_file_name()
+        self._dir_view.select_file_name(file_name)
+
+        self._update_select_enabled()
 
     def _update_current_dir(self, name):
         if name == '..':
@@ -386,7 +413,10 @@ class DirectoryModel(QAbstractTableModel):
         try:
             with os.scandir(self._current_dir) as es:
                 for e in es:
-                    self._entries.append(DirEntry(e))
+                    entry = DirEntry(e)
+                    # TODO: allow user to view files starting with '.'
+                    if not entry.name.startswith('.'):
+                        self._entries.append(entry)
         except Exception as e:
             self.endResetModel()
             raise e
@@ -553,14 +583,9 @@ class DirectoryView(QTreeView):
         sm = self.selectionModel()
         new_entries = self._model.get_entries()
         if new_entries:
-            left_index = self._model.createIndex(0, 0)
-            right_index = self._model.createIndex(0, DirEntry.get_header_count() - 1)
-            new_selection = QItemSelection(left_index, right_index)
-            sm.select(new_selection, QItemSelectionModel.ClearAndSelect)
-            sm.setCurrentIndex(left_index, QItemSelectionModel.Select)
+            self._select_row(0)
         else:
-            sm.select(QItemSelection(), QItemSelectionModel.ClearAndSelect)
-            sm.setCurrentIndex(QModelIndex(), QItemSelectionModel.Select)
+            self._clear_selection()
 
         if self._model.has_unchecked_entries():
             self.stepCheckEntries.emit()
@@ -568,6 +593,32 @@ class DirectoryView(QTreeView):
     def get_entries(self):
         assert self._is_selection_valid(self._entries)
         return self._entries
+
+    def _select_row(self, row):
+        sm = self.selectionModel()
+        left_index = self._model.createIndex(row, 0)
+        right_index = self._model.createIndex(row, DirEntry.get_header_count() - 1)
+        new_selection = QItemSelection(left_index, right_index)
+        sm.select(new_selection, QItemSelectionModel.ClearAndSelect)
+        old_block = sm.blockSignals(True)
+        sm.setCurrentIndex(left_index, QItemSelectionModel.Select)
+        sm.blockSignals(old_block)
+
+    def _clear_selection(self):
+        sm = self.selectionModel()
+        sm.select(QItemSelection(), QItemSelectionModel.ClearAndSelect)
+        old_block = sm.blockSignals(True)
+        sm.setCurrentIndex(QModelIndex(), QItemSelectionModel.Select)
+        sm.blockSignals(old_block)
+
+    def select_file_name(self, file_name):
+        entries = self._model.get_entries()
+        for row, entry in enumerate(entries):
+            if entry.name == file_name:
+                self._select_row(row)
+                break
+        else:
+            self._clear_selection()
 
     def _step_check_entries(self):
         self._model.step_check_entries()
@@ -596,9 +647,11 @@ class DirectoryView(QTreeView):
             self._prev_selection = QItemSelection()
             prev_entries = self._get_selected_entries(prev_selection)
             if self._is_selection_valid(prev_entries):
-                self.selectionModel().select(prev_selection)
+                self.selectionModel().select(
+                        prev_selection, QItemSelectionModel.ClearAndSelect)
             else:
-                self.selectionModel().select(QItemSelection())
+                self.selectionModel().select(
+                        QItemSelection(), QItemSelectionModel.ClearAndSelect)
 
     def _on_double_clicked(self, index):
         self.commitEntries.emit()
@@ -619,44 +672,45 @@ class FileNameValidator(QValidator):
         super().__init__()
         self._current_dir = current_dir
 
-    def _is_file_name_valid(self, file_name):
+    def _get_file_name_validity(self, file_name):
         if file_name in ('', '.', '..'):
-            return False
+            return QValidator.Intermediate
+        if os.sep in file_name:
+            return QValidator.Invalid
 
         path = os.path.join(self._current_dir, file_name)
 
         # See if the full path is valid
         try:
             os.stat(path)
+        except FileNotFoundError:
+            pass
         except OSError as e:
             if hasattr(e, 'winerror'):
                 invalid_name = 123
                 if e.winerror == invalid_name:
-                    return False
+                    return QValidator.Intermediate
             elif e.errno in (errno.ENAMETOOLONG, errno.ERANGE):
-                return False
-        except ValueError:
-            return False
+                return QValidator.Invalid
+        except (TypeError, ValueError):
+            return QValidator.Invalid
 
-        containing_dir, _ = os.path.split(path)
-        if not os.path.samefile(containing_dir, path):
-            # File name contains a directory component
-            return False
+        return QValidator.Acceptable
 
-        return True
+    def is_file_name_valid(self, file_name):
+        return (self._get_file_name_validity(file_name) == QValidator.Acceptable)
 
     def validate(self, in_text, pos):
         if not in_text:
             return (QValidator.Intermediate, in_text, pos)
-        if not self._is_file_name_valid(in_text):
-            return (QValidator.Invalid, in_text, pos)
 
-        return (QValidator.Acceptable, in_text, pos)
+        return (self._get_file_name_validity(in_text), in_text, pos)
 
 
 class FileName(QLineEdit):
 
     fileNameChanged = Signal(name='fileNameChanged')
+    selectFileName = Signal(name='selectFileName')
 
     def __init__(self):
         super().__init__()
@@ -674,11 +728,27 @@ class FileName(QLineEdit):
         self.setText('')
         self.blockSignals(old_block)
 
+    def set_file_name(self, new_name):
+        old_block = self.blockSignals(True)
+        self.setText(new_name)
+        self.blockSignals(old_block)
+
     def get_file_name(self):
-        return self.text()
+        text = self.text()
+        if (not self.validator()) or (not self.validator().is_file_name_valid(text)):
+            return ''
+        return text
 
     def _on_name_changed(self, new_text):
         self.fileNameChanged.emit()
+
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key_Return:
+            self.selectFileName.emit()
+            return
+
+        event.ignore()
+        super().keyPressEvent(event)
 
 
 class ErrorDialog(QDialog):
@@ -828,12 +898,17 @@ def filter_kqte_entry(path, dir_entry):
     return True
 
 
+def filter_any_entry(path, dir_entry):
+    return True
+
+
 class EntryFilters():
 
     _FUNCS = {
         FileDialog.FILTER_KQT   : filter_kqt_entry,
         FileDialog.FILTER_KQTI  : filter_kqti_entry,
         FileDialog.FILTER_KQTE  : filter_kqte_entry,
+        FileDialog.FILTER_ANY   : filter_any_entry,
     }
 
     def __init__(self, filter_mask):
