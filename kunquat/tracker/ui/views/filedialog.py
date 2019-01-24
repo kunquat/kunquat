@@ -20,6 +20,7 @@ import zipfile
 
 from kunquat.tracker.ui.qt import *
 
+from .confirmdialog import ConfirmDialog
 from .utils import get_abs_window_size
 
 
@@ -144,25 +145,50 @@ class FileDialog(QDialog):
             self._update_current_dir(entry.name)
             return
 
+        paths = [os.path.join(self._current_dir, e.name) for e in entries]
+
         if self._mode in (FileDialog.MODE_OPEN, FileDialog.MODE_OPEN_MULT):
-            print([e.name for e in entries])
+            self._return_paths(paths)
         elif self._mode == FileDialog.MODE_SAVE:
-            raise NotImplementedError
+            self._return_paths(paths)
         elif self._mode == FileDialog.MODE_CHOOSE_DIR:
-            raise NotImplementedError
+            assert False # We cannot select a directory through directory view
         else:
             assert False
 
     def _on_select(self):
-        current_file = self._file_name.get_file_name()
+        if self._mode in (FileDialog.MODE_OPEN, FileDialog.MODE_OPEN_MULT):
+            entries = self._dir_view.get_entries()
+            assert not any(e.is_dir() for e in entries)
+            paths = [os.path.join(self._current_dir, e.name) for e in entries]
+            self._return_paths(paths)
 
-        assert self._current_dir
-        assert current_file
+        elif self._mode == FileDialog.MODE_SAVE:
+            file_name = self._file_name.get_file_name()
+            path = os.path.join(self._current_dir, file_name)
 
-        # TODO: Confirm overwrite in save mode
+            paths = []
+            if os.path.exists(path):
+                confirm = lambda: paths.append(path)
+                dialog = OverwriteConfirmDialog(self._ui_model, path, confirm)
+                dialog.exec_()
 
-        self._selected_path = os.path.join(self._current_dir, current_file)
+            if not paths:
+                return
+            self._return_paths(paths)
 
+        elif self._mode == FileDialog.MODE_CHOOSE_DIR:
+            entries = self._dir_view.get_entries()
+            assert len(entries == 1)
+            entry = entries[0]
+            paths = [os.path.join(self._current_dir, entry.name)]
+            self._return_paths(paths)
+
+    def _return_paths(self, paths):
+        if self._mode != FileDialog.MODE_OPEN_MULT:
+            assert len(paths) == 1
+
+        self._final_paths = paths
         self.close()
 
     def _update_current_dir(self, name):
@@ -208,6 +234,35 @@ class FileDialog(QDialog):
 
     def sizeHint(self):
         return get_abs_window_size(0.5, 0.5)
+
+
+class OverwriteConfirmDialog(ConfirmDialog):
+
+    def __init__(self, ui_model, path, action_confirm):
+        super().__init__(ui_model)
+
+        self._action_confirm = action_confirm
+
+        self.setWindowTitle('Confirm overwrite')
+
+        msg = 'Path {} already exists.'.format(path)
+        self._set_message(msg)
+
+        self._cancel_button = QPushButton('Cancel')
+        self._overwrite_button = QPushButton('Overwrite')
+
+        b = self._get_button_layout()
+        b.addWidget(self._cancel_button)
+        b.addWidget(self._overwrite_button)
+
+        self._cancel_button.setFocus(Qt.PopupFocusReason)
+
+        self._overwrite_button.clicked.connect(self._confirm_overwrite)
+        self._cancel_button.clicked.connect(self.close)
+
+    def _confirm_overwrite(self):
+        self._action_confirm()
+        self.close()
 
 
 class DirectoryBranch(QWidget):
