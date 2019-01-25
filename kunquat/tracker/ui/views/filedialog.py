@@ -172,7 +172,8 @@ class FileDialog(QDialog):
             self._update_current_dir(entry.name)
             return
 
-        self._on_select()
+        if self._select_button.isEnabled():
+            self._on_select()
 
     def _on_select(self):
         if self._mode in (FileDialog.MODE_OPEN, FileDialog.MODE_OPEN_MULT):
@@ -744,7 +745,8 @@ class FileName(QLineEdit):
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Return:
-            self.selectFileName.emit()
+            if self.get_file_name():
+                self.selectFileName.emit()
             return
 
         event.ignore()
