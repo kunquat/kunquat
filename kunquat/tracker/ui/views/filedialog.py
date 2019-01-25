@@ -158,7 +158,7 @@ class FileDialog(QDialog):
         elif self._mode == FileDialog.MODE_CHOOSE_DIR:
             assert len(entries) == 1
             entry = entries[0]
-            enabled = entry.is_dir()
+            enabled = entry.is_dir() and (entry.name != '..')
         else:
             assert False
 
@@ -201,7 +201,7 @@ class FileDialog(QDialog):
 
         elif self._mode == FileDialog.MODE_CHOOSE_DIR:
             entries = self._dir_view.get_entries()
-            assert len(entries == 1)
+            assert len(entries) == 1
             entry = entries[0]
             paths = [os.path.join(self._current_dir, entry.name)]
             self._return_paths(paths)
