@@ -19,6 +19,7 @@ import os.path
 import time
 import zipfile
 
+from kunquat.extras.sndfile import SndFileR, SndFileError
 from kunquat.tracker.ui.qt import *
 
 from .confirmdialog import ConfirmDialog
@@ -900,24 +901,46 @@ def filter_kqte_entry(path, dir_entry):
     return True
 
 
-def filter_wav_entry(path, dir_entry):
-    pass
+def get_sndfile_format(path):
+    try:
+        sf = SndFileR(path)
+        return sf.get_major_format()
+    except SndFileError:
+        pass
+    return None
 
 
-def filter_aiff_entry(path, dir_entry):
-    pass
+sndfile_format_descs = {
+    'wav':  'Waveform audio file',
+    'aiff': 'AIFF audio file',
+    'au':   'Sun Au file',
+    'flac': 'FLAC audio file',
+}
 
 
-def filter_au_entry(path, dir_entry):
-    pass
+def filter_sndfile_entry(path, dir_entry, allowed_formats):
+    path_format = get_sndfile_format(path)
+    if path_format in allowed_formats:
+        dir_entry.type = sndfile_format_descs[path_format]
+        return True
+    return False
 
 
 def filter_wavpack_entry(path, dir_entry):
-    pass
+    # Creating a WavPack context for format detection is too slow,
+    # so let's just check a couple of fields manually
+    with open(path, 'rb') as f:
+        maybe_ckid = f.read(4)
+        if maybe_ckid != b'wvpk':
+            return False
+        cksize = f.read(4)
+        version_bytes = f.read(2)
+        version = version_bytes[0] + version_bytes[1] * 0x100
+        if not (0x402 <= version <= 0x410):
+            return False
 
-
-def filter_flac_entry(path, dir_entry):
-    pass
+    dir_entry.type = 'WavPack audio file'
+    return True
 
 
 def filter_any_entry(path, dir_entry):
@@ -930,21 +953,42 @@ class EntryFilters():
         FileDialog.FILTER_KQT       : filter_kqt_entry,
         FileDialog.FILTER_KQTI      : filter_kqti_entry,
         FileDialog.FILTER_KQTE      : filter_kqte_entry,
-        FileDialog.FILTER_WAV       : filter_wav_entry,
-        FileDialog.FILTER_AIFF      : filter_aiff_entry,
-        FileDialog.FILTER_AU        : filter_au_entry,
         FileDialog.FILTER_WAVPACK   : filter_wavpack_entry,
-        FileDialog.FILTER_FLAC      : filter_flac_entry,
         FileDialog.FILTER_ANY       : filter_any_entry,
     }
 
     def __init__(self, filter_mask):
         self._used_filters = []
+
+        # Combine sndfile-based checks to reduce the number of tests
+        sndfile_mask = (FileDialog.FILTER_WAV |
+                FileDialog.FILTER_AIFF |
+                FileDialog.FILTER_AU |
+                FileDialog.FILTER_FLAC)
+        if (filter_mask & sndfile_mask) != 0:
+            allowed_formats = set()
+            format_names = {
+                FileDialog.FILTER_WAV:  'wav',
+                FileDialog.FILTER_AIFF: 'aiff',
+                FileDialog.FILTER_AU:   'au',
+                FileDialog.FILTER_FLAC: 'flac',
+            }
+            for bit, name in format_names.items():
+                if (bit & filter_mask) != 0:
+                    allowed_formats.add(name)
+
+            sndfile_filter = lambda p, d: filter_sndfile_entry(p, d, allowed_formats)
+
         mask_left = filter_mask
         filter_bit = 1
         while mask_left:
             if (mask_left & 1) != 0:
-                self._used_filters.append(EntryFilters._FUNCS[filter_bit])
+                if (filter_bit & sndfile_mask) != 0:
+                    if sndfile_filter:
+                        self._used_filters.append(sndfile_filter)
+                        sndfile_filter = None
+                else:
+                    self._used_filters.append(EntryFilters._FUNCS[filter_bit])
             filter_bit <<= 1
             mask_left >>= 1
 
