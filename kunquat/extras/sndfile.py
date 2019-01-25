@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2012-2018
+# Author: Tomi Jylhä-Ollila, Finland 2012-2019
 #
 # This file is part of Kunquat.
 #
@@ -21,7 +21,8 @@ import os
 
 
 FORMAT_WAV  = 0x010000
-FORMAT_AU   = 0x020000
+FORMAT_AIFF = 0x020000
+FORMAT_AU   = 0x030000
 FORMAT_FLAC = 0x170000
 
 FORMAT_PCM_S8 = 0x0001
@@ -47,17 +48,20 @@ SFM_WRITE = 0x20
 SFC_SET_CLIPPING = 0x10c0
 
 formats_map = {
-        'wav':  FORMAT_WAV,
-        'au':   FORMAT_AU,
-        'flac': FORMAT_FLAC,
-        }
+    'wav':  FORMAT_WAV,
+    'aiff': FORMAT_AIFF,
+    'au':   FORMAT_AU,
+    'flac': FORMAT_FLAC,
+}
+
+format_names_map = dict((v, k) for (k, v) in formats_map.items())
 
 bits_map = {
-        8:  FORMAT_PCM_S8,
-        16: FORMAT_PCM_16,
-        24: FORMAT_PCM_24,
-        32: FORMAT_PCM_32,
-        }
+    8:  FORMAT_PCM_S8,
+    16: FORMAT_PCM_16,
+    24: FORMAT_PCM_24,
+    32: FORMAT_PCM_32,
+}
 
 
 class _SndFileBase():
@@ -142,10 +146,13 @@ class _SndFileRBase(_SndFileBase):
         self._is_float = False
         self._bits = 0
         self._audio_rate = 0
+        self._format_major = None
 
     def set_format_info(self, sf_info):
         self._channels = sf_info.channels
         self._audio_rate = sf_info.samplerate
+        self._format_major = format_names_map.get(
+                sf_info.format & FORMAT_TYPEMASK, None)
 
         sub_format = sf_info.format & FORMAT_SUBMASK
         if sub_format in (FORMAT_FLOAT, FORMAT_DOUBLE):
@@ -177,6 +184,9 @@ class _SndFileRBase(_SndFileBase):
 
     def get_audio_rate(self):
         return self._audio_rate
+
+    def get_major_format(self):
+        return self._format_major
 
     def read(self, frame_count=float('inf')):
         """Read audio data.
