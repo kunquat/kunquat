@@ -139,7 +139,7 @@ class FileDialog(QDialog):
         enabled = False
 
         entries = self._dir_view.get_entries()
-        if not entries:
+        if (self._mode != FileDialog.MODE_SAVE) and (not entries):
             self._select_button.setEnabled(False)
             return
 
@@ -157,7 +157,7 @@ class FileDialog(QDialog):
         elif self._mode == FileDialog.MODE_CHOOSE_DIR:
             assert len(entries) == 1
             entry = entries[0]
-            raise NotImplementedError
+            enabled = entry.is_dir()
         else:
             assert False
 
@@ -898,6 +898,26 @@ def filter_kqte_entry(path, dir_entry):
     return True
 
 
+def filter_wav_entry(path, dir_entry):
+    pass
+
+
+def filter_aiff_entry(path, dir_entry):
+    pass
+
+
+def filter_au_entry(path, dir_entry):
+    pass
+
+
+def filter_wavpack_entry(path, dir_entry):
+    pass
+
+
+def filter_flac_entry(path, dir_entry):
+    pass
+
+
 def filter_any_entry(path, dir_entry):
     return True
 
@@ -905,10 +925,15 @@ def filter_any_entry(path, dir_entry):
 class EntryFilters():
 
     _FUNCS = {
-        FileDialog.FILTER_KQT   : filter_kqt_entry,
-        FileDialog.FILTER_KQTI  : filter_kqti_entry,
-        FileDialog.FILTER_KQTE  : filter_kqte_entry,
-        FileDialog.FILTER_ANY   : filter_any_entry,
+        FileDialog.FILTER_KQT       : filter_kqt_entry,
+        FileDialog.FILTER_KQTI      : filter_kqti_entry,
+        FileDialog.FILTER_KQTE      : filter_kqte_entry,
+        FileDialog.FILTER_WAV       : filter_wav_entry,
+        FileDialog.FILTER_AIFF      : filter_aiff_entry,
+        FileDialog.FILTER_AU        : filter_au_entry,
+        FileDialog.FILTER_WAVPACK   : filter_wavpack_entry,
+        FileDialog.FILTER_FLAC      : filter_flac_entry,
+        FileDialog.FILTER_ANY       : filter_any_entry,
     }
 
     def __init__(self, filter_mask):
