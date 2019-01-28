@@ -343,8 +343,15 @@ class DirEntry():
             fname, ftype, sr = dir_entry_or_custom
             self.name = fname
             self.type = ftype
-            self.size = sr.st_size
-            self.modified = sr.st_mtime
+            if sr:
+                self.size = sr.st_size
+                self.modified = sr.st_mtime
+            else:
+                self.size = 0
+                self.modified = None
+
+        self.checked = False
+        self.is_visible = self.is_dir()
 
     def is_dir(self):
         return self.type == 'Directory'
@@ -371,6 +378,8 @@ class DirEntry():
         return '{:.1f} {}'.format(self.size / min_size, suffix)
 
     def get_modified_date(self):
+        if self.modified == None:
+            return ''
         try:
             dt = datetime.datetime.fromtimestamp(self.modified)
         except (OverflowError, OSError):
@@ -378,7 +387,8 @@ class DirEntry():
         return dt.isoformat(sep=' ', timespec='seconds')
 
     def get_sort_key(self):
-        return (0 if self.is_dir() else 1, self.name.lower())
+        return (0 if self.is_dir() else 1,
+                self.name.lower() if self.name != '..' else '')
 
     def get_field_by_index(self, index):
         if index == 0:
@@ -400,44 +410,127 @@ class DirectoryModel(QAbstractTableModel):
     def __init__(self, filter_mask):
         super().__init__()
         self._current_dir = None
+        self._all_entries = []
         self._entries = []
+        self._show_all_files = False
         self._entry_filters = EntryFilters(filter_mask)
         self._entry_checker = None
+        self._fs_watcher = QFileSystemWatcher()
+
+        self._fs_watcher.directoryChanged.connect(self._on_dir_modified)
+
+    def _try_add_parent_dir(self, entries):
+        parent_dir, _ = os.path.split(self._current_dir)
+        if parent_dir == self._current_dir:
+            return entries
+        try:
+            pstat = os.stat(parent_dir)
+        except OSError:
+            pstat = None
+        parent_entry = DirEntry(('..', 'Directory', pstat))
+        return [parent_entry] + entries
 
     def set_directory(self, new_dir):
         self._entry_checker = None
 
+        if self._current_dir:
+            self._fs_watcher.removePath(self._current_dir)
+
         self._current_dir = new_dir
 
+        self._all_entries = []
         self._entries = []
 
         self.beginResetModel()
+        new_all_entries = []
         try:
             with os.scandir(self._current_dir) as es:
                 for e in es:
                     entry = DirEntry(e)
-                    # TODO: allow user to view files starting with '.'
-                    if not entry.name.startswith('.'):
-                        self._entries.append(entry)
+                    new_all_entries.append(entry)
         except Exception as e:
             self.endResetModel()
             raise e
 
-        self._entries.sort(key=lambda e: e.get_sort_key())
+        self._all_entries = self._try_add_parent_dir(new_all_entries)
+        self._all_entries.sort(key=lambda e: e.get_sort_key())
 
-        parent_dir, _ = os.path.split(self._current_dir)
-        if parent_dir != self._current_dir:
-            pstat = os.stat(parent_dir)
-            parent_entry = DirEntry(('..', 'Directory', pstat))
-            self._entries = [parent_entry] + self._entries
+        self._fill_known_entries()
 
         self.dataChanged.emit(
                 self.index(0, 0),
                 self.index(len(self._entries) - 1, DirEntry.get_header_count() - 1))
 
+        self._entry_checker = self._check_entries()
+
         self.endResetModel()
 
+        self._fs_watcher.addPath(self._current_dir)
+
+    def _on_dir_modified(self, dir_path):
+        if dir_path != self._current_dir:
+            return
+
+        self._entry_checker = None
+
+        new_all_entries = []
+        dir_still_exists = True
+
+        try:
+            with os.scandir(self._current_dir) as es:
+                for e in es:
+                    entry = DirEntry(e)
+                    new_all_entries.append(entry)
+        except OSError:
+            dir_still_exists = False
+
+        new_all_entries = self._try_add_parent_dir(new_all_entries)
+        new_all_entries.sort(key=lambda e: e.get_sort_key())
+
+        final_all_entries = []
+        get_old = (e for e in self._all_entries)
+        get_new = (e for e in new_all_entries)
+        cur_old_entry = next(get_old, None)
+        cur_new_entry = next(get_new, None)
+        while cur_old_entry and cur_new_entry:
+            if cur_old_entry.name == cur_new_entry.name:
+                if cur_old_entry.modified == cur_new_entry.modified:
+                    final_all_entries.append(cur_old_entry)
+                else:
+                    final_all_entries.append(cur_new_entry)
+                cur_old_entry = next(get_old, None)
+                cur_new_entry = next(get_new, None)
+            elif cur_old_entry.get_sort_key() < cur_new_entry.get_sort_key():
+                # Old entry removed
+                cur_old_entry = next(get_old, None)
+            elif cur_old_entry.get_sort_key() > cur_new_entry.get_sort_key():
+                # New entry added
+                final_all_entries.append(cur_new_entry)
+                cur_new_entry = next(get_new, None)
+            else:
+                assert False
+
+        while cur_new_entry:
+            final_all_entries.append(cur_new_entry)
+            cur_new_entry = next(get_new, None)
+
+        self.beginResetModel()
+        self._all_entries = final_all_entries
+        self._fill_known_entries()
         self._entry_checker = self._check_entries()
+        self.endResetModel()
+
+    def _is_entry_file_visible(self, entry):
+        return (self._show_all_files or
+                (not entry.name.startswith('.')) or
+                (entry.name == '..'))
+
+    def _fill_known_entries(self):
+        self._entries = []
+        for entry in self._all_entries:
+            if entry.is_dir() or (entry.checked and entry.is_visible):
+                if self._is_entry_file_visible(entry):
+                    self._entries.append(entry)
 
     def has_unchecked_entries(self):
         return (self._entry_checker != None)
@@ -456,35 +549,44 @@ class DirectoryModel(QAbstractTableModel):
 
     def _check_entries(self):
         current_dir = self._current_dir
-        entries = list(self._entries)
 
         run_start_time = time.time()
-        run_count = 1
 
         row = 0
-        for entry in entries:
-            if entry.is_dir():
-                row += 1
+        for entry in self._all_entries:
+            assert row <= len(self._entries)
+            shown_entry = None
+            if row < len(self._entries):
+                shown_entry = self._entries[row]
+                assert entry.get_sort_key() <= shown_entry.get_sort_key()
+
+            if entry.is_dir() or entry.checked:
+                if entry.name == shown_entry.name:
+                    row += 1
                 continue
 
             # Apply filtering
             path = os.path.join(current_dir, entry.name)
-            if self._entry_filters.filter_entry(path, entry):
-                self.dataChanged.emit(
-                        self.index(row, 0),
-                        self.index(row, DirEntry.get_header_count() - 1))
-                row += 1
-            else:
-                self.beginRemoveRows(QModelIndex(), row, row)
-                assert self._entries[row] == entry
-                self._entries[row:row + 1] = []
-                self.endRemoveRows()
+            self._entry_filters.filter_entry(path, entry)
+            if entry.is_visible:
+                if self._is_entry_file_visible(entry):
+                    if shown_entry and (entry.name == shown_entry.name):
+                        self._entries[row] = entry
+                        self.dataChanged.emit(
+                                self.index(row, 0),
+                                self.index(row, DirEntry.get_header_count() - 1))
+                    else:
+                        self.beginInsertRows(QModelIndex(), row, row)
+                        self._entries.insert(row, entry)
+                        self.endInsertRows()
+                        row += 1
+
+            entry.checked = True
 
             # Yield if needed to keep the dialog responsive
             cur_time = time.time()
             if (cur_time - run_start_time) > 0.03:
                 yield
-                run_count += 1
                 run_start_time = time.time()
 
     def _to_size_desc(self, byte_count):
@@ -569,6 +671,8 @@ class DirectoryView(QTreeView):
         header.resizeSection(1, style_mgr.get_scaled_size(9))
         header.resizeSection(2, style_mgr.get_scaled_size(20))
         header.resizeSection(3, style_mgr.get_scaled_size(15))
+
+        self._model.modelReset.connect(self._step_check_entries)
 
         self.selectionModel().selectionChanged.connect(self._on_selection_changed)
         self.doubleClicked.connect(self._on_double_clicked)
@@ -996,9 +1100,12 @@ class EntryFilters():
         for f in self._used_filters:
             try:
                 if f(path, entry):
+                    entry.is_visible = True
                     return True
             except OSError:
                 entry.type = 'Inaccessible'
+                break
+        entry.is_visible = False
         return False
 
 
