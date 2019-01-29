@@ -26,6 +26,20 @@ from .confirmdialog import ConfirmDialog
 from .utils import get_abs_window_size
 
 
+TYPE_DESC_DIR           = 'Directory'
+TYPE_DESC_FILE          = 'File'
+TYPE_DESC_INACCESSIBLE  = 'Inaccessible'
+
+TYPE_DESC_KQT           = 'Kunquat module'
+TYPE_DESC_KQTI          = 'Kunquat instrument'
+TYPE_DESC_KQTE          = 'Kunquat effect'
+TYPE_DESC_WAV           = 'Waveform audio file'
+TYPE_DESC_AIFF          = 'AIFF audio file'
+TYPE_DESC_AU            = 'Sun Au file'
+TYPE_DESC_WAVPACK       = 'WavPack audio file'
+TYPE_DESC_FLAC          = 'FLAC audio file'
+
+
 class FileDialog(QDialog):
 
     FILTER_KQT      = 0x1
@@ -335,7 +349,7 @@ class DirEntry():
         if isinstance(dir_entry_or_custom, os.DirEntry):
             dir_entry = dir_entry_or_custom
             self.name = dir_entry.name
-            self.type = 'Directory' if dir_entry.is_dir() else 'File'
+            self.type = TYPE_DESC_DIR if dir_entry.is_dir() else TYPE_DESC_FILE
             sr = dir_entry.stat()
             self.size = sr.st_size
             self.modified = sr.st_mtime
@@ -354,7 +368,7 @@ class DirEntry():
         self.is_visible = self.is_dir()
 
     def is_dir(self):
-        return self.type == 'Directory'
+        return self.type == TYPE_DESC_DIR
 
     def get_size_desc(self):
         if self.is_dir():
@@ -407,8 +421,25 @@ class DirectoryModel(QAbstractTableModel):
 
     _HEADERS = [DirEntry.get_header_by_index(i) for i in range(4)]
 
-    def __init__(self, filter_mask):
+    _ICON_NAMES = {
+        TYPE_DESC_DIR           : 'file_directory',
+        TYPE_DESC_FILE          : 'file_generic',
+        TYPE_DESC_INACCESSIBLE  : 'file_error',
+
+        TYPE_DESC_KQT           : 'file_kqt',
+        TYPE_DESC_KQTI          : 'file_kqti',
+        TYPE_DESC_KQTE          : 'file_kqte',
+
+        TYPE_DESC_WAV           : 'file_sample',
+        TYPE_DESC_AIFF          : 'file_sample',
+        TYPE_DESC_AU            : 'file_sample',
+        TYPE_DESC_WAVPACK       : 'file_sample',
+        TYPE_DESC_FLAC          : 'file_sample',
+    }
+
+    def __init__(self, ui_model, filter_mask):
         super().__init__()
+        self._ui_model = ui_model
         self._current_dir = None
         self._all_entries = []
         self._entries = []
@@ -416,6 +447,7 @@ class DirectoryModel(QAbstractTableModel):
         self._entry_filters = EntryFilters(filter_mask)
         self._entry_checker = None
         self._fs_watcher = QFileSystemWatcher()
+        self._icons = {}
 
         self._fs_watcher.directoryChanged.connect(self._on_dir_modified)
 
@@ -427,7 +459,7 @@ class DirectoryModel(QAbstractTableModel):
             pstat = os.stat(parent_dir)
         except OSError:
             pstat = None
-        parent_entry = DirEntry(('..', 'Directory', pstat))
+        parent_entry = DirEntry(('..', TYPE_DESC_DIR, pstat))
         return [parent_entry] + entries
 
     def set_directory(self, new_dir):
@@ -612,6 +644,28 @@ class DirectoryModel(QAbstractTableModel):
             return ''
         return dt.isoformat(sep=' ', timespec='seconds')
 
+    def _get_icon(self, entry):
+        icon_name = self._ICON_NAMES.get(entry.type, '')
+        if icon_name not in self._icons:
+            icon_bank = self._ui_model.get_icon_bank()
+            style_mgr = self._ui_model.get_style_manager()
+            size = style_mgr.get_scaled_size_param('file_dialog_icon_size')
+            icon_size = QSize(size, size)
+
+            if icon_name:
+                image = QImage()
+                image.load(icon_bank.get_icon_path(icon_name))
+                image = image.convertToFormat(QImage.Format_ARGB32_Premultiplied)
+                icon = image.scaled(
+                        icon_size, Qt.IgnoreAspectRatio, Qt.SmoothTransformation)
+            else:
+                icon = QImage(icon_size, QImage.Format_ARGB32_Premultiplied)
+                icon.fill(0)
+
+            self._icons[icon_name] = icon
+
+        return self._icons[icon_name]
+
     # Qt interface
 
     def rowCount(self, parent):
@@ -630,6 +684,11 @@ class DirectoryModel(QAbstractTableModel):
             if (0 <= column < DirEntry.get_header_count() and
                     0 <= row < len(self._entries)):
                 return self._entries[row].get_field_by_index(column)
+        elif role == Qt.DecorationRole:
+            row, column = index.row(), index.column()
+            if (column == 0) and (0 <= row < len(self._entries)):
+                entry = self._entries[row]
+                return self._get_icon(entry)
 
         return None
 
@@ -653,7 +712,7 @@ class DirectoryView(QTreeView):
 
         self._ui_model = ui_model
         self._current_dir = None
-        self._model = DirectoryModel(filter_mask)
+        self._model = DirectoryModel(self._ui_model, filter_mask)
 
         self._entries = []
         self._prev_selection = QItemSelection()
@@ -931,7 +990,7 @@ def filter_kqt_entry(path, dir_entry):
     except zipfile.BadZipFile:
         return False
 
-    dir_entry.type = 'Kunquat module'
+    dir_entry.type = TYPE_DESC_KQT
     return True
 
 
@@ -972,7 +1031,7 @@ def filter_kqti_entry(path, dir_entry):
     except zipfile.BadZipFile:
         return False
 
-    dir_entry.type = 'Kunquat instrument'
+    dir_entry.type = TYPE_DESC_KQTI
     return True
 
 
@@ -1001,7 +1060,7 @@ def filter_kqte_entry(path, dir_entry):
     except zipfile.BadZipFile:
         return False
 
-    dir_entry.type = 'Kunquat effect'
+    dir_entry.type = TYPE_DESC_KQTE
     return True
 
 
@@ -1015,10 +1074,10 @@ def get_sndfile_format(path):
 
 
 sndfile_format_descs = {
-    'wav':  'Waveform audio file',
-    'aiff': 'AIFF audio file',
-    'au':   'Sun Au file',
-    'flac': 'FLAC audio file',
+    'wav'   : TYPE_DESC_WAV,
+    'aiff'  : TYPE_DESC_AIFF,
+    'au'    : TYPE_DESC_AU,
+    'flac'  : TYPE_DESC_FLAC,
 }
 
 
@@ -1043,7 +1102,7 @@ def filter_wavpack_entry(path, dir_entry):
         if not (0x402 <= version <= 0x410):
             return False
 
-    dir_entry.type = 'WavPack audio file'
+    dir_entry.type = TYPE_DESC_WAVPACK
     return True
 
 
@@ -1097,15 +1156,16 @@ class EntryFilters():
             mask_left >>= 1
 
     def filter_entry(self, path, entry):
+        entry.is_visible = False
         for f in self._used_filters:
             try:
                 if f(path, entry):
                     entry.is_visible = True
                     return True
             except OSError:
-                entry.type = 'Inaccessible'
+                entry.type = TYPE_DESC_INACCESSIBLE
+                entry.is_visible = (filter_any_entry in self._used_filters)
                 break
-        entry.is_visible = False
         return False
 
 
