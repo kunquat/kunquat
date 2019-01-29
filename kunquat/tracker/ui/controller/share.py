@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2014-2017
+# Authors: Tomi Jylhä-Ollila, Finland 2014-2019
 #          Toni Ruottu, Finland 2014
 #
 # This file is part of Kunquat.
@@ -40,6 +40,13 @@ class Share():
         'delete_small',
         'edit',
         'error',
+        'file_directory',
+        'file_error',
+        'file_generic',
+        'file_kqt',
+        'file_kqte',
+        'file_kqti',
+        'file_sample',
         'follow_playback',
         'input_compact',
         'input_full',
