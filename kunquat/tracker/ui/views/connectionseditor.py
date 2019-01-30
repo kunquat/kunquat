@@ -207,9 +207,9 @@ class ConnectionsToolBar(QToolBar, AudioUnitUpdater):
         au = module.get_audio_unit(self._au_id)
 
         if au.is_instrument():
-            au_path = get_instrument_save_path(au.get_name())
+            au_path = get_instrument_save_path(self._ui_model, au.get_name())
         else:
-            au_path = get_effect_save_path(au.get_name())
+            au_path = get_effect_save_path(self._ui_model, au.get_name())
         if not au_path:
             return
 

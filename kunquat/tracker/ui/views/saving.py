@@ -49,7 +49,7 @@ def _get_suggested_au_base_file_name(au_name):
     return ''.join(c for c in au_name if c.isalnum() or c in ' ').strip()
 
 
-def get_instrument_save_path(au_name):
+def get_instrument_save_path(ui_model, au_name):
     default_dir = config.get_config().get_value('dir_instruments') or ''
     suggested_path = default_dir
     if au_name:
@@ -57,20 +57,18 @@ def get_instrument_save_path(au_name):
         if suggested_base_name:
             suggested_name = suggested_base_name + '.kqti'
             suggested_path = os.path.join(default_dir, suggested_name)
-    au_path, _ = QFileDialog.getSaveFileName(
-            None,
-            'Save Kunquat instrument',
-            suggested_path,
-            'Kunquat instruments (*.kqti)')
+
+    caption = 'Save Kunquat instrument'
+    filters = FileDialog.FILTER_ALL_KQT | FileDialog.FILTER_ALL_PCM
+    dialog = FileDialog(ui_model, FileDialog.MODE_SAVE, caption, suggested_path, filters)
+    au_path = dialog.get_path()
     if not au_path:
         return None
 
-    if not au_path.endswith('.kqti'):
-        au_path += '.kqti'
     return au_path
 
 
-def get_effect_save_path(au_name):
+def get_effect_save_path(ui_model, au_name):
     default_dir = config.get_config().get_value('dir_effects') or ''
     suggested_path = default_dir
     if au_name:
@@ -78,16 +76,14 @@ def get_effect_save_path(au_name):
         if suggested_base_name:
             suggested_name = suggested_base_name + '.kqte'
             suggested_path = os.path.join(default_dir, suggested_name)
-    au_path, _ = QFileDialog.getSaveFileName(
-            None,
-            'Save Kunquat effect',
-            suggested_path,
-            'Kunquat effects (*.kqte)')
+
+    caption = 'Save Kunquat effect'
+    filters = FileDialog.FILTER_ALL_KQT | FileDialog.FILTER_ALL_PCM
+    dialog = FileDialog(ui_model, FileDialog.MODE_SAVE, caption, suggested_path, filters)
+    au_path = dialog.get_path()
     if not au_path:
         return None
 
-    if not au_path.endswith('.kqte'):
-        au_path += '.kqte'
     return au_path
 
 
