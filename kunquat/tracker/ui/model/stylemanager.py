@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016-2018
+# Author: Tomi Jylhä-Ollila, Finland 2016-2019
 #
 # This file is part of Kunquat.
 #
@@ -25,6 +25,7 @@ class StyleManager():
         'combobox_button_size'              : 0.6,
         'dialog_button_width'               : 9.0,
         'dialog_icon_size'                  : 7.0,
+        'file_dialog_icon_size'             : 1.5,
         'large_padding'                     : 0.8,
         'list_button_size'                  : 2.0,
         'list_button_padding'               : 0.2,
