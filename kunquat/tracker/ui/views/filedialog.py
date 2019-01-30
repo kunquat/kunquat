@@ -59,13 +59,26 @@ class FileDialog(QDialog):
     MODE_SAVE = 'save'
     MODE_CHOOSE_DIR = 'choose_dir'
 
-    def __init__(self, ui_model, mode, title, start_dir, filters=0):
+    def __init__(self, ui_model, mode, title, start_path, filters=0):
         super().__init__()
 
         self._ui_model = ui_model
         self._mode = mode
         self._current_dir = None
         self._final_paths = None
+
+        if self._mode == FileDialog.MODE_SAVE:
+            if os.path.isdir(start_path):
+                start_dir = start_path
+                start_file = None
+            else:
+                start_dir, start_file = os.path.split(start_path)
+                if not os.path.exists(start_dir):
+                    start_dir = start_path
+                    start_file = None
+        else:
+            start_dir = start_path
+            start_file = None
 
         if self._mode == FileDialog.MODE_SAVE:
             filters |= FileDialog.FILTER_ANY
@@ -127,6 +140,8 @@ class FileDialog(QDialog):
         self._select_button.clicked.connect(self._on_select)
 
         self._set_current_dir(start_dir)
+        if start_file:
+            self._file_name.set_init_file_name(start_file)
 
     def get_paths(self):
         self.exec_()
@@ -146,7 +161,11 @@ class FileDialog(QDialog):
             if entries:
                 assert len(entries) == 1
                 entry = entries[0]
-                self._file_name.set_file_name(entry.name if not entry.is_dir() else '')
+                if entry.is_dir():
+                    if entry.name != self._file_name.get_file_name():
+                        self._file_name.set_file_name('')
+                else:
+                    self._file_name.set_file_name(entry.name)
 
         self._update_select_enabled()
 
@@ -564,12 +583,15 @@ class DirectoryModel(QAbstractTableModel):
 
     def step_check_entries(self):
         if not self._entry_checker:
-            return
+            return []
 
         try:
-            next(self._entry_checker)
+            added_entries = next(self._entry_checker)
+            return added_entries
         except StopIteration:
             self._entry_checker = None
+
+        return []
 
     def get_entries(self):
         return self._entries
@@ -578,6 +600,8 @@ class DirectoryModel(QAbstractTableModel):
         current_dir = self._current_dir
 
         run_start_time = time.time()
+
+        added_entries = []
 
         row = 0
         for entry in self._all_entries:
@@ -605,6 +629,7 @@ class DirectoryModel(QAbstractTableModel):
                     else:
                         self.beginInsertRows(QModelIndex(), row, row)
                         self._entries.insert(row, entry)
+                        added_entries.append(entry)
                         self.endInsertRows()
                         row += 1
 
@@ -613,8 +638,11 @@ class DirectoryModel(QAbstractTableModel):
             # Yield if needed to keep the dialog responsive
             cur_time = time.time()
             if (cur_time - run_start_time) > 0.03:
-                yield
+                yield added_entries
+                added_entries = []
                 run_start_time = time.time()
+
+        yield added_entries
 
     def _get_icon(self, entry):
         icon_name = self._ICON_NAMES.get(entry.type, '')
@@ -688,6 +716,8 @@ class DirectoryView(QTreeView):
 
         self._entries = []
         self._prev_selection = QItemSelection()
+
+        self._suggested_file_name = None
 
         self._error_label = QLabel(self)
         self._error_label.hide()
@@ -771,17 +801,29 @@ class DirectoryView(QTreeView):
         sm.setCurrentIndex(QModelIndex(), QItemSelectionModel.Select)
         sm.blockSignals(old_block)
 
-    def select_file_name(self, file_name):
+    def _try_select_suggested_file_name(self):
+        if not self._suggested_file_name:
+            return
+
         entries = self._model.get_entries()
         for row, entry in enumerate(entries):
-            if entry.name == file_name:
+            if entry.name == self._suggested_file_name:
                 self._select_row(row)
+                self._suggested_file_name = None
                 break
         else:
             self._clear_selection()
 
+    def select_file_name(self, file_name):
+        self._suggested_file_name = file_name
+        self._try_select_suggested_file_name()
+
     def _step_check_entries(self):
-        self._model.step_check_entries()
+        added_entries = self._model.step_check_entries()
+        if (self._suggested_file_name and
+                any(e.name == self._suggested_file_name for e in added_entries)):
+            self._try_select_suggested_file_name()
+
         if self._model.has_unchecked_entries():
             self.stepCheckEntries.emit()
 
@@ -880,7 +922,7 @@ class FileName(QLineEdit):
     def __init__(self):
         super().__init__()
         self._current_dir = None
-        self.textEdited.connect(self._on_name_changed)
+        self.textChanged.connect(self._on_name_changed)
 
     def set_current_dir(self, new_dir):
         if self._current_dir == new_dir:
@@ -892,6 +934,9 @@ class FileName(QLineEdit):
         old_block = self.blockSignals(True)
         self.setText('')
         self.blockSignals(old_block)
+
+    def set_init_file_name(self, init_name):
+        self.setText(init_name)
 
     def set_file_name(self, new_name):
         old_block = self.blockSignals(True)
