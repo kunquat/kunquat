@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016-2017
+# Author: Tomi Jylhä-Ollila, Finland 2016-2019
 #
 # This file is part of Kunquat.
 #
@@ -13,19 +13,17 @@
 
 from kunquat.tracker.ui.qt import *
 
+from .filedialog import FileDialog
 from kunquat.kunquat.limits import *
 import kunquat.tracker.config as config
 
 
-def get_kqt_file_path(types):
-    filters = []
-    if types == set(['kqt', 'kqti', 'kqte']):
-        caption = 'Open Kunquat file'
-        filters.append('All Kunquat files (*.kqt *.kqti *.kqte)')
+def get_kqt_file_path(ui_model, types):
+    if types == set(['kqt']):
+        caption = 'Open Kunquat module'
         def_dir_conf_key = 'dir_modules'
     elif types == set(['kqti', 'kqte']):
         caption = 'Open Kunquat instrument/effect'
-        filters.append('Kunquat instruments and effects (*.kqti *.kqte)')
         def_dir_conf_key = 'dir_instruments'
     elif types == set(['kqte']):
         caption = 'Open Kunquat effect'
@@ -33,30 +31,32 @@ def get_kqt_file_path(types):
     else:
         assert False
 
+    filters = 0
     if 'kqt' in types:
-        filters.append('Kunquat compositions (*.kqt)')
+        filters |= FileDialog.FILTER_KQT
     if 'kqti' in types:
-        filters.append('Kunquat instruments (*.kqti)')
+        filters |= FileDialog.FILTER_KQTI
     if 'kqte' in types:
-        filters.append('Kunquat effects (*.kqte)')
+        filters |= FileDialog.FILTER_KQTE
 
     default_dir = config.get_config().get_value(def_dir_conf_key) or ''
 
-    file_path, _ = QFileDialog.getOpenFileName(
-            None, caption, default_dir, ';;'.join(filters))
-    if file_path:
-        return file_path
-    return None
+    dialog = FileDialog(ui_model, FileDialog.MODE_OPEN, caption, default_dir, filters)
+    paths = dialog.get_paths()
+    return paths[0] if paths else None
 
 
-def try_open_kqt_module_or_au(ui_model):
-    file_path = get_kqt_file_path(set(['kqt', 'kqti', 'kqte']))
+def try_open_kqt_module(ui_model):
+    file_path = get_kqt_file_path(ui_model, set(['kqt']))
     if file_path:
-        if file_path.endswith('.kqt'):
-            process_mgr = ui_model.get_process_manager()
-            process_mgr.new_kunquat(file_path)
-        else:
-            open_kqt_au(file_path, ui_model, ui_model.get_module())
+        process_mgr = ui_model.get_process_manager()
+        process_mgr.new_kunquat(file_path)
+
+
+def try_open_kqt_au(ui_model):
+    file_path = get_kqt_file_path(ui_model, set(['kqti', 'kqte']))
+    if file_path:
+        open_kqt_au(file_path, ui_model, ui_model.get_module())
 
 
 def open_kqt_au(au_path, ui_model, container):

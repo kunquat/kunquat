@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2015-2017
+# Authors: Tomi Jylhä-Ollila, Finland 2015-2019
 #
 # This file is part of Kunquat.
 #
@@ -15,6 +15,7 @@ import os.path
 
 from kunquat.tracker.ui.qt import *
 
+from .filedialog import FileDialog
 import kunquat.tracker.config as config
 
 
@@ -22,7 +23,7 @@ def try_save_module(ui_model, save_as=False):
     module = ui_model.get_module()
 
     if (not module.get_path()) or save_as:
-        module_path = get_module_save_path()
+        module_path = get_module_save_path(ui_model)
         if not module_path:
             return
         module.set_path(module_path)
@@ -30,18 +31,17 @@ def try_save_module(ui_model, save_as=False):
     module.start_save()
 
 
-def get_module_save_path():
+def get_module_save_path(ui_model):
     default_dir = config.get_config().get_value('dir_modules') or ''
-    module_path, _ = QFileDialog.getSaveFileName(
-            None,
-            'Save Kunquat composition',
-            default_dir,
-            'Kunquat compositions (*.kqt)')
+    caption = 'Save Kunquat composition'
+    filters = FileDialog.FILTER_ALL_KQT | FileDialog.FILTER_ALL_PCM
+    dialog = FileDialog(ui_model, FileDialog.MODE_SAVE, caption, default_dir, filters)
+    module_path = dialog.get_path()
     if not module_path:
+        #print('Not saving')
         return None
 
-    if not module_path.endswith('.kqt'):
-        module_path += '.kqt'
+    #print('Saving {}'.format(module_path))
     return module_path
 
 

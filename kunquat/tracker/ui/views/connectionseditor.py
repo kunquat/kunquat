@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015-2018
+# Author: Tomi Jylhä-Ollila, Finland 2015-2019
 #
 # This file is part of Kunquat.
 #
@@ -193,9 +193,9 @@ class ConnectionsToolBar(QToolBar, AudioUnitUpdater):
     def _import_au(self):
         module = self._ui_model.get_module()
         if self._au_id == None:
-            au_path = get_kqt_file_path(set(['kqti', 'kqte']))
+            au_path = get_kqt_file_path(self._ui_model, set(['kqti', 'kqte']))
         else:
-            au_path = get_kqt_file_path(set(['kqte']))
+            au_path = get_kqt_file_path(self._ui_model, set(['kqte']))
         if au_path:
             container = module
             if self._au_id != None:

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2018
+# Author: Tomi Jylhä-Ollila, Finland 2014-2019
 #
 # This file is part of Kunquat.
 #
@@ -23,6 +23,7 @@ from kunquat.tracker.ui.views.audiounit.hitselector import HitSelector
 from kunquat.tracker.ui.views.axisrenderer import HorizontalAxisRenderer, VerticalAxisRenderer
 from kunquat.tracker.ui.views.confirmdialog import ConfirmDialog
 from kunquat.tracker.ui.views.editorlist import EditorList
+from kunquat.tracker.ui.views.filedialog import FileDialog
 from kunquat.tracker.ui.views.kqtcombobox import KqtComboBox
 from kunquat.tracker.ui.views.utils import lerp_val, set_glyph_rel_width, get_scaled_font
 from kunquat.tracker.ui.views.varprecspinbox import VarPrecSpinBox
@@ -1303,12 +1304,14 @@ class SampleListToolBar(QToolBar, ProcessorUpdater):
 
         free_count = len(sample_ids)
 
-        sample_paths, _ = QFileDialog.getOpenFileNames(
-                None,
+        file_dialog = FileDialog(
+                self._ui_model,
+                FileDialog.MODE_OPEN_MULT,
                 'Import samples ({} free slot{})'.format(
                     free_count, '' if free_count == 1 else 's'),
                 config.get_config().get_value('dir_samples') or '',
-                ';;'.join(filters))
+                FileDialog.FILTER_ALL_PCM)
+        sample_paths = file_dialog.get_paths()
         if sample_paths:
             # Make sure we've got enough space
             if len(sample_paths) > free_count:

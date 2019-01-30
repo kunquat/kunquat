@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2013-2018
+# Authors: Tomi Jylhä-Ollila, Finland 2013-2019
 #          Toni Ruottu, Finland 2013-2014
 #
 # This file is part of Kunquat.
@@ -16,7 +16,7 @@ from kunquat.tracker.ui.qt import *
 
 from .composition import Composition
 from .inputcontrols import InputControls
-from .kqtutils import try_open_kqt_module_or_au
+from .kqtutils import try_open_kqt_module
 from .peakmeter import PeakMeter
 from .portal import Portal
 from .playbackpanel import PlaybackPanel
@@ -80,7 +80,7 @@ class MainView(QWidget, Updater):
                 process_mgr = self._ui_model.get_process_manager()
                 process_mgr.new_kunquat()
             elif event.key() == Qt.Key_O:
-                try_open_kqt_module_or_au(self._ui_model)
+                try_open_kqt_module(self._ui_model)
             else:
                 event.ignore()
         elif event.modifiers() == Qt.AltModifier:

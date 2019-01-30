@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2013-2018
+# Authors: Tomi Jylhä-Ollila, Finland 2013-2019
 #          Toni Ruottu, Finland 2013-2014
 #
 # This file is part of Kunquat.
@@ -18,7 +18,7 @@ from kunquat.kunquat.limits import *
 from .eventlistbutton import EventListButton
 from .exiting import ExitHelper
 from . import utils
-from .kqtutils import try_open_kqt_module_or_au
+from .kqtutils import try_open_kqt_module
 from .saving import try_save_module
 from .updater import Updater
 
@@ -143,7 +143,7 @@ class FileButton(QToolButton, Updater):
         process_mgr.new_kunquat()
 
     def _open(self):
-        try_open_kqt_module_or_au(self._ui_model)
+        try_open_kqt_module(self._ui_model)
 
     def _save(self):
         try_save_module(self._ui_model)

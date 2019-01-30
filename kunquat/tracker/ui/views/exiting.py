@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2017-2018
+# Author: Tomi Jylhä-Ollila, Finland 2017-2019
 #
 # This file is part of Kunquat.
 #
@@ -48,7 +48,7 @@ class ExitHelper():
         module = self._ui_model.get_module()
 
         if not module.get_path():
-            module_path = get_module_save_path()
+            module_path = get_module_save_path(self._ui_model)
             if not module_path:
                 return
             module.set_path(module_path)
