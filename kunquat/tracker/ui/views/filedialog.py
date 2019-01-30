@@ -611,29 +611,6 @@ class DirectoryModel(QAbstractTableModel):
                 yield
                 run_start_time = time.time()
 
-    def _to_size_desc(self, byte_count):
-        if byte_count == 1:
-            return '1 byte'
-        elif byte_count < 1024:
-            return '{} bytes'.format(byte_count)
-
-        suffixes = ['KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
-        mult = 1024
-        for s in suffixes[:-1]:
-            next_mult = mult * 1024
-            if mult <= byte_count < next_mult:
-                return '{:.1f} {}'.format(byte_count / mult, s)
-            mult = next_mult
-
-        return '{:.1f} {}'.format(byte_count / mult, suffixes[-1])
-
-    def _to_date(self, timestamp):
-        try:
-            dt = datetime.datetime.fromtimestamp(timestamp)
-        except (OverflowError, OSError):
-            return ''
-        return dt.isoformat(sep=' ', timespec='seconds')
-
     def _get_icon(self, entry):
         icon_name = self._ICON_NAMES.get(entry.type, '')
         if icon_name not in self._icons:
