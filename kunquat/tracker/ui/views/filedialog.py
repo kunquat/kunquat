@@ -247,30 +247,9 @@ class FileDialog(QDialog):
             return
 
         self._current_dir = new_dir
-        try:
-            self._dir_branch.set_current_dir(self._current_dir)
-            self._dir_view.set_current_dir(self._current_dir)
-            self._file_name.set_current_dir(self._current_dir)
-        except OSError as e:
-            # Display access error dialog
-            base, dir_name = os.path.split(new_dir)
-            if not dir_name:
-                _, dir_name = os.path.split(base)
-            message = 'Could not access directory "{}":\n{}'.format(
-                    dir_name, e.strerror)
-            err_dialog = ErrorDialog(
-                    self._ui_model,
-                    'Could not access directory',
-                    message)
-            err_dialog.exec_()
-
-            # Return to previous directory
-            if self._dir_history:
-                prev_dir = self._dir_history.pop()
-            else:
-                prev_dir = os.path.abspath(os.sep)
-            self._set_current_dir(prev_dir)
-            return
+        self._dir_branch.set_current_dir(self._current_dir)
+        self._dir_view.set_current_dir(self._current_dir)
+        self._file_name.set_current_dir(self._current_dir)
 
         self._dir_history.append(new_dir)
 
@@ -954,53 +933,6 @@ class FileName(QLineEdit):
 
         event.ignore()
         super().keyPressEvent(event)
-
-
-class ErrorDialog(QDialog):
-
-    def __init__(self, ui_model, title, message):
-        super().__init__()
-        style_mgr = ui_model.get_style_manager()
-        icon_bank = ui_model.get_icon_bank()
-
-        self.setWindowTitle(title)
-
-        error_img_orig = QPixmap(icon_bank.get_icon_path('error'))
-        error_img = error_img_orig.scaledToWidth(
-                style_mgr.get_scaled_size_param('dialog_icon_size'),
-                Qt.SmoothTransformation)
-        error_label = QLabel()
-        error_label.setPixmap(error_img)
-
-        self._message = QLabel()
-        self._message.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Preferred)
-
-        h = QHBoxLayout()
-        margin = style_mgr.get_scaled_size_param('large_padding')
-        h.setContentsMargins(margin, margin, margin, margin)
-        h.setSpacing(margin * 2)
-        h.addWidget(error_label)
-        h.addWidget(self._message)
-
-        self._button_layout = QHBoxLayout()
-
-        v = QVBoxLayout()
-        v.addLayout(h)
-        v.addLayout(self._button_layout)
-
-        self.setLayout(v)
-
-        # Dialog contents, TODO: make a common ErrorDialog class
-        msg_lines = message.split('\n')
-        format_msg = '<p>{}</p>'.format('<br>'.join(msg_lines))
-        self._message.setText(format_msg)
-
-        ok_button = QPushButton('OK')
-        self._button_layout.addStretch(1)
-        self._button_layout.addWidget(ok_button)
-        self._button_layout.addStretch(1)
-
-        ok_button.clicked.connect(self.close)
 
 
 def is_valid_kqt_key(key, magic_id):
