@@ -23,7 +23,7 @@ from kunquat.extras.sndfile import SndFileR, SndFileError
 from kunquat.tracker.ui.qt import *
 
 from .confirmdialog import ConfirmDialog
-from .utils import get_abs_window_size
+from .utils import get_abs_window_size, get_default_font_info
 
 
 TYPE_DESC_DIR           = 'Directory'
@@ -240,8 +240,7 @@ class FileDialog(QDialog):
         else:
             new_dir = os.path.join(self._current_dir, name)
 
-        if os.path.exists(new_dir):
-            self._set_current_dir(new_dir)
+        self._set_current_dir(new_dir)
 
     def _set_current_dir(self, new_dir):
         if self._current_dir == new_dir:
@@ -419,6 +418,8 @@ class DirEntry():
 
 class DirectoryModel(QAbstractTableModel):
 
+    scanDirFinished = Signal(name='scanDirFinished')
+
     _HEADERS = [DirEntry.get_header_by_index(i) for i in range(4)]
 
     _ICON_NAMES = {
@@ -446,6 +447,7 @@ class DirectoryModel(QAbstractTableModel):
         self._show_all_files = False
         self._entry_filters = EntryFilters(filter_mask)
         self._entry_checker = None
+        self._scan_error = None
         self._fs_watcher = QFileSystemWatcher()
         self._icons = {}
 
@@ -470,19 +472,20 @@ class DirectoryModel(QAbstractTableModel):
 
         self._current_dir = new_dir
 
+        self.beginResetModel()
         self._all_entries = []
         self._entries = []
 
-        self.beginResetModel()
         new_all_entries = []
+        self._scan_error = None
         try:
             with os.scandir(self._current_dir) as es:
                 for e in es:
                     entry = DirEntry(e)
                     new_all_entries.append(entry)
-        except Exception as e:
-            self.endResetModel()
-            raise e
+        except OSError as e:
+            new_all_entries = []
+            self._scan_error = str(e)
 
         self._all_entries = self._try_add_parent_dir(new_all_entries)
         self._all_entries.sort(key=lambda e: e.get_sort_key())
@@ -497,7 +500,13 @@ class DirectoryModel(QAbstractTableModel):
 
         self.endResetModel()
 
-        self._fs_watcher.addPath(self._current_dir)
+        if not self._scan_error:
+            self._fs_watcher.addPath(self._current_dir)
+
+        self.scanDirFinished.emit()
+
+    def get_scan_error(self):
+        return self._scan_error
 
     def _on_dir_modified(self, dir_path):
         if dir_path != self._current_dir:
@@ -506,15 +515,15 @@ class DirectoryModel(QAbstractTableModel):
         self._entry_checker = None
 
         new_all_entries = []
-        dir_still_exists = True
+        self._scan_error = None
 
         try:
             with os.scandir(self._current_dir) as es:
                 for e in es:
                     entry = DirEntry(e)
                     new_all_entries.append(entry)
-        except OSError:
-            dir_still_exists = False
+        except OSError as e:
+            self._scan_error = str(e)
 
         new_all_entries = self._try_add_parent_dir(new_all_entries)
         new_all_entries.sort(key=lambda e: e.get_sort_key())
@@ -551,6 +560,8 @@ class DirectoryModel(QAbstractTableModel):
         self._fill_known_entries()
         self._entry_checker = self._check_entries()
         self.endResetModel()
+
+        self.scanDirFinished.emit()
 
     def _is_entry_file_visible(self, entry):
         return (self._show_all_files or
@@ -717,6 +728,9 @@ class DirectoryView(QTreeView):
         self._entries = []
         self._prev_selection = QItemSelection()
 
+        self._error_label = QLabel(self)
+        self._error_label.hide()
+
         style_mgr = self._ui_model.get_style_manager()
 
         self.setModel(self._model)
@@ -732,6 +746,7 @@ class DirectoryView(QTreeView):
         header.resizeSection(3, style_mgr.get_scaled_size(15))
 
         self._model.modelReset.connect(self._step_check_entries)
+        self._model.scanDirFinished.connect(self._on_dir_updated)
 
         self.selectionModel().selectionChanged.connect(self._on_selection_changed)
         self.doubleClicked.connect(self._on_double_clicked)
@@ -754,6 +769,25 @@ class DirectoryView(QTreeView):
 
         if self._model.has_unchecked_entries():
             self.stepCheckEntries.emit()
+
+    def _on_dir_updated(self):
+        error = self._model.get_scan_error()
+        if error:
+            self._error_label.setText(error)
+
+            # Estimate actual text size as the label doesn't know it yet
+            style_mgr = self._ui_model.get_style_manager()
+            font_family, font_size = get_default_font_info(style_mgr)
+            font = QFont(font_family, font_size)
+            fm = QFontMetrics(font, self)
+            rect = fm.boundingRect(self._error_label.text())
+
+            x = (self.width() - rect.width()) // 2
+            y = (self.height() - rect.height()) // 2
+            self._error_label.move(x, y)
+            self._error_label.show()
+        else:
+            self._error_label.hide()
 
     def get_entries(self):
         assert self._is_selection_valid(self._entries)
@@ -829,6 +863,11 @@ class DirectoryView(QTreeView):
 
         event.ignore()
         super().keyPressEvent(event)
+
+    def resizeEvent(self, event):
+        x = (self.width() - self._error_label.width()) // 2
+        y = (self.height() - self._error_label.height()) // 2
+        self._error_label.move(x, y)
 
 
 class FileNameValidator(QValidator):
