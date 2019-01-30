@@ -443,6 +443,26 @@ class DirectoryModel(QAbstractTableModel):
         parent_entry = DirEntry(('..', TYPE_DESC_DIR, pstat))
         return [parent_entry] + entries
 
+    def _try_scan_directory(self, directory):
+        entries = []
+        scan_error = None
+
+        try:
+            with os.scandir(directory) as es:
+                for e in es:
+                    entry = DirEntry(e)
+                    entries.append(entry)
+        except OSError as e:
+            entries = []
+            _, last = os.path.split(directory)
+            if isinstance(e, FileNotFoundError):
+                desc = 'Directory not found'
+            else:
+                desc = e.strerror
+            scan_error = 'Could not access directory: {}'.format(desc)
+
+        return entries, scan_error
+
     def set_directory(self, new_dir):
         self._entry_checker = None
 
@@ -455,16 +475,7 @@ class DirectoryModel(QAbstractTableModel):
         self._all_entries = []
         self._entries = []
 
-        new_all_entries = []
-        self._scan_error = None
-        try:
-            with os.scandir(self._current_dir) as es:
-                for e in es:
-                    entry = DirEntry(e)
-                    new_all_entries.append(entry)
-        except OSError as e:
-            new_all_entries = []
-            self._scan_error = str(e)
+        new_all_entries, self._scan_error = self._try_scan_directory(self._current_dir)
 
         self._all_entries = self._try_add_parent_dir(new_all_entries)
         self._all_entries.sort(key=lambda e: e.get_sort_key())
@@ -496,13 +507,7 @@ class DirectoryModel(QAbstractTableModel):
         new_all_entries = []
         self._scan_error = None
 
-        try:
-            with os.scandir(self._current_dir) as es:
-                for e in es:
-                    entry = DirEntry(e)
-                    new_all_entries.append(entry)
-        except OSError as e:
-            self._scan_error = str(e)
+        new_all_entries, self._scan_error = self._try_scan_directory(self._current_dir)
 
         new_all_entries = self._try_add_parent_dir(new_all_entries)
         new_all_entries.sort(key=lambda e: e.get_sort_key())
