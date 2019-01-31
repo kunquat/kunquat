@@ -450,6 +450,7 @@ class DirectoryModel(QAbstractTableModel):
         self._icons = {}
 
         self._fs_watcher.directoryChanged.connect(self._on_dir_modified)
+        self._fs_watcher.fileChanged.connect(self._on_file_modified)
 
     def _try_add_parent_dir(self, entries):
         parent_dir, _ = os.path.split(self._current_dir)
@@ -487,6 +488,9 @@ class DirectoryModel(QAbstractTableModel):
 
         if self._current_dir:
             self._fs_watcher.removePath(self._current_dir)
+            watched_files = self._fs_watcher.files()
+            if watched_files:
+                self._fs_watcher.removePaths(watched_files)
 
         self._current_dir = new_dir
 
@@ -538,7 +542,8 @@ class DirectoryModel(QAbstractTableModel):
         cur_new_entry = next(get_new, None)
         while cur_old_entry and cur_new_entry:
             if cur_old_entry.name == cur_new_entry.name:
-                if cur_old_entry.modified == cur_new_entry.modified:
+                if (cur_old_entry.checked and
+                        (cur_old_entry.modified == cur_new_entry.modified)):
                     final_all_entries.append(cur_old_entry)
                 else:
                     final_all_entries.append(cur_new_entry)
@@ -550,12 +555,16 @@ class DirectoryModel(QAbstractTableModel):
             elif cur_old_entry.get_sort_key() > cur_new_entry.get_sort_key():
                 # New entry added
                 final_all_entries.append(cur_new_entry)
+                new_path = os.path.join(self._current_dir, cur_new_entry.name)
+                self._fs_watcher.addPath(new_path)
                 cur_new_entry = next(get_new, None)
             else:
                 assert False
 
         while cur_new_entry:
             final_all_entries.append(cur_new_entry)
+            new_path = os.path.join(self._current_dir, cur_new_entry.name)
+            self._fs_watcher.addPath(new_path)
             cur_new_entry = next(get_new, None)
 
         self.beginResetModel()
@@ -565,6 +574,18 @@ class DirectoryModel(QAbstractTableModel):
         self.endResetModel()
 
         self.scanDirFinished.emit()
+
+    def _on_file_modified(self, file_path):
+        dir_path, file_name = os.path.split(file_path)
+        if (not os.path.exists(file_path)) or (dir_path != self._current_dir):
+            self._fs_watcher.removePath(file_path)
+            return
+
+        for entry in self._all_entries:
+            if entry.name == file_name:
+                entry.checked = False
+                break
+        self._on_dir_modified(dir_path)
 
     def _is_entry_file_visible(self, entry):
         return (self._show_all_files or
@@ -612,7 +633,7 @@ class DirectoryModel(QAbstractTableModel):
                 assert entry.get_sort_key() <= shown_entry.get_sort_key()
 
             if entry.is_dir() or entry.checked:
-                if entry.name == shown_entry.name:
+                if shown_entry and (entry.name == shown_entry.name):
                     row += 1
                 continue
 
