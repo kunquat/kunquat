@@ -97,8 +97,10 @@ class FileDialog(QDialog):
         }
         select_text = select_texts[self._mode]
 
+        allow_multiple = (self._mode == FileDialog.MODE_OPEN_MULT)
+
         self._dir_branch = DirectoryBranch(self._ui_model)
-        self._dir_view = DirectoryView(self._ui_model, filters)
+        self._dir_view = DirectoryView(self._ui_model, filters, allow_multiple)
         self._file_name = FileName()
         self._cancel_button = QPushButton('Cancel')
         self._select_button = QPushButton(select_text)
@@ -728,15 +730,22 @@ class DirectoryView(QTreeView):
     commitEntries = Signal(name='commitEntries')
     stepCheckEntries = Signal(name='stepCheckEntries')
 
-    def __init__(self, ui_model, filter_mask):
+    def __init__(self, ui_model, filter_mask, allow_multiple):
         super().__init__()
 
         self._ui_model = ui_model
         self._current_dir = None
+        self._allow_multiple = allow_multiple
         self._model = DirectoryModel(self._ui_model, filter_mask)
 
+        self.setSelectionBehavior(QAbstractItemView.SelectRows)
+        if allow_multiple:
+            self.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        else:
+            self.setSelectionMode(QAbstractItemView.SingleSelection)
+
         self._entries = []
-        self._prev_selection = QItemSelection()
+        self._prev_entries = []
 
         self._suggested_file_name = None
 
@@ -775,7 +784,7 @@ class DirectoryView(QTreeView):
         sm = self.selectionModel()
         new_entries = self._model.get_entries()
         if new_entries:
-            self._select_row(0)
+            self._select_rows([0])
         else:
             self._clear_selection()
 
@@ -805,12 +814,20 @@ class DirectoryView(QTreeView):
         assert self._is_selection_valid(self._entries)
         return self._entries
 
-    def _select_row(self, row):
+    def _select_rows(self, rows):
         sm = self.selectionModel()
-        left_index = self._model.createIndex(row, 0)
-        right_index = self._model.createIndex(row, DirEntry.get_header_count() - 1)
-        new_selection = QItemSelection(left_index, right_index)
-        sm.select(new_selection, QItemSelectionModel.ClearAndSelect)
+
+        selection = None
+        for row in rows:
+            left_index = self._model.createIndex(row, 0)
+            right_index = self._model.createIndex(row, DirEntry.get_header_count() - 1)
+            new_selection = QItemSelection(left_index, right_index)
+            if selection:
+                selection.merge(new_selection, QItemSelectionModel.Select)
+            else:
+                selection = new_selection
+
+        sm.select(selection, QItemSelectionModel.ClearAndSelect)
         old_block = sm.blockSignals(True)
         sm.setCurrentIndex(left_index, QItemSelectionModel.Select)
         sm.blockSignals(old_block)
@@ -829,7 +846,7 @@ class DirectoryView(QTreeView):
         entries = self._model.get_entries()
         for row, entry in enumerate(entries):
             if entry.name == self._suggested_file_name:
-                self._select_row(row)
+                self._select_rows([row])
                 self._suggested_file_name = None
                 break
         else:
@@ -851,7 +868,10 @@ class DirectoryView(QTreeView):
     def _get_selected_entries(self, selection):
         all_entries = self._model.get_entries()
         entries = []
-        for index in selection.indexes():
+        indices = selection
+        if isinstance(selection, QItemSelection):
+            indices = selection.indexes()
+        for index in indices:
             if index.column() == 0:
                 entries.append(all_entries[index.row()])
         return entries
@@ -859,22 +879,33 @@ class DirectoryView(QTreeView):
     def _is_selection_valid(self, entries):
         return (all(not e.is_dir() for e in entries) or (len(entries) == 1))
 
+    def _get_row(self, entry):
+        for i, e in enumerate(self._model.get_entries()):
+            if e == entry:
+                return i
+        return -1
+
     def _on_selection_changed(self, selected, deselected):
-        new_entries = self._get_selected_entries(selected)
+        sm = self.selectionModel()
+        new_entries = self._get_selected_entries(sm.selectedIndexes())
         if self._is_selection_valid(new_entries):
+            self._prev_entries = self._entries
             self._entries = new_entries
-            self._prev_selection = selected
             self.selectedEntriesChanged.emit()
         else:
-            prev_selection = self._prev_selection
-            self._prev_selection = QItemSelection()
-            prev_entries = self._get_selected_entries(prev_selection)
-            if self._is_selection_valid(prev_entries):
-                self.selectionModel().select(
-                        prev_selection, QItemSelectionModel.ClearAndSelect)
-            else:
-                self.selectionModel().select(
-                        QItemSelection(), QItemSelectionModel.ClearAndSelect)
+            used_entries = None
+            if self._is_selection_valid(self._entries):
+                used_entries = self._entries
+            elif self._is_selection_valid(self._prev_entries):
+                used_entries = self._prev_entries
+
+            rows = []
+            if used_entries:
+                for entry in used_entries:
+                    row = self._get_row(entry)
+                    if row >= 0:
+                        rows.append(row)
+            self._select_rows(rows if rows else [0])
 
     def _on_double_clicked(self, index):
         self.commitEntries.emit()
