@@ -42,8 +42,8 @@ def get_kqt_file_path(ui_model, types):
     default_dir = config.get_config().get_value(def_dir_conf_key) or ''
 
     dialog = FileDialog(ui_model, FileDialog.MODE_OPEN, caption, default_dir, filters)
-    paths = dialog.get_paths()
-    return paths[0] if paths else None
+    path = dialog.get_path()
+    return path
 
 
 def try_open_kqt_module(ui_model):
