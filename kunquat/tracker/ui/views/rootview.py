@@ -76,6 +76,7 @@ class RootView(Updater):
         self.register_action('signal_au_import_error', self._on_au_import_error)
         self.register_action('signal_au_import_finished', self._on_au_import_finished)
         self.register_action('signal_start_export_au', self._start_export_au)
+        self.register_action('signal_au_export_error', self._on_au_export_error)
         self.register_action('signal_export_au_finished', self._on_export_au_finished)
         self.register_action('signal_progress_start', self._show_progress_window)
         self.register_action('signal_progress_step', self._update_progress_window)
@@ -319,6 +320,17 @@ class RootView(Updater):
         self._au_import_error_dialog.setModal(True)
         self._au_import_error_dialog.show()
 
+    def _on_au_export_error(self):
+        def on_close():
+            self._module.finish_export_au()
+            self._set_windows_enabled(True)
+
+        error_info = self._module.get_reset_au_export_error_info()
+        assert error_info
+        export_error_dialog = AuExportErrorDialog(self._ui_model, error_info, on_close)
+        export_error_dialog.setModal(True)
+        export_error_dialog.show()
+
     def _on_au_import_finished(self):
         module = self._ui_model.get_module()
         module.finish_import_au()
@@ -468,7 +480,7 @@ class ModuleSaveErrorDialog(FileErrorDialog):
         super().__init__(
                 ui_model,
                 'Module saving failed',
-                'Could not save \'{}\' due to the following error:',
+                'Could not save to \'{}\' due to the following error:',
                 error_info,
                 perform_close)
 
@@ -482,5 +494,20 @@ class AuImportErrorDialog(FileErrorDialog):
                 'Could not import \'{}\' due to the following error:',
                 error_info,
                 on_close)
+
+
+class AuExportErrorDialog(FileErrorDialog):
+
+    def __init__(self, ui_model, error_info, on_close):
+        def perform_close():
+            on_close()
+            self.close()
+
+        super().__init__(
+                ui_model,
+                'Exporting failed',
+                'Could not export to \'{}\' due to the following error:',
+                error_info,
+                perform_close)
 
 

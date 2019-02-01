@@ -228,6 +228,14 @@ class Controller():
         self._session.set_progress_position(0)
         self._updater.signal_update('signal_progress_start')
 
+        if os.path.exists(au_path):
+            if not os.access(au_path, os.W_OK):
+                message = 'Writing permission denied'
+                self._session.set_au_export_error_info(au_path, message)
+                self._updater.signal_update(
+                        'signal_au_export_error', 'signal_progress_finished')
+                return
+
         with tempfile.NamedTemporaryFile(delete=False) as f:
             with zipfile.ZipFile(f, mode='w', compression=zipfile.ZIP_STORED) as zfile:
                 prefix = 'kqti00'
@@ -251,7 +259,13 @@ class Controller():
                 tmpname = f.name
 
         if tmpname:
-            os.rename(tmpname, au_path)
+            try:
+                os.rename(tmpname, au_path)
+            except OSError as e:
+                self._session.set_au_export_error_info(au_path, e.strerror)
+                self._updater.signal_update(
+                        'signal_au_export_error', 'signal_progress_finished')
+                return
 
         self._session.set_progress_position(1)
         self._updater.signal_update('signal_progress_finished')

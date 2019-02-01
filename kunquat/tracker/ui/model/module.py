@@ -179,6 +179,9 @@ class Module():
     def get_reset_au_import_error_info(self):
         return self._session.get_reset_au_import_error_info()
 
+    def get_reset_au_export_error_info(self):
+        return self._session.get_reset_au_export_error_info()
+
     def get_audio_unit(self, au_id):
         au = AudioUnit(au_id)
         au.set_controller(self._controller)
