@@ -1310,7 +1310,7 @@ class SampleListToolBar(QToolBar, ProcessorUpdater):
                 'Import samples ({} free slot{})'.format(
                     free_count, '' if free_count == 1 else 's'),
                 config.get_config().get_value('dir_samples') or '',
-                FileDialog.FILTER_ALL_PCM)
+                FileDialog.TYPE_ALL_PCM)
         sample_paths = file_dialog.get_paths()
         if sample_paths:
             # Make sure we've got enough space

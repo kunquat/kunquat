@@ -26,33 +26,23 @@ from .confirmdialog import ConfirmDialog
 from .utils import get_abs_window_size, get_default_font_info
 
 
-TYPE_DESC_DIR           = 'Directory'
-TYPE_DESC_FILE          = 'File'
-TYPE_DESC_INACCESSIBLE  = 'Inaccessible'
-
-TYPE_DESC_KQT           = 'Kunquat module'
-TYPE_DESC_KQTI          = 'Kunquat instrument'
-TYPE_DESC_KQTE          = 'Kunquat effect'
-TYPE_DESC_WAV           = 'Waveform audio file'
-TYPE_DESC_AIFF          = 'AIFF audio file'
-TYPE_DESC_AU            = 'Sun Au file'
-TYPE_DESC_WAVPACK       = 'WavPack audio file'
-TYPE_DESC_FLAC          = 'FLAC audio file'
-
-
 class FileDialog(QDialog):
 
-    FILTER_KQT      = 0x1
-    FILTER_KQTI     = 0x2
-    FILTER_KQTE     = 0x4
-    FILTER_ALL_KQT  = FILTER_KQT | FILTER_KQTI | FILTER_KQTE
-    FILTER_WAV      = 0x100
-    FILTER_AIFF     = 0x200
-    FILTER_AU       = 0x400
-    FILTER_WAVPACK  = 0x800
-    FILTER_FLAC     = 0x1000
-    FILTER_ALL_PCM  = FILTER_WAV | FILTER_AIFF | FILTER_AU | FILTER_WAVPACK | FILTER_FLAC
-    FILTER_ANY      = 0x100000
+    TYPE_KQT            = 0x1
+    TYPE_KQTI           = 0x2
+    TYPE_KQTE           = 0x4
+    TYPE_ALL_KQT        = TYPE_KQT | TYPE_KQTI | TYPE_KQTE
+    TYPE_WAV            = 0x100
+    TYPE_AIFF           = 0x200
+    TYPE_AU             = 0x400
+    TYPE_WAVPACK        = 0x800
+    TYPE_FLAC           = 0x1000
+    TYPE_ALL_PCM        = TYPE_WAV | TYPE_AIFF | TYPE_AU | TYPE_WAVPACK | TYPE_FLAC
+    TYPE_ANY            = 0x100000
+
+    _TYPE_DIR           = -1
+    _TYPE_FILE          = -2
+    _TYPE_INACCESSIBLE  = -3
 
     MODE_OPEN = 'open'
     MODE_OPEN_MULT = 'open_mult'
@@ -65,7 +55,7 @@ class FileDialog(QDialog):
         self._ui_model = ui_model
         self._mode = mode
         self._current_dir = None
-        self._final_paths = None
+        self._final_infos = None
 
         if self._mode == FileDialog.MODE_SAVE:
             if os.path.isdir(start_path):
@@ -81,7 +71,7 @@ class FileDialog(QDialog):
             start_file = None
 
         if self._mode == FileDialog.MODE_SAVE:
-            filters |= FileDialog.FILTER_ANY
+            filters |= FileDialog.TYPE_ANY
 
         self._dir_history = [os.path.abspath(os.path.expanduser('~'))]
 
@@ -145,9 +135,23 @@ class FileDialog(QDialog):
         if start_file:
             self._file_name.set_init_file_name(start_file)
 
-    def get_paths(self):
+    def get_paths_with_type_info(self):
         self.exec_()
-        return self._final_paths
+        return self._final_infos
+
+    def get_path_with_type_info(self):
+        assert self._mode != FileDialog.MODE_OPEN_MULT
+        infos = self.get_paths_with_type_info()
+        if infos:
+            assert len(infos) == 1
+            return infos[0]
+        return None, None
+
+    def get_paths(self):
+        infos = self.get_paths_with_type_info()
+        if not infos:
+            return None
+        return [info[0] for info in infos]
 
     def get_path(self):
         assert self._mode != FileDialog.MODE_OPEN_MULT
@@ -215,37 +219,37 @@ class FileDialog(QDialog):
         if self._mode in (FileDialog.MODE_OPEN, FileDialog.MODE_OPEN_MULT):
             entries = self._dir_view.get_entries()
             assert not any(e.is_dir() for e in entries)
-            paths = [os.path.join(self._current_dir, e.name) for e in entries]
-            self._return_paths(paths)
+            infos = [(os.path.join(self._current_dir, e.name), e.type) for e in entries]
+            self._return_infos(infos)
 
         elif self._mode == FileDialog.MODE_SAVE:
             file_name = self._file_name.get_file_name()
             path = os.path.join(self._current_dir, file_name)
 
-            paths = []
+            infos = []
             if os.path.exists(path):
-                confirm = lambda: paths.append(path)
+                confirm = lambda: infos.append((path, None))
                 dialog = OverwriteConfirmDialog(self._ui_model, path, confirm)
                 dialog.exec_()
             else:
-                paths = [path]
+                infos = [(path, None)]
 
-            if not paths:
+            if not infos:
                 return
-            self._return_paths(paths)
+            self._return_infos(infos)
 
         elif self._mode == FileDialog.MODE_CHOOSE_DIR:
             entries = self._dir_view.get_entries()
             assert len(entries) == 1
             entry = entries[0]
-            paths = [os.path.join(self._current_dir, entry.name)]
-            self._return_paths(paths)
+            infos = [os.path.join(self._current_dir, entry.name), None]
+            self._return_infos(infos)
 
-    def _return_paths(self, paths):
+    def _return_infos(self, infos):
         if self._mode != FileDialog.MODE_OPEN_MULT:
-            assert len(paths) == 1
+            assert len(infos) == 1
 
-        self._final_paths = paths
+        self._final_infos = infos
         self.close()
 
     def _on_file_name_changed(self):
@@ -276,6 +280,23 @@ class FileDialog(QDialog):
 
     def sizeHint(self):
         return get_abs_window_size(0.5, 0.5)
+
+
+_DESCS = {
+    FileDialog._TYPE_DIR            : 'Directory',
+    FileDialog._TYPE_FILE           : 'File',
+    FileDialog._TYPE_INACCESSIBLE   : 'Inaccessible',
+
+    FileDialog.TYPE_KQT     : 'Kunquat module',
+    FileDialog.TYPE_KQTI    : 'Kunquat instrument',
+    FileDialog.TYPE_KQTE    : 'Kunquat effect',
+
+    FileDialog.TYPE_WAV     : 'Waveform audio file',
+    FileDialog.TYPE_AIFF    : 'AIFF audio file',
+    FileDialog.TYPE_AU      : 'Sun Au file',
+    FileDialog.TYPE_WAVPACK : 'WavPack audio file',
+    FileDialog.TYPE_FLAC    : 'FLAC audio file',
+}
 
 
 class OverwriteConfirmDialog(ConfirmDialog):
@@ -348,7 +369,8 @@ class DirEntry():
         if isinstance(dir_entry_or_custom, os.DirEntry):
             dir_entry = dir_entry_or_custom
             self.name = dir_entry.name
-            self.type = TYPE_DESC_DIR if dir_entry.is_dir() else TYPE_DESC_FILE
+            self.type = (FileDialog._TYPE_DIR if dir_entry.is_dir()
+                    else FileDialog._TYPE_FILE)
             sr = dir_entry.stat()
             self.size = sr.st_size
             self.modified = sr.st_mtime
@@ -367,7 +389,7 @@ class DirEntry():
         self.is_visible = self.is_dir()
 
     def is_dir(self):
-        return self.type == TYPE_DESC_DIR
+        return (self.type == FileDialog._TYPE_DIR)
 
     def get_size_desc(self):
         if self.is_dir():
@@ -390,6 +412,9 @@ class DirEntry():
 
         return '{:.1f} {}'.format(self.size / min_size, suffix)
 
+    def get_type_desc(self):
+        return _DESCS[self.type]
+
     def get_modified_date(self):
         if self.modified == None:
             return ''
@@ -409,7 +434,7 @@ class DirEntry():
         elif index == 1:
             return self.get_size_desc()
         elif index == 2:
-            return self.type
+            return self.get_type_desc()
         elif index == 3:
             return self.get_modified_date()
 
@@ -423,19 +448,19 @@ class DirectoryModel(QAbstractTableModel):
     _HEADERS = [DirEntry.get_header_by_index(i) for i in range(4)]
 
     _ICON_NAMES = {
-        TYPE_DESC_DIR           : 'file_directory',
-        TYPE_DESC_FILE          : 'file_generic',
-        TYPE_DESC_INACCESSIBLE  : 'file_error',
+        FileDialog._TYPE_DIR            : 'file_directory',
+        FileDialog._TYPE_FILE           : 'file_generic',
+        FileDialog._TYPE_INACCESSIBLE   : 'file_error',
 
-        TYPE_DESC_KQT           : 'file_kqt',
-        TYPE_DESC_KQTI          : 'file_kqti',
-        TYPE_DESC_KQTE          : 'file_kqte',
+        FileDialog.TYPE_KQT     : 'file_kqt',
+        FileDialog.TYPE_KQTI    : 'file_kqti',
+        FileDialog.TYPE_KQTE    : 'file_kqte',
 
-        TYPE_DESC_WAV           : 'file_sample',
-        TYPE_DESC_AIFF          : 'file_sample',
-        TYPE_DESC_AU            : 'file_sample',
-        TYPE_DESC_WAVPACK       : 'file_sample',
-        TYPE_DESC_FLAC          : 'file_sample',
+        FileDialog.TYPE_WAV     : 'file_sample',
+        FileDialog.TYPE_AIFF    : 'file_sample',
+        FileDialog.TYPE_AU      : 'file_sample',
+        FileDialog.TYPE_WAVPACK : 'file_sample',
+        FileDialog.TYPE_FLAC    : 'file_sample',
     }
 
     def __init__(self, ui_model, filter_mask):
@@ -462,7 +487,7 @@ class DirectoryModel(QAbstractTableModel):
             pstat = os.stat(parent_dir)
         except OSError:
             pstat = None
-        parent_entry = DirEntry(('..', TYPE_DESC_DIR, pstat))
+        parent_entry = DirEntry(('..', FileDialog._TYPE_DIR, pstat))
         return [parent_entry] + entries
 
     def _try_scan_directory(self, directory):
@@ -1040,7 +1065,7 @@ def filter_kqt_entry(path, dir_entry):
     except zipfile.BadZipFile:
         return False
 
-    dir_entry.type = TYPE_DESC_KQT
+    dir_entry.type = FileDialog.TYPE_KQT
     return True
 
 
@@ -1081,7 +1106,7 @@ def filter_kqti_entry(path, dir_entry):
     except zipfile.BadZipFile:
         return False
 
-    dir_entry.type = TYPE_DESC_KQTI
+    dir_entry.type = FileDialog.TYPE_KQTI
     return True
 
 
@@ -1110,7 +1135,7 @@ def filter_kqte_entry(path, dir_entry):
     except zipfile.BadZipFile:
         return False
 
-    dir_entry.type = TYPE_DESC_KQTE
+    dir_entry.type = FileDialog.TYPE_KQTE
     return True
 
 
@@ -1124,10 +1149,10 @@ def get_sndfile_format(path):
 
 
 sndfile_format_descs = {
-    'wav'   : TYPE_DESC_WAV,
-    'aiff'  : TYPE_DESC_AIFF,
-    'au'    : TYPE_DESC_AU,
-    'flac'  : TYPE_DESC_FLAC,
+    'wav'   : FileDialog.TYPE_WAV,
+    'aiff'  : FileDialog.TYPE_AIFF,
+    'au'    : FileDialog.TYPE_AU,
+    'flac'  : FileDialog.TYPE_FLAC,
 }
 
 
@@ -1152,7 +1177,7 @@ def filter_wavpack_entry(path, dir_entry):
         if not (0x402 <= version <= 0x410):
             return False
 
-    dir_entry.type = TYPE_DESC_WAVPACK
+    dir_entry.type = FileDialog.TYPE_WAVPACK
     return True
 
 
@@ -1163,28 +1188,28 @@ def filter_any_entry(path, dir_entry):
 class EntryFilters():
 
     _FUNCS = {
-        FileDialog.FILTER_KQT       : filter_kqt_entry,
-        FileDialog.FILTER_KQTI      : filter_kqti_entry,
-        FileDialog.FILTER_KQTE      : filter_kqte_entry,
-        FileDialog.FILTER_WAVPACK   : filter_wavpack_entry,
-        FileDialog.FILTER_ANY       : filter_any_entry,
+        FileDialog.TYPE_KQT       : filter_kqt_entry,
+        FileDialog.TYPE_KQTI      : filter_kqti_entry,
+        FileDialog.TYPE_KQTE      : filter_kqte_entry,
+        FileDialog.TYPE_WAVPACK   : filter_wavpack_entry,
+        FileDialog.TYPE_ANY       : filter_any_entry,
     }
 
     def __init__(self, filter_mask):
         self._used_filters = []
 
         # Combine sndfile-based checks to reduce the number of tests
-        sndfile_mask = (FileDialog.FILTER_WAV |
-                FileDialog.FILTER_AIFF |
-                FileDialog.FILTER_AU |
-                FileDialog.FILTER_FLAC)
+        sndfile_mask = (FileDialog.TYPE_WAV |
+                FileDialog.TYPE_AIFF |
+                FileDialog.TYPE_AU |
+                FileDialog.TYPE_FLAC)
         if (filter_mask & sndfile_mask) != 0:
             allowed_formats = set()
             format_names = {
-                FileDialog.FILTER_WAV:  'wav',
-                FileDialog.FILTER_AIFF: 'aiff',
-                FileDialog.FILTER_AU:   'au',
-                FileDialog.FILTER_FLAC: 'flac',
+                FileDialog.TYPE_WAV:  'wav',
+                FileDialog.TYPE_AIFF: 'aiff',
+                FileDialog.TYPE_AU:   'au',
+                FileDialog.TYPE_FLAC: 'flac',
             }
             for bit, name in format_names.items():
                 if (bit & filter_mask) != 0:
@@ -1213,7 +1238,7 @@ class EntryFilters():
                     entry.is_visible = True
                     return True
             except OSError:
-                entry.type = TYPE_DESC_INACCESSIBLE
+                entry.type = FileDialog._TYPE_INACCESSIBLE
                 entry.is_visible = (filter_any_entry in self._used_filters)
                 break
         return False

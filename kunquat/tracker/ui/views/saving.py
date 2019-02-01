@@ -34,7 +34,7 @@ def try_save_module(ui_model, save_as=False):
 def get_module_save_path(ui_model):
     default_dir = config.get_config().get_value('dir_modules') or ''
     caption = 'Save Kunquat composition'
-    filters = FileDialog.FILTER_ALL_KQT | FileDialog.FILTER_ALL_PCM
+    filters = FileDialog.TYPE_ALL_KQT | FileDialog.TYPE_ALL_PCM
     dialog = FileDialog(ui_model, FileDialog.MODE_SAVE, caption, default_dir, filters)
     module_path = dialog.get_path()
     if not module_path:
@@ -59,7 +59,7 @@ def get_instrument_save_path(ui_model, au_name):
             suggested_path = os.path.join(default_dir, suggested_name)
 
     caption = 'Save Kunquat instrument'
-    filters = FileDialog.FILTER_ALL_KQT | FileDialog.FILTER_ALL_PCM
+    filters = FileDialog.TYPE_ALL_KQT | FileDialog.TYPE_ALL_PCM
     dialog = FileDialog(ui_model, FileDialog.MODE_SAVE, caption, suggested_path, filters)
     au_path = dialog.get_path()
     if not au_path:
@@ -78,7 +78,7 @@ def get_effect_save_path(ui_model, au_name):
             suggested_path = os.path.join(default_dir, suggested_name)
 
     caption = 'Save Kunquat effect'
-    filters = FileDialog.FILTER_ALL_KQT | FileDialog.FILTER_ALL_PCM
+    filters = FileDialog.TYPE_ALL_KQT | FileDialog.TYPE_ALL_PCM
     dialog = FileDialog(ui_model, FileDialog.MODE_SAVE, caption, suggested_path, filters)
     au_path = dialog.get_path()
     if not au_path:
