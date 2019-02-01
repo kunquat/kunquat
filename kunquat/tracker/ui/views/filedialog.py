@@ -889,6 +889,10 @@ class DirectoryView(QTreeView):
 
         if self._model.has_unchecked_entries():
             self.stepCheckEntries.emit()
+        else:
+            # An ugly hack, but can't think of anything better now :-P
+            self.header().setStretchLastSection(False)
+            self.header().setStretchLastSection(True)
 
     def _get_selected_entries(self, selection):
         all_entries = self._model.get_entries()
