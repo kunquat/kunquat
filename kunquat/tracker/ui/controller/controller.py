@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2013-2018
+# Authors: Tomi Jylhä-Ollila, Finland 2013-2019
 #          Toni Ruottu, Finland 2013-2014
 #
 # This file is part of Kunquat.
@@ -12,6 +12,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+import os
 import re
 import sys
 import json
@@ -172,6 +173,14 @@ class Controller():
         self._session.set_progress_position(0)
         self._updater.signal_update('signal_progress_start')
 
+        if os.path.exists(module_path):
+            if not os.access(module_path, os.W_OK):
+                message = 'Writing permission denied'
+                self._session.set_module_save_error_info(module_path, message)
+                self._updater.signal_update(
+                        'signal_module_save_error', 'signal_progress_finished')
+                return
+
         with tempfile.NamedTemporaryFile(delete=False) as f:
             with zipfile.ZipFile(f, mode='w', compression=zipfile.ZIP_STORED) as zfile:
                 prefix = 'kqtc00'
@@ -193,7 +202,13 @@ class Controller():
                 tmpname = f.name
 
         if tmpname:
-            os.rename(tmpname, module_path)
+            try:
+                os.rename(tmpname, module_path)
+            except OSError as e:
+                self._session.set_module_save_error_info(module_path, e.strerror)
+                self._updater.signal_update(
+                        'signal_module_save_error', 'signal_progress_finished')
+                return
 
         self._session.set_progress_position(1)
         self._updater.signal_update('signal_progress_finished')

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2014-2018
+# Authors: Tomi Jylhä-Ollila, Finland 2014-2019
 #          Toni Ruottu, Finland 2014
 #
 # This file is part of Kunquat.
@@ -81,6 +81,7 @@ class RootView(Updater):
         self.register_action('signal_progress_step', self._update_progress_window)
         self.register_action('signal_progress_finished', self._hide_progress_window)
         self.register_action('signal_module_load_error', self._on_module_load_error)
+        self.register_action('signal_module_save_error', self._on_module_save_error)
         self.register_action('signal_style_changed', self._update_style)
 
         style_mgr = self._ui_model.get_style_manager()
@@ -294,6 +295,17 @@ class RootView(Updater):
         self._load_error_dialog.setModal(True)
         self._load_error_dialog.show()
 
+    def _on_module_save_error(self):
+        def on_close():
+            self._module.finish_save_with_error()
+            self._set_windows_enabled(True)
+
+        error_info = self._module.get_clear_save_error_info()
+        assert error_info
+        save_error_dialog = ModuleSaveErrorDialog(self._ui_model, error_info, on_close)
+        save_error_dialog.setModal(True)
+        save_error_dialog.show()
+
     def _on_au_import_error(self):
         def on_close():
             if self._au_import_error_dialog:
@@ -377,7 +389,7 @@ class ProgressWindow(QWidget):
         event.ignore()
 
 
-class ImportErrorDialog(QDialog):
+class FileErrorDialog(QDialog):
 
     def __init__(self, ui_model, title, msg_fmt, error_info, on_close):
         super().__init__()
@@ -435,7 +447,7 @@ class ImportErrorDialog(QDialog):
         self._on_close()
 
 
-class ModuleLoadErrorDialog(ImportErrorDialog):
+class ModuleLoadErrorDialog(FileErrorDialog):
 
     def __init__(self, ui_model, error_info, on_close):
         super().__init__(
@@ -446,7 +458,22 @@ class ModuleLoadErrorDialog(ImportErrorDialog):
                 on_close)
 
 
-class AuImportErrorDialog(ImportErrorDialog):
+class ModuleSaveErrorDialog(FileErrorDialog):
+
+    def __init__(self, ui_model, error_info, on_close):
+        def perform_close():
+            on_close()
+            self.close()
+
+        super().__init__(
+                ui_model,
+                'Module saving failed',
+                'Could not save \'{}\' due to the following error:',
+                error_info,
+                perform_close)
+
+
+class AuImportErrorDialog(FileErrorDialog):
 
     def __init__(self, ui_model, error_info, on_close):
         super().__init__(

@@ -27,6 +27,9 @@ class ExitHelper():
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
 
+    def notify_save_module_error(self):
+        self._quit_after_saving = False
+
     def notify_save_module_finished(self):
         if self._quit_after_saving:
             visibility_mgr = self._ui_model.get_visibility_manager()

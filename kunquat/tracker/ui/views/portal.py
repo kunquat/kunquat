@@ -113,7 +113,10 @@ class FileButton(QToolButton, Updater):
         self.register_action('signal_module', self._set_module_loaded)
         self.register_action('signal_store', self._update_save_enabled)
         self.register_action(
-                'signal_save_module_finished', self._on_save_module_finished)
+                'signal_module_save_error', self._exit_helper.notify_save_module_error)
+        self.register_action(
+                'signal_save_module_finished',
+                self._exit_helper.notify_save_module_finished)
 
         self._exit_helper.set_ui_model(self._ui_model)
 
@@ -134,9 +137,6 @@ class FileButton(QToolButton, Updater):
             self._save_action.setEnabled(module.is_modified())
         else:
             self._save_action.setEnabled(False)
-
-    def _on_save_module_finished(self):
-        self._exit_helper.notify_save_module_finished()
 
     def _new(self):
         process_mgr = self._ui_model.get_process_manager()

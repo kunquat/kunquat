@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013
-#          Tomi Jylhä-Ollila, Finland 2013-2018
+#          Tomi Jylhä-Ollila, Finland 2013-2019
 #
 # This file is part of Kunquat.
 #
@@ -172,6 +172,9 @@ class Module():
 
     def get_load_error_info(self):
         return self._session.get_module_load_error_info()
+
+    def get_clear_save_error_info(self):
+        return self._session.get_clear_module_save_error_info()
 
     def get_reset_au_import_error_info(self):
         return self._session.get_reset_au_import_error_info()
@@ -438,13 +441,18 @@ class Module():
         assert self.is_saving()
 
         self._store.set_saving(True)
-        self._store.clear_modified_flag()
 
         module_path = self._session.get_module_path()
         task = self._controller.get_task_save_module(module_path)
         task_executor(task)
 
     def finish_save(self):
+        self._store.clear_modified_flag()
+        self._store.set_saving(False)
+        self._session.set_saving(False)
+
+    def finish_save_with_error(self):
+        self.set_path(None)
         self._store.set_saving(False)
         self._session.set_saving(False)
 

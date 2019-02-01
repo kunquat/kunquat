@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2013-2018
+# Authors: Tomi Jylhä-Ollila, Finland 2013-2019
 #          Toni Ruottu, Finland 2013-2014
 #
 # This file is part of Kunquat.
@@ -46,6 +46,8 @@ class MainWindow(Updater, SaverWindow):
     def _on_setup(self):
         self._exit_helper.set_ui_model(self._ui_model)
 
+        self.register_action(
+                'signal_module_save_error', self._exit_helper.notify_save_module_error)
         self.register_action(
                 'signal_save_module_finished',
                 self._exit_helper.notify_save_module_finished)
