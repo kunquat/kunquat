@@ -18,32 +18,13 @@ from kunquat.kunquat.limits import *
 import kunquat.tracker.config as config
 
 
-def get_kqt_file_path(ui_model, types):
-    if types == set(['kqt']):
-        caption = 'Open Kunquat module'
-        def_dir_conf_key = 'dir_modules'
-    elif types == set(['kqti', 'kqte']):
-        caption = 'Open Kunquat instrument/effect'
-        def_dir_conf_key = 'dir_instruments'
-    elif types == set(['kqte']):
-        caption = 'Open Kunquat effect'
-        def_dir_conf_key = 'dir_effects'
-    else:
-        assert False
+def get_kqt_file_path(ui_model):
+    caption = 'Open Kunquat module'
+    default_dir = config.get_config().get_value('dir_modules') or ''
 
-    filters = 0
-    if 'kqt' in types:
-        filters |= FileDialog.TYPE_KQT
-    if 'kqti' in types:
-        filters |= FileDialog.TYPE_KQTI
-    if 'kqte' in types:
-        filters |= FileDialog.TYPE_KQTE
-
-    default_dir = config.get_config().get_value(def_dir_conf_key) or ''
-
-    dialog = FileDialog(ui_model, FileDialog.MODE_OPEN, caption, default_dir, filters)
-    path = dialog.get_path()
-    return path
+    dialog = FileDialog(
+            ui_model, FileDialog.MODE_OPEN, caption, default_dir, FileDialog.TYPE_KQT)
+    return dialog.get_path()
 
 
 def get_au_file_info(ui_model, types):
@@ -63,7 +44,7 @@ def get_au_file_info(ui_model, types):
 
 
 def try_open_kqt_module(ui_model):
-    file_path = get_kqt_file_path(ui_model, set(['kqt']))
+    file_path = get_kqt_file_path(ui_model)
     if file_path:
         process_mgr = ui_model.get_process_manager()
         process_mgr.new_kunquat(file_path)
