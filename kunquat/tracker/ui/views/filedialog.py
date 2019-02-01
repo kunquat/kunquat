@@ -1050,25 +1050,6 @@ def is_valid_kqt_key(key, magic_id):
     return ('.' in key_components[-1])
 
 
-def filter_kqt_entry(path, dir_entry):
-    magic_id = 'kqtc00'
-
-    try:
-        with zipfile.ZipFile(path, mode='r') as zfile:
-            found_magic_id = False
-            for entry in zfile.infolist():
-                if not is_valid_kqt_key(entry.filename, magic_id):
-                    return False
-                found_magic_id = True
-            if not found_magic_id:
-                return False
-    except zipfile.BadZipFile:
-        return False
-
-    dir_entry.type = FileDialog.TYPE_KQT
-    return True
-
-
 def get_au_type(manifest_data):
     try:
         decoded = json.loads(str(manifest_data, encoding='utf-8'))
@@ -1081,61 +1062,48 @@ def get_au_type(manifest_data):
     return au_type
 
 
-def filter_kqti_entry(path, dir_entry):
-    magic_id = 'kqti00'
+def filter_any_kqt_entry(path, dir_entry, allowed_formats):
+    magic_id = None
+    kqt_type = None
+    is_au = False
 
     try:
         with zipfile.ZipFile(path, mode='r') as zfile:
-            found_magic_id = False
-            found_manifest = False
             for entry in zfile.infolist():
-                if not is_valid_kqt_key(entry.filename, magic_id):
-                    return False
-                found_magic_id = True
-
-                key_components = entry.filename.split('/')
-                if len(key_components) == 2 and key_components[-1] == 'p_manifest.json':
-                    data = zfile.read(entry)
-                    if get_au_type(data) == 'instrument':
-                        found_manifest = True
+                if magic_id == None:
+                    key_components = entry.filename.split('/')
+                    if key_components[0] not in ('kqtc00', 'kqti00'):
+                        return False
+                    magic_id = key_components[0]
+                    if magic_id == 'kqtc00':
+                        kqt_type = FileDialog.TYPE_KQT
+                    elif magic_id == 'kqti00':
+                        is_au = True
                     else:
                         return False
 
-            if (not found_magic_id) or (not found_manifest):
-                return False
-    except zipfile.BadZipFile:
-        return False
-
-    dir_entry.type = FileDialog.TYPE_KQTI
-    return True
-
-
-def filter_kqte_entry(path, dir_entry):
-    magic_id = 'kqti00'
-
-    try:
-        with zipfile.ZipFile(path, mode='r') as zfile:
-            found_magic_id = False
-            found_manifest = False
-            for entry in zfile.infolist():
                 if not is_valid_kqt_key(entry.filename, magic_id):
                     return False
-                found_magic_id = True
 
-                key_components = entry.filename.split('/')
-                if len(key_components) == 2 and key_components[-1] == 'p_manifest.json':
-                    data = zfile.read(entry)
-                    if get_au_type(data) == 'effect':
-                        found_manifest = True
-                    else:
-                        return False
+                if (not kqt_type) and is_au:
+                    key_components = entry.filename.split('/')
+                    if (len(key_components) == 2 and
+                            key_components[-1] == 'p_manifest.json'):
+                        data = zfile.read(entry)
+                        if get_au_type(data) == 'instrument':
+                            kqt_type = FileDialog.TYPE_KQTI
+                        elif get_au_type(data) == 'effect':
+                            kqt_type = FileDialog.TYPE_KQTE
+                        else:
+                            return False
 
-            if (not found_magic_id) or (not found_manifest):
-                return False
     except zipfile.BadZipFile:
         return False
 
-    dir_entry.type = FileDialog.TYPE_KQTE
+    if not kqt_type:
+        return False
+
+    dir_entry.type = kqt_type
     return True
 
 
@@ -1188,15 +1156,17 @@ def filter_any_entry(path, dir_entry):
 class EntryFilters():
 
     _FUNCS = {
-        FileDialog.TYPE_KQT       : filter_kqt_entry,
-        FileDialog.TYPE_KQTI      : filter_kqti_entry,
-        FileDialog.TYPE_KQTE      : filter_kqte_entry,
         FileDialog.TYPE_WAVPACK   : filter_wavpack_entry,
         FileDialog.TYPE_ANY       : filter_any_entry,
     }
 
     def __init__(self, filter_mask):
         self._used_filters = []
+
+        # Combine Kunquat format checks to reduce the number of tests
+        allowed_kqt_formats = (filter_mask & FileDialog.TYPE_ALL_KQT)
+        if allowed_kqt_formats != 0:
+            kqt_filter = lambda p, d: filter_any_kqt_entry(p, d, allowed_kqt_formats)
 
         # Combine sndfile-based checks to reduce the number of tests
         sndfile_mask = (FileDialog.TYPE_WAV |
@@ -1221,7 +1191,11 @@ class EntryFilters():
         filter_bit = 1
         while mask_left:
             if (mask_left & 1) != 0:
-                if (filter_bit & sndfile_mask) != 0:
+                if (filter_bit & allowed_kqt_formats) != 0:
+                    if kqt_filter:
+                        self._used_filters.append(kqt_filter)
+                        kqt_filter = None
+                elif (filter_bit & sndfile_mask) != 0:
                     if sndfile_filter:
                         self._used_filters.append(sndfile_filter)
                         sndfile_filter = None
