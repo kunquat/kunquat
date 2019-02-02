@@ -21,6 +21,7 @@ import kunquat.tracker.cmdline as cmdline
 import kunquat.tracker.config as config
 from .filedialog import FileDialog
 from .headerline import HeaderLine
+from .kqtcombobox import KqtComboBox
 from .numberslider import NumberSlider
 from . import utils
 from .updater import Updater
@@ -39,7 +40,7 @@ class Settings(QWidget, Updater):
 
         self._chord_mode = ChordMode()
 
-        self._font = FontButton()
+        self._font = FontSelector()
         self._border_contrast = BorderContrast()
         self._button_brightness = ButtonBrightness()
         self._button_press_brightness = ButtonPressBrightness()
@@ -246,41 +247,156 @@ class ChordMode(QCheckBox, Updater):
         self._updater.signal_update('signal_chord_mode_changed')
 
 
-class FontButton(QPushButton, Updater):
+class FontSelector(QWidget, Updater):
+
+    def __init__(self):
+        super().__init__()
+
+        self._font_family = FontFamilySelector()
+        self._font_size = FontSizeSelector()
+
+        self.add_to_updaters(self._font_family, self._font_size)
+
+        h = QHBoxLayout()
+        h.setContentsMargins(0, 0, 0, 0)
+        h.addWidget(self._font_family, 1)
+        h.addWidget(self._font_size)
+        self.setLayout(h)
+
+    def _on_setup(self):
+        style_mgr = self._ui_model.get_style_manager()
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('medium_padding'))
+
+
+class FontFamilyModel(QAbstractItemModel):
+
+    def __init__(self, style_mgr, families, container):
+        super().__init__()
+        self._style_mgr = style_mgr
+        self._families = families
+        self._container = container
+
+    # Qt interface
+
+    def index(self, row, column, parent):
+        if parent.isValid():
+            return QModelIndex()
+        if not (0 <= row < len(self._families)) or (column != 0):
+            return QModelIndex()
+
+        return self.createIndex(row, column, self._families[row])
+
+    def parent(self, index):
+        return QModelIndex()
+
+    def rowCount(self, parent):
+        if parent.isValid():
+            return 0
+        return len(self._families)
+
+    def columnCount(self, parent):
+        if parent.isValid():
+            return 0
+        return 1
+
+    def data(self, index, role):
+        row = index.row()
+        if (0 <= row < len(self._families)) and (index.column() == 0):
+            if role == Qt.DisplayRole:
+                return self._families[row]
+
+            elif role == Qt.SizeHintRole:
+                _, font_size = get_default_font_info(self._style_mgr)
+                font = QFont(self._families[row])
+                font.setPointSize(font_size)
+                fm = QFontMetrics(font, self._container)
+                rect = fm.tightBoundingRect(self._families[row])
+                dim_add = self._style_mgr.get_scaled_size_param('medium_padding') * 2
+                return QSize(rect.width() + dim_add, rect.height() + dim_add)
+
+            elif role == Qt.TextAlignmentRole:
+                return Qt.AlignLeft | Qt.AlignVCenter
+
+            elif role == Qt.FontRole:
+                _, font_size = get_default_font_info(self._style_mgr)
+                font = QFont(self._families[row])
+                font.setPointSize(font_size)
+                return font
+
+
+class FontFamilySelector(KqtComboBox, Updater):
+
+    def __init__(self):
+        super().__init__()
+        self._model = None
+
+    def _on_setup(self):
+        self._families = QFontDatabase().families()
+
+        self._model = FontFamilyModel(
+                self._ui_model.get_style_manager(), self._families, self)
+        self.setModel(self._model)
+
+        self.register_action('signal_style_changed', self._update_family)
+        self.currentTextChanged.connect(self._change_family)
+
+        self._update_family()
+
+    def _update_family(self):
+        style_mgr = self._ui_model.get_style_manager()
+        family, _ = get_default_font_info(style_mgr)
+
+        old_block = self.blockSignals(True)
+        if self.currentText() != family:
+            self.setCurrentText(family)
+        self.blockSignals(old_block)
+
+    def _change_family(self, new_family):
+        style_mgr = self._ui_model.get_style_manager()
+        _, font_size = get_default_font_info(style_mgr)
+
+        style_mgr.set_style_param('def_font_family', new_family)
+        update_ref_font_height((new_family, font_size), style_mgr)
+
+        self._updater.signal_update('signal_style_changed')
+
+
+class FontSizeSelector(QSpinBox, Updater):
+
+    _MIN_SIZE = 6
+    _MAX_SIZE = 32
 
     def __init__(self):
         super().__init__()
 
     def _on_setup(self):
-        self.register_action('signal_style_changed', self._update_desc)
-        self._update_desc()
-        self.clicked.connect(self._change_desc)
+        self.register_action('signal_style_changed', self._update_size)
 
-    def _get_font(self):
+        self.setRange(self._MIN_SIZE, self._MAX_SIZE)
+        self.valueChanged.connect(self._change_size)
+
+        self._update_size()
+
+    def _update_size(self):
         style_mgr = self._ui_model.get_style_manager()
-        font_family, font_size = get_default_font_info(style_mgr)
-        return (font_family, font_size)
+        _, font_size = get_default_font_info(style_mgr)
+        size = min(max(self._MIN_SIZE, font_size), self._MAX_SIZE)
 
-    def _update_desc(self):
-        self.setText('{} {}'.format(*self._get_font()))
+        old_block = self.blockSignals(True)
+        if size != self.value():
+            self.setValue(size)
+        self.blockSignals(old_block)
 
-    def _change_desc(self):
-        font, new_font_selected = QFontDialog.getFont(
-                QFont(*self._get_font()), self, 'Select default font')
-        if not new_font_selected:
-            return
+    def _change_size(self, value):
+        new_size = min(max(self._MIN_SIZE, self.value()), self._MAX_SIZE)
 
-        font_family = font.family()
-        font_size = min(max(1, font.pointSize()), 50)
         style_mgr = self._ui_model.get_style_manager()
-        style_mgr.set_style_param('def_font_family', font_family)
-        style_mgr.set_style_param('def_font_size', font_size)
-        update_ref_font_height((font_family, font_size), style_mgr)
+        font_family, _ = get_default_font_info(style_mgr)
 
-        self._updater.signal_update(
-                'signal_style_changed',
-                'signal_sheet_zoom_range',
-                'signal_sheet_column_width')
+        style_mgr.set_style_param('def_font_size', new_size)
+        update_ref_font_height((font_family, new_size), style_mgr)
+
+        self._updater.signal_update('signal_style_changed')
 
 
 class StyleSlider(NumberSlider, Updater):
