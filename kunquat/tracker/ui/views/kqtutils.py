@@ -51,35 +51,28 @@ def try_open_kqt_module(ui_model):
 
 
 def open_kqt_au(au_path, au_type, ui_model, container):
+    assert au_type in (FileDialog.TYPE_KQTI, FileDialog.TYPE_KQTE)
+
     is_inside_instrument = not (container is ui_model.get_module())
 
-    if au_type == FileDialog.TYPE_KQTI:
-        au_id = container.get_free_au_id()
-        if au_id == None:
-            dialog = OutOfIDsErrorDialog(ui_model.get_icon_bank(), 'au')
+    au_id = container.get_free_au_id()
+    if au_id == None:
+        dialog = OutOfIDsErrorDialog(
+                ui_model.get_icon_bank(), 'au', is_inside_instrument)
+        dialog.exec_()
+        return
+
+    if not is_inside_instrument:
+        control_id = container.get_free_control_id()
+        if control_id == None:
+            dialog = OutOfIDsErrorDialog(ui_model.get_icon_bank(), 'control')
             dialog.exec_()
             return
-        if not is_inside_instrument:
-            control_id = container.get_free_control_id()
-            if control_id == None:
-                dialog = OutOfIDsErrorDialog(ui_model.get_icon_bank(), 'control')
-                dialog.exec_()
-                return
-        else:
-            control_id = None
-        container.start_import_au(au_path, au_id, control_id)
-
-    elif au_type == FileDialog.TYPE_KQTE:
-        au_id = container.get_free_au_id()
-        if au_id == None:
-            dialog = OutOfIDsErrorDialog(
-                    ui_model.get_icon_bank(), 'au', is_inside_instrument)
-            dialog.exec_()
-            return
-        container.start_import_au(au_path, au_id)
-
     else:
-        assert False
+        assert au_type == FileDialog.TYPE_KQTE
+        control_id = None
+
+    container.start_import_au(au_path, au_id, control_id)
 
 
 class OutOfIDsErrorDialog(QDialog):

@@ -320,19 +320,19 @@ class Controller():
             dest_key = '{}/{}'.format(au_id, key)
             transaction[dest_key] = value
 
+        # Add audio unit control
+        if ('/' not in au_id) and control_id:
+            control_num = int(control_id.split('_')[1], 16)
+            au_num = int(au_id.split('_')[1], 16)
+
+            control_map = self._store.get('p_control_map.json', [])
+            control_map.append([control_num, au_num])
+
+            transaction['p_control_map.json'] = control_map
+            transaction['{}/p_manifest.json'.format(control_id)] = {}
+
         # Connect instrument
         if transaction['{}/p_manifest.json'.format(au_id)]['type'] == 'instrument':
-            # Add instrument control
-            if ('/' not in au_id) and control_id:
-                control_num = int(control_id.split('_')[1], 16)
-                au_num = int(au_id.split('_')[1], 16)
-
-                control_map = self._store.get('p_control_map.json', [])
-                control_map.append([control_num, au_num])
-
-                transaction['p_control_map.json'] = control_map
-                transaction['{}/p_manifest.json'.format(control_id)] = {}
-
             # Get output ports of the containing device
             if '/' in au_id:
                 parent_au_id = au_id.split('/')[0]
