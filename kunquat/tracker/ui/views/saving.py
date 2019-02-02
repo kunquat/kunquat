@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2015-2017
+# Authors: Tomi Jylhä-Ollila, Finland 2015-2019
 #
 # This file is part of Kunquat.
 #
@@ -15,6 +15,7 @@ import os.path
 
 from kunquat.tracker.ui.qt import *
 
+from .filedialog import FileDialog
 import kunquat.tracker.config as config
 
 
@@ -22,7 +23,7 @@ def try_save_module(ui_model, save_as=False):
     module = ui_model.get_module()
 
     if (not module.get_path()) or save_as:
-        module_path = get_module_save_path()
+        module_path = get_module_save_path(ui_model)
         if not module_path:
             return
         module.set_path(module_path)
@@ -30,18 +31,17 @@ def try_save_module(ui_model, save_as=False):
     module.start_save()
 
 
-def get_module_save_path():
+def get_module_save_path(ui_model):
     default_dir = config.get_config().get_value('dir_modules') or ''
-    module_path, _ = QFileDialog.getSaveFileName(
-            None,
-            'Save Kunquat composition',
-            default_dir,
-            'Kunquat compositions (*.kqt)')
+    caption = 'Save Kunquat composition'
+    filters = FileDialog.TYPE_ALL_KQT | FileDialog.TYPE_ALL_PCM
+    dialog = FileDialog(ui_model, FileDialog.MODE_SAVE, caption, default_dir, filters)
+    module_path = dialog.get_path()
     if not module_path:
+        #print('Not saving')
         return None
 
-    if not module_path.endswith('.kqt'):
-        module_path += '.kqt'
+    #print('Saving {}'.format(module_path))
     return module_path
 
 
@@ -49,7 +49,7 @@ def _get_suggested_au_base_file_name(au_name):
     return ''.join(c for c in au_name if c.isalnum() or c in ' ').strip()
 
 
-def get_instrument_save_path(au_name):
+def get_instrument_save_path(ui_model, au_name):
     default_dir = config.get_config().get_value('dir_instruments') or ''
     suggested_path = default_dir
     if au_name:
@@ -57,20 +57,18 @@ def get_instrument_save_path(au_name):
         if suggested_base_name:
             suggested_name = suggested_base_name + '.kqti'
             suggested_path = os.path.join(default_dir, suggested_name)
-    au_path, _ = QFileDialog.getSaveFileName(
-            None,
-            'Save Kunquat instrument',
-            suggested_path,
-            'Kunquat instruments (*.kqti)')
+
+    caption = 'Save Kunquat instrument'
+    filters = FileDialog.TYPE_ALL_KQT | FileDialog.TYPE_ALL_PCM
+    dialog = FileDialog(ui_model, FileDialog.MODE_SAVE, caption, suggested_path, filters)
+    au_path = dialog.get_path()
     if not au_path:
         return None
 
-    if not au_path.endswith('.kqti'):
-        au_path += '.kqti'
     return au_path
 
 
-def get_effect_save_path(au_name):
+def get_effect_save_path(ui_model, au_name):
     default_dir = config.get_config().get_value('dir_effects') or ''
     suggested_path = default_dir
     if au_name:
@@ -78,16 +76,14 @@ def get_effect_save_path(au_name):
         if suggested_base_name:
             suggested_name = suggested_base_name + '.kqte'
             suggested_path = os.path.join(default_dir, suggested_name)
-    au_path, _ = QFileDialog.getSaveFileName(
-            None,
-            'Save Kunquat effect',
-            suggested_path,
-            'Kunquat effects (*.kqte)')
+
+    caption = 'Save Kunquat effect'
+    filters = FileDialog.TYPE_ALL_KQT | FileDialog.TYPE_ALL_PCM
+    dialog = FileDialog(ui_model, FileDialog.MODE_SAVE, caption, suggested_path, filters)
+    au_path = dialog.get_path()
     if not au_path:
         return None
 
-    if not au_path.endswith('.kqte'):
-        au_path += '.kqte'
     return au_path
 
 

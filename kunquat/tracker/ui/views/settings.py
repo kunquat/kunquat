@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016-2018
+# Author: Tomi Jylhä-Ollila, Finland 2016-2019
 #
 # This file is part of Kunquat.
 #
@@ -19,6 +19,7 @@ from kunquat.tracker.ui.qt import *
 
 import kunquat.tracker.cmdline as cmdline
 import kunquat.tracker.config as config
+from .filedialog import FileDialog
 from .headerline import HeaderLine
 from .numberslider import NumberSlider
 from . import utils
@@ -144,9 +145,10 @@ class Settings(QWidget, Updater):
 
 class Directory(QWidget, Updater):
 
-    def __init__(self, conf_key):
+    def __init__(self, conf_key, caption):
         super().__init__()
         self._conf_key = conf_key
+        self._caption = caption
 
         self._text = QLineEdit()
         self._browse = QPushButton('Browse...')
@@ -189,7 +191,9 @@ class Directory(QWidget, Updater):
     def _change_dir_browse(self):
         cfg = config.get_config()
         cur_dir = cfg.get_value(self._conf_key) or os.getcwd()
-        new_dir = QFileDialog.getExistingDirectory(None, '', cur_dir)
+        dialog = FileDialog(
+                self._ui_model, FileDialog.MODE_CHOOSE_DIR, self._caption, cur_dir)
+        new_dir = dialog.get_path()
         if new_dir:
             self._change_dir_text(new_dir)
 
@@ -197,25 +201,26 @@ class Directory(QWidget, Updater):
 class Modules(Directory):
 
     def __init__(self):
-        super().__init__('dir_modules')
+        super().__init__('dir_modules', 'Choose default directory for Kunquat modules')
 
 
 class Instruments(Directory):
 
     def __init__(self):
-        super().__init__('dir_instruments')
+        super().__init__(
+                'dir_instruments', 'Choose default directory for Kunquat instruments')
 
 
 class Samples(Directory):
 
     def __init__(self):
-        super().__init__('dir_samples')
+        super().__init__('dir_samples', 'Choose default directory for samples')
 
 
 class Effects(Directory):
 
     def __init__(self):
-        super().__init__('dir_effects')
+        super().__init__('dir_effects', 'Choose default directory for Kunquat effects')
 
 
 class ChordMode(QCheckBox, Updater):

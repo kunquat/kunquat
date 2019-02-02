@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013-2014
-#          Tomi Jylhä-Ollila, Finland 2013-2018
+#          Tomi Jylhä-Ollila, Finland 2013-2019
 #
 # This file is part of Kunquat.
 #
@@ -69,9 +69,11 @@ class Session():
         self._module_path = None
         self._is_saving = False
         self._module_load_error_info = None
+        self._module_save_error_info = None
         self._au_import_info = None
         self._au_import_error_info = None
         self._au_export_info = None
+        self._au_export_error_info = None
 
         # Task progress information
         self._progress_description = None
@@ -739,6 +741,14 @@ class Session():
     def get_module_load_error_info(self):
         return self._module_load_error_info
 
+    def set_module_save_error_info(self, path, msg):
+        self._module_save_error_info = (path, msg)
+
+    def get_clear_module_save_error_info(self):
+        ret = self._module_save_error_info
+        self._module_save_error_info = None
+        return ret
+
     def set_saving(self, enabled):
         self._is_saving = enabled
 
@@ -784,6 +794,14 @@ class Session():
     def get_reset_au_import_error_info(self):
         info = self._au_import_error_info
         self._au_import_error_info = None
+        return info
+
+    def set_au_export_error_info(self, path, error):
+        self._au_export_error_info = (path, error)
+
+    def get_reset_au_export_error_info(self):
+        info = self._au_export_error_info
+        self._au_export_error_info = None
         return info
 
     def set_au_export_info(self, info):

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016-2017
+# Author: Tomi Jylhä-Ollila, Finland 2016-2019
 #
 # This file is part of Kunquat.
 #
@@ -13,82 +13,66 @@
 
 from kunquat.tracker.ui.qt import *
 
+from .filedialog import FileDialog
 from kunquat.kunquat.limits import *
 import kunquat.tracker.config as config
 
 
-def get_kqt_file_path(types):
-    filters = []
-    if types == set(['kqt', 'kqti', 'kqte']):
-        caption = 'Open Kunquat file'
-        filters.append('All Kunquat files (*.kqt *.kqti *.kqte)')
-        def_dir_conf_key = 'dir_modules'
-    elif types == set(['kqti', 'kqte']):
+def get_kqt_file_path(ui_model):
+    caption = 'Open Kunquat module'
+    default_dir = config.get_config().get_value('dir_modules') or ''
+
+    dialog = FileDialog(
+            ui_model, FileDialog.MODE_OPEN, caption, default_dir, FileDialog.TYPE_KQT)
+    return dialog.get_path()
+
+
+def get_au_file_info(ui_model, types):
+    if types == (FileDialog.TYPE_KQTI | FileDialog.TYPE_KQTE):
         caption = 'Open Kunquat instrument/effect'
-        filters.append('Kunquat instruments and effects (*.kqti *.kqte)')
         def_dir_conf_key = 'dir_instruments'
-    elif types == set(['kqte']):
+    elif types == FileDialog.TYPE_KQTE:
         caption = 'Open Kunquat effect'
         def_dir_conf_key = 'dir_effects'
     else:
         assert False
 
-    if 'kqt' in types:
-        filters.append('Kunquat compositions (*.kqt)')
-    if 'kqti' in types:
-        filters.append('Kunquat instruments (*.kqti)')
-    if 'kqte' in types:
-        filters.append('Kunquat effects (*.kqte)')
-
     default_dir = config.get_config().get_value(def_dir_conf_key) or ''
 
-    file_path, _ = QFileDialog.getOpenFileName(
-            None, caption, default_dir, ';;'.join(filters))
+    dialog = FileDialog(ui_model, FileDialog.MODE_OPEN, caption, default_dir, types)
+    return dialog.get_path_with_type_info()
+
+
+def try_open_kqt_module(ui_model):
+    file_path = get_kqt_file_path(ui_model)
     if file_path:
-        return file_path
-    return None
+        process_mgr = ui_model.get_process_manager()
+        process_mgr.new_kunquat(file_path)
 
 
-def try_open_kqt_module_or_au(ui_model):
-    file_path = get_kqt_file_path(set(['kqt', 'kqti', 'kqte']))
-    if file_path:
-        if file_path.endswith('.kqt'):
-            process_mgr = ui_model.get_process_manager()
-            process_mgr.new_kunquat(file_path)
-        else:
-            open_kqt_au(file_path, ui_model, ui_model.get_module())
+def open_kqt_au(au_path, au_type, ui_model, container):
+    assert au_type in (FileDialog.TYPE_KQTI, FileDialog.TYPE_KQTE)
 
-
-def open_kqt_au(au_path, ui_model, container):
     is_inside_instrument = not (container is ui_model.get_module())
 
-    if au_path.endswith('.kqti'):
-        au_id = container.get_free_au_id()
-        if au_id == None:
-            dialog = OutOfIDsErrorDialog(ui_model.get_icon_bank(), 'au')
+    au_id = container.get_free_au_id()
+    if au_id == None:
+        dialog = OutOfIDsErrorDialog(
+                ui_model.get_icon_bank(), 'au', is_inside_instrument)
+        dialog.exec_()
+        return
+
+    if not is_inside_instrument:
+        control_id = container.get_free_control_id()
+        if control_id == None:
+            dialog = OutOfIDsErrorDialog(ui_model.get_icon_bank(), 'control')
             dialog.exec_()
             return
-        if not is_inside_instrument:
-            control_id = container.get_free_control_id()
-            if control_id == None:
-                dialog = OutOfIDsErrorDialog(ui_model.get_icon_bank(), 'control')
-                dialog.exec_()
-                return
-        else:
-            control_id = None
-        container.start_import_au(au_path, au_id, control_id)
-
-    elif au_path.endswith('.kqte'):
-        au_id = container.get_free_au_id()
-        if au_id == None:
-            dialog = OutOfIDsErrorDialog(
-                    ui_model.get_icon_bank(), 'au', is_inside_instrument)
-            dialog.exec_()
-            return
-        container.start_import_au(au_path, au_id)
-
     else:
-        assert False
+        assert au_type == FileDialog.TYPE_KQTE
+        control_id = None
+
+    container.start_import_au(au_path, au_id, control_id)
 
 
 class OutOfIDsErrorDialog(QDialog):

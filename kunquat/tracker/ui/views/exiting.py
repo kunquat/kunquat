@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2017-2018
+# Author: Tomi Jylhä-Ollila, Finland 2017-2019
 #
 # This file is part of Kunquat.
 #
@@ -27,6 +27,9 @@ class ExitHelper():
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
 
+    def notify_save_module_error(self):
+        self._quit_after_saving = False
+
     def notify_save_module_finished(self):
         if self._quit_after_saving:
             visibility_mgr = self._ui_model.get_visibility_manager()
@@ -48,7 +51,7 @@ class ExitHelper():
         module = self._ui_model.get_module()
 
         if not module.get_path():
-            module_path = get_module_save_path()
+            module_path = get_module_save_path(self._ui_model)
             if not module_path:
                 return
             module.set_path(module_path)

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2013-2018
+# Authors: Tomi Jylhä-Ollila, Finland 2013-2019
 #          Toni Ruottu, Finland 2013-2014
 #
 # This file is part of Kunquat.
@@ -18,7 +18,7 @@ from kunquat.kunquat.limits import *
 from .eventlistbutton import EventListButton
 from .exiting import ExitHelper
 from . import utils
-from .kqtutils import try_open_kqt_module_or_au
+from .kqtutils import try_open_kqt_module
 from .saving import try_save_module
 from .updater import Updater
 
@@ -113,7 +113,10 @@ class FileButton(QToolButton, Updater):
         self.register_action('signal_module', self._set_module_loaded)
         self.register_action('signal_store', self._update_save_enabled)
         self.register_action(
-                'signal_save_module_finished', self._on_save_module_finished)
+                'signal_module_save_error', self._exit_helper.notify_save_module_error)
+        self.register_action(
+                'signal_save_module_finished',
+                self._exit_helper.notify_save_module_finished)
 
         self._exit_helper.set_ui_model(self._ui_model)
 
@@ -135,15 +138,12 @@ class FileButton(QToolButton, Updater):
         else:
             self._save_action.setEnabled(False)
 
-    def _on_save_module_finished(self):
-        self._exit_helper.notify_save_module_finished()
-
     def _new(self):
         process_mgr = self._ui_model.get_process_manager()
         process_mgr.new_kunquat()
 
     def _open(self):
-        try_open_kqt_module_or_au(self._ui_model)
+        try_open_kqt_module(self._ui_model)
 
     def _save(self):
         try_save_module(self._ui_model)

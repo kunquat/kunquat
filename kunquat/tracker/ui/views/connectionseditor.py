@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015-2018
+# Author: Tomi Jylhä-Ollila, Finland 2015-2019
 #
 # This file is part of Kunquat.
 #
@@ -16,9 +16,10 @@ from kunquat.tracker.ui.qt import *
 from kunquat.kunquat.limits import *
 from .audiounit.audiounitupdater import AudioUnitUpdater
 from .connections import Connections
+from .filedialog import FileDialog
 from .processor import proctypeinfo
 from .kqtcombobox import KqtComboBox
-from .kqtutils import get_kqt_file_path, open_kqt_au
+from .kqtutils import get_au_file_info, open_kqt_au
 from .saving import get_instrument_save_path, get_effect_save_path
 from .stylecreator import StyleCreator
 
@@ -192,24 +193,27 @@ class ConnectionsToolBar(QToolBar, AudioUnitUpdater):
 
     def _import_au(self):
         module = self._ui_model.get_module()
+
         if self._au_id == None:
-            au_path = get_kqt_file_path(set(['kqti', 'kqte']))
+            au_path, au_type = get_au_file_info(
+                    self._ui_model, FileDialog.TYPE_KQTI | FileDialog.TYPE_KQTE)
         else:
-            au_path = get_kqt_file_path(set(['kqte']))
-        if au_path:
+            au_path, au_type = get_au_file_info(self._ui_model, FileDialog.TYPE_KQTE)
+
+        if au_path and (au_type in (FileDialog.TYPE_KQTI, FileDialog.TYPE_KQTE)):
             container = module
             if self._au_id != None:
                 container = module.get_audio_unit(self._au_id)
-            open_kqt_au(au_path, self._ui_model, container)
+            open_kqt_au(au_path, au_type, self._ui_model, container)
 
     def _export_au(self):
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
 
         if au.is_instrument():
-            au_path = get_instrument_save_path(au.get_name())
+            au_path = get_instrument_save_path(self._ui_model, au.get_name())
         else:
-            au_path = get_effect_save_path(au.get_name())
+            au_path = get_effect_save_path(self._ui_model, au.get_name())
         if not au_path:
             return
 
