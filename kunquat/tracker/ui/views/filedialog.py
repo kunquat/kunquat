@@ -242,7 +242,7 @@ class FileDialog(QDialog):
             entries = self._dir_view.get_entries()
             assert len(entries) == 1
             entry = entries[0]
-            infos = [os.path.join(self._current_dir, entry.name), None]
+            infos = [(os.path.join(self._current_dir, entry.name), None)]
             self._return_infos(infos)
 
     def _return_infos(self, infos):
