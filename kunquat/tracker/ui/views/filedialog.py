@@ -1068,7 +1068,7 @@ def get_au_type(manifest_data):
 
 def filter_any_kqt_entry(path, dir_entry, allowed_formats):
     magic_id = None
-    kqt_type = None
+    kqt_type = 0
     is_au = False
 
     try:
@@ -1081,6 +1081,8 @@ def filter_any_kqt_entry(path, dir_entry, allowed_formats):
                     magic_id = key_components[0]
                     if magic_id == 'kqtc00':
                         kqt_type = FileDialog.TYPE_KQT
+                        if (kqt_type & allowed_formats) == 0:
+                            return False
                     elif magic_id == 'kqti00':
                         is_au = True
                     else:
@@ -1099,6 +1101,8 @@ def filter_any_kqt_entry(path, dir_entry, allowed_formats):
                         elif get_au_type(data) == 'effect':
                             kqt_type = FileDialog.TYPE_KQTE
                         else:
+                            return False
+                        if (kqt_type & allowed_formats) == 0:
                             return False
 
     except zipfile.BadZipFile:
