@@ -36,6 +36,7 @@ class StyleManager():
         'radio_check_spacing'               : 0.5,
         'scrollbar_margin'                  : 1.1,
         'scrollbar_size'                    : 1.2,
+        'sheet_grid_line_width'             : 0.1,
         'slider_handle_size'                : 3.0,
         'slider_thickness'                  : 1.0,
         'small_padding'                     : 0.2,
