@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2017
+# Author: Tomi Jylhä-Ollila, Finland 2017-2019
 #
 # This file is part of Kunquat.
 #
@@ -27,7 +27,7 @@ class KqtComboBox(QComboBox):
         new_items -- The sequence of new items. If each item consists of a
                      single value, they are stored as the displayed value.
                      If each item is a 2-tuple, the first is stored as the
-                     displyed value and the second as the userdata value.
+                     displayed value and the second as the userdata value.
 
         """
         old_block = self.blockSignals(True)
