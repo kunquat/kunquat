@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2013-2018
+# Author: Tomi Jylhä-Ollila, Finland 2013-2019
 #
 # This file is part of Kunquat.
 #
@@ -212,8 +212,10 @@ def get_config_with_custom_style(style_mgr):
         _get_colour(style_mgr.get_style_param('sheet_grid_level_2_colour')),
         _get_colour(style_mgr.get_style_param('sheet_grid_level_3_colour')),
     ]
+    grid_line_width = style_mgr.get_scaled_size_param('sheet_grid_line_width')
     for i in range(9):
         grid_styles[i].setColor(grid_colours[i // 3])
+        grid_styles[i].setWidthF(grid_line_width)
     grid_edit_cursor = DEFAULT_CONFIG['grid']['edit_cursor'].copy()
     grid_edit_cursor['height'] = style_mgr.get_scaled_size(0.9)
     grid_edit_cursor['width'] = style_mgr.get_scaled_size(1.1)

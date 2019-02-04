@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2017
+# Author: Tomi Jylhä-Ollila, Finland 2014-2019
 #
 # This file is part of Kunquat.
 #
@@ -12,6 +12,7 @@
 #
 
 from itertools import islice, zip_longest
+import math
 
 from kunquat.tracker.ui.qt import *
 
@@ -603,17 +604,26 @@ class ColumnCache():
             pinsts = utils.get_all_pattern_instances(self._ui_model)
             pinst = pinsts[pat_index]
 
+            line_width = self._gl_cache.get_line_pixmap(0).height()
+            slice_margin_ts = utils.get_tstamp_from_px(
+                    line_width / 2, self._px_per_beat)
+
             grid_start_ts = tstamp.Tstamp(0, start_px * tstamp.BEAT // self._px_per_beat)
             tr_height_ts = utils.get_tstamp_from_px(
                     self._config['tr_height'], self._px_per_beat)
             lines = grid.get_grid_lines(
-                    pinst, self._col_num, grid_start_ts, stop_ts, tr_height_ts)
+                    pinst,
+                    self._col_num,
+                    max(tstamp.Tstamp(0), grid_start_ts - slice_margin_ts),
+                    stop_ts + slice_margin_ts,
+                    tr_height_ts)
 
             for line_info in lines:
                 line_ts, line_style = line_info
                 line_y_offset = ts_to_y_offset(line_ts)
 
                 line_pixmap = self._gl_cache.get_line_pixmap(line_style)
+                line_y_offset -= (line_pixmap.height() - 1) // 2
                 painter.drawPixmap(QPoint(border_width, line_y_offset), line_pixmap)
 
         # Trigger rows
@@ -815,19 +825,21 @@ class GridLineCache():
         return colour
 
     def _create_line_pixmap(self, style):
-        pixmap = QPixmap(self._width, 1)
+        pen = QPen(self._config['grid']['styles'][style])
+        pen.setColor(self._get_final_colour(pen.color()))
+
+        pixmap = QPixmap(self._width, math.ceil(pen.widthF()))
 
         painter = QPainter(pixmap)
 
         # Background
         painter.setBackground(self._get_final_colour(self._config['bg_colour']))
-        painter.eraseRect(QRect(0, 0, self._width - 1, 1))
+        painter.eraseRect(QRect(0, 0, self._width, pixmap.height()))
 
         # Line
-        pen = QPen(self._config['grid']['styles'][style])
-        pen.setColor(self._get_final_colour(pen.color()))
         painter.setPen(pen)
-        painter.drawLine(QPoint(0, 0), QPoint(self._width - 1, 0))
+        offset_y = (pixmap.height() / 2) - 0.5
+        painter.drawLine(QPointF(0, offset_y), QPointF(self._width - 1, offset_y))
 
         return pixmap
 
