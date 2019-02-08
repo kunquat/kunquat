@@ -126,7 +126,7 @@ class StyleManager():
         'system_load_mid_colour'            : '#dc3',
         'system_load_high_colour'           : '#e21',
         'text_bg_colour'                    : '#211d2c',
-        'text_fg_colour'                    : '#e9d0a7',
+        'text_fg_colour'                    : '#d9c7a9',
         'text_selected_bg_colour'           : '#36a',
         'text_selected_fg_colour'           : '#ffc',
         'text_disabled_fg_colour'           : '#8b7865',
