@@ -1,0 +1,82 @@
+
+
+/*
+ * This is the style sheet used for help pages within Kunquat Tracker.
+ *
+ * The following special syntax is supported:
+ *   <pt[s]> -- expands to point size that is s times the default font size
+ *   <px[s]> -- expands to pixel size that is s times the default font height
+ *
+ * The following standard CSS features are NOT supported:
+ *   > (direct child in selectors)
+ *   anything else that Qt does not support
+ */
+
+
+.head
+{
+    margin-bottom: <px[1]>;
+    font-size: <pt[1.7]>;
+    font-weight: bold;
+    text-align: center;
+}
+
+section .head
+{
+    margin-top: <px[1.5]>;
+    margin-left: <px[4]>;
+    margin-right: <px[4]>;
+    margin-bottom: <px[0.5]>;
+    font-size: <pt[1.5]>;
+    text-align: left;
+}
+
+section section .head
+{
+    font-size: <pt[1.2]>;
+}
+
+p
+{
+    margin-top: <px[0.8]>;
+    margin-left: <px[2]>;
+    margin-right: <px[2]>;
+    margin-bottom: <px[0.8]>;
+    font-size: <pt[1]>;
+}
+
+table
+{
+    margin-top: <px[1]>;
+    margin-left: <px[4]>;
+    margin-right: <px[4]>;
+    margin-bottom: <px[1]>;
+}
+
+td
+{
+    padding-top: <px[0.5]>;
+    padding-bottom: <px[0.5]>;
+}
+
+td.etype
+{
+    font-weight: bold;
+}
+
+td.edesc
+{
+    padding-left: <px[3]>;
+}
+
+td.edesc .head, td.edesc .head var
+{
+    margin-top: 0;
+    margin-left: 0;
+    margin-right: 0;
+    margin-bottom: 0;
+    font-size: <pt[1]>;
+    text-align: left;
+}
+
+
