@@ -211,9 +211,9 @@ class StyleManager():
         adjusted_colour = (c + brightness for c in orig_colour)
         return self._get_str_from_colour(adjusted_colour)
 
-    def get_link_colour(self):
+    def get_link_colour(self, colour_param='fg_colour'):
         shift = (-0.3, 0.1, 0.6)
-        fg_colour = self._get_colour_from_str(self.get_style_param('fg_colour'))
+        fg_colour = self._get_colour_from_str(self.get_style_param(colour_param))
         return self._get_str_from_colour(c + s for (c, s) in zip(fg_colour, shift))
 
     def get_help_style(self, font_size):
@@ -233,7 +233,8 @@ class StyleManager():
 
         kwargs = {
             'pt': _SizeHelper(font_size, 'pt'),
-            'px': _SizeHelper(self.get_scaled_size(1), 'px')
+            'px': _SizeHelper(self.get_scaled_size(1), 'px'),
+            'col': _ColourHelper(self),
         }
 
         final_style = pref_style.format(**kwargs)
@@ -276,5 +277,18 @@ class _SizeHelper():
         rel_size = float(index)
         abs_size = int(round(self._size * rel_size))
         return '{}{}'.format(abs_size, self._suffix)
+
+
+class _ColourHelper():
+
+    def __init__(self, style_mgr):
+        self._style_mgr = style_mgr
+
+    def __getitem__(self, name):
+        if name == 'link_fg':
+            return self._style_mgr.get_link_colour('text_fg_colour')
+
+        colour_param = '{}_colour'.format(name)
+        return self._style_mgr.get_style_param(colour_param)
 
 
