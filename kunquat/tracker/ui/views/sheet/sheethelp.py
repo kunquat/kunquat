@@ -11,53 +11,16 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from kunquat.tracker.ui.qt import *
-
-from kunquat.tracker.ui.views.updater import Updater
-from kunquat.tracker.ui.views.utils import get_default_font_info
+from kunquat.tracker.ui.views.helpview import HelpView
 
 
-class SheetHelp(QWidget, Updater):
+class SheetHelp(HelpView):
 
     def __init__(self):
         super().__init__()
 
-        self._text = Browser()
-        self.add_to_updaters(self._text)
-
-        v = QVBoxLayout()
-        v.setContentsMargins(0, 0, 0, 0)
-        v.setSpacing(0)
-        v.addWidget(self._text)
-        self.setLayout(v)
-
-
-class Browser(QTextEdit, Updater):
-
-    def __init__(self):
-        super().__init__()
-        self.setAcceptRichText(True)
-        self.setReadOnly(True)
-
-        doc = QTextDocument()
-        self.setDocument(doc)
-
-    def _on_setup(self):
-        self.register_action('signal_style_changed', self._update_style)
-        self._update_style()
-
-    def _update_style(self):
-        style_mgr = self._ui_model.get_style_manager()
-        _, font_size = get_default_font_info(style_mgr)
-        style_sheet = style_mgr.get_help_style(font_size)
-
+    def _get_help_data(self):
         sheet_mgr = self._ui_model.get_sheet_manager()
-        help_data = sheet_mgr.get_help()
-
-        self.document().setDefaultStyleSheet(style_sheet)
-        self.document().setHtml(help_data)
-
-        # TODO: try to show the same top row when font size changes
-        self.moveCursor(QTextCursor.Start)
+        return sheet_mgr.get_help()
 
 
