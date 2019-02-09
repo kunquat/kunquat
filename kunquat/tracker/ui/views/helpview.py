@@ -37,7 +37,7 @@ class HelpView(QWidget, Updater):
         raise NotImplementedError
 
 
-class Browser(QTextEdit, Updater):
+class Browser(QTextBrowser, Updater):
 
     def __init__(self, get_help_data):
         super().__init__()
