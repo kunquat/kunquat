@@ -11,6 +11,8 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+import re
+
 import kunquat.tracker.config as config
 
 
@@ -214,6 +216,29 @@ class StyleManager():
         fg_colour = self._get_colour_from_str(self.get_style_param('fg_colour'))
         return self._get_str_from_colour(c + s for (c, s) in zip(fg_colour, shift))
 
+    def get_help_style(self, font_size):
+        share = self._controller.get_share()
+        stored_style = share.get_help_style()
+
+        substs = {
+            '{': '{{',
+            '}': '}}',
+            '<': '{',
+            '>': '}',
+        }
+
+        patterns = ['/\*.*?\*/'] + [re.escape(k) for k in substs.keys()]
+        preformat = re.compile('|'.join(patterns), re.DOTALL)
+        pref_style = preformat.sub(lambda mo: substs.get(mo.group(0), ''), stored_style)
+
+        kwargs = {
+            'pt': _SizeHelper(font_size, 'pt'),
+            'px': _SizeHelper(self.get_scaled_size(1), 'px')
+        }
+
+        final_style = pref_style.format(**kwargs)
+        return final_style
+
     def _get_colour_from_str(self, s):
         if len(s) == 4:
             cs = [s[1], s[2], s[3]]
@@ -239,5 +264,17 @@ class StyleManager():
     def _get_config_style(self):
         cfg = config.get_config()
         return cfg.get_value('style') or {}
+
+
+class _SizeHelper():
+
+    def __init__(self, default_size, suffix):
+        self._size = default_size
+        self._suffix = suffix
+
+    def __getitem__(self, index):
+        rel_size = float(index)
+        abs_size = int(round(self._size * rel_size))
+        return '{}{}'.format(abs_size, self._suffix)
 
 
