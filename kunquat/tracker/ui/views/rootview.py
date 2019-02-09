@@ -32,6 +32,7 @@ from .procwindow import ProcWindow
 from .sheet.grideditorwindow import GridEditorWindow
 from .iawindow import IAWindow
 from .renderstatswindow import RenderStatsWindow
+from .sheet.sheethelpwindow import SheetHelpWindow
 from .updater import Updater
 from . import utils
 
@@ -138,6 +139,7 @@ class RootView(Updater):
             UI_GRID_EDITOR:     GridEditorWindow,
             UI_IA_CONTROLS:     IAWindow,
             UI_RENDER_STATS:    RenderStatsWindow,
+            UI_SHEET_HELP:      SheetHelpWindow,
         }
 
         mult_window_cons = {

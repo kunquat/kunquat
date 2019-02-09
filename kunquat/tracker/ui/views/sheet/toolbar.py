@@ -48,6 +48,8 @@ class Toolbar(QWidget, Updater):
                 ZoomButton('original_w'),
                 ZoomButton('expand_w'),
             ]
+        self._sheet_help_button = SheetHelpButton()
+
         self._grid_toggle = GridToggle()
         self._grid_editor_button = GridEditorButton()
         self._grid_selector = GridSelector()
@@ -66,6 +68,7 @@ class Toolbar(QWidget, Updater):
                 self._paste_button,
                 self._convert_tr_button,
                 *self._zoom_buttons,
+                self._sheet_help_button,
                 self._grid_toggle,
                 self._grid_editor_button,
                 self._grid_selector,
@@ -94,6 +97,8 @@ class Toolbar(QWidget, Updater):
         h.addWidget(HackSeparator())
         for button in self._zoom_buttons:
             h.addWidget(button)
+        h.addWidget(HackSeparator())
+        h.addWidget(self._sheet_help_button)
 
         spacer = QWidget()
         spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
@@ -661,6 +666,19 @@ class ZoomButton(IconButton):
                 new_width = self._sheet_mgr.get_column_width() - 1
             if self._sheet_mgr.set_column_width(new_width):
                 self._updater.signal_update('signal_sheet_column_width')
+
+
+class SheetHelpButton(QPushButton, Updater):
+
+    def __init__(self):
+        super().__init__()
+        self.setText('Help')
+
+    def _on_setup(self):
+        self.clicked.connect(self._show_help)
+
+    def _show_help(self):
+        self._ui_model.get_visibility_manager().show_sheet_help()
 
 
 class GridToggle(QCheckBox, Updater):

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2014-2016
+# Authors: Tomi Jylhä-Ollila, Finland 2014-2019
 #          Toni Ruottu, Finland 2014
 #
 # This file is part of Kunquat.
@@ -25,6 +25,7 @@ UI_NOTATION     = 'notation'
 UI_PROCESSOR    = 'processor'
 UI_RENDER_STATS = 'render_stats'
 UI_SETTINGS     = 'settings'
+UI_SHEET_HELP   = 'sheet_help'
 UI_SONGS_CHS    = 'songs_channels'
 UI_TUNING_TABLE = 'tuning_table'
 
