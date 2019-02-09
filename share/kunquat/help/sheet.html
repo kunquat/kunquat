@@ -15,6 +15,20 @@ NOTE: This document contains weird hacks due to buggy and limited support in Qt.
 
 <div class="head">Composition sheet instructions</div>
 
+<ul>
+<li><a href="#quick_edit">Quick editing instructions</a></li>
+<li><a href="#event_types">Event types</a>
+    <ul>
+    <li><a href="#channel_events">Channel events</a></li>
+    <li><a href="#master_events">Master events</a></li>
+    <li><a href="#au_events">Audio unit events</a></li>
+    </ul></li>
+</ul>
+
+<section>
+
+<div class="head"><a name="quick_edit">Quick editing instructions</a></div>
+
 <p>
 Use your keyboard to test instruments or add notes. Space toggles editing mode.
 Insert toggles replace mode.
@@ -25,15 +39,17 @@ Return allows you to add any event trigger at the cursor position, or in
 replace mode, change the argument of an existing event at the cursor position.
 </p>
 
+</section>
+
 <section>
-<div class="head">Event types</div>
+<div class="head"><a name="event_types">Event types</a></div>
 
 <p>
 Unless otherwise stated, events that accept an argument accept any real number.
 </p>
 
 <section>
-<div class="head">Channel events</div>
+<div class="head"><a name="channel_events">Channel events</a></div>
 
 <p>
 Channel events control active notes and other parts of channel state.
@@ -367,7 +383,7 @@ Normally you shouldn't need this, as you can configure proper defaults in the
 
 
 <section>
-<div class="head">Master events</div>
+<div class="head"><a name="master_events">Master events</a></div>
 </section>
 
 <p>
@@ -507,7 +523,7 @@ Suspend playback cursor at the event.
 
 <section>
 
-<div class="head">Audio unit events</div>
+<div class="head"><a name="au_events">Audio unit events</a></div>
 
 <p>
 Audio unit events control parameters that apply to a single instrument/effect as a whole.

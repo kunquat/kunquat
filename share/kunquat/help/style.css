@@ -4,8 +4,9 @@
  * This is the style sheet used for help pages within Kunquat Tracker.
  *
  * The following special syntax is supported:
- *   <pt[s]> -- expands to point size that is s times the default font size
- *   <px[s]> -- expands to pixel size that is s times the default font height
+ *   <pt[s]>  -- expands to point size that is s times the default font size
+ *   <px[s]>  -- expands to pixel size that is s times the default font height
+ *   <col[c]> -- expands colour parameter c to a #rgb or #rrggbb colour
  *
  * The following standard CSS features are NOT supported:
  *   > (direct child in selectors)
@@ -13,7 +14,7 @@
  */
 
 
-.head
+.head, .head a
 {
     margin-bottom: <px[1]>;
     font-size: <pt[1.7]>;
@@ -21,7 +22,7 @@
     text-align: center;
 }
 
-section .head
+section .head, section .head a
 {
     margin-top: <px[1.5]>;
     margin-left: <px[4]>;
@@ -31,7 +32,7 @@ section .head
     text-align: left;
 }
 
-section section .head
+section section .head, section section .head a
 {
     font-size: <pt[1.2]>;
 }
@@ -43,6 +44,33 @@ p
     margin-right: <px[2]>;
     margin-bottom: <px[0.8]>;
     font-size: <pt[1]>;
+}
+
+a:link
+{
+    color: <col[link_fg]>;
+}
+
+ul
+{
+    margin-top: 0;
+    margin-left: 0;
+    margin-right: 0;
+    margin-bottom: 0;
+}
+
+li
+{
+    margin-top: 0;
+    margin-left: <px[2]>;
+    margin-right: <px[2]>;
+    margin-bottom: 0;
+    list-style-type: none;
+}
+
+li li
+{
+    margin-left: 0;
 }
 
 table
