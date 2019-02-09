@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2013-2018
+# Authors: Tomi Jylhä-Ollila, Finland 2013-2019
 #          Toni Ruottu, Finland 2013-2014
 #
 # This file is part of Kunquat.
@@ -316,7 +316,7 @@ class UiModel():
     def silence(self):
         self._controller.silence()
 
-    def clock(self):
+    def clock(self): # TODO: This name has almost nothing to do with the functionality, fix!
         self._controller.send_queries()
 
 
