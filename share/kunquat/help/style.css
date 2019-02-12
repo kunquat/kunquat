@@ -81,23 +81,22 @@ table
     margin-bottom: <px[1]>;
 }
 
-td
+table.events td
 {
     padding-top: <px[0.5]>;
+    padding-left: <px[3]>;
     padding-bottom: <px[0.5]>;
 }
 
-td.etype
+table.events th
 {
+    padding-top: <px[0.5]>;
+    padding-bottom: <px[0.5]>;
+    text-align: left;
     font-weight: bold;
 }
 
-td.edesc
-{
-    padding-left: <px[3]>;
-}
-
-td.edesc .head, td.edesc .head var
+table.events td .head, table.events td .head var
 {
     margin-top: 0;
     margin-left: 0;

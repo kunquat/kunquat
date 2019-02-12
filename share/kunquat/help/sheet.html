@@ -55,34 +55,34 @@ Unless otherwise stated, events that accept an argument accept any real number.
 Channel events control active notes and other parts of channel state.
 </p>
 
-<table>
+<table class="events">
 
 <tr>
-<td class="etype">.f</td>
-<td class="edesc">
+<th>.f</th>
+<td>
 <p class="head">Set force to <var>x</var> dB</p>
 Unattenuated force level is 30 dB by default.
 </td>
 </tr>
 
 <tr>
-<td class="etype">/f</td>
-<td class="edesc">
+<th>/f</th>
+<td>
 <p class="head">Slide force to <var>x</var> dB</p>
 Use <strong>/=f</strong> to control slide duration.
 </td>
 </tr>
 
 <tr>
-<td class="etype">/=f</td>
-<td class="edesc">
+<th>/=f</th>
+<td>
 <p class="head">Set force slide length to <var>x</var> beats</p>
 </td>
 </tr>
 
 <tr>
-<td class="etype">ts</td>
-<td class="edesc">
+<th>ts</th>
+<td>
 <p class="head">Set tremolo speed to <var>x</var> cycles/second</p>
 By default, the new speed takes full effect immediately; use
 <strong>t/=s</strong> to control the length of transition to the new speed.
@@ -90,8 +90,8 @@ By default, the new speed takes full effect immediately; use
 </tr>
 
 <tr>
-<td class="etype">td</td>
-<td class="edesc">
+<th>td</th>
+<td>
 <p class="head">Set tremolo depth to ±<var>x</var> dB</p>
 By default, the new depth takes full effect immediately; use
 <strong>t/=d</strong> to control the length of transition to the new depth.
@@ -99,22 +99,22 @@ By default, the new depth takes full effect immediately; use
 </tr>
 
 <tr>
-<td class="etype">t/=s</td>
-<td class="edesc">
+<th>t/=s</th>
+<td>
 <p class="head">Set tremolo speed slide length to <var>x</var> beats</p>
 </td>
 </tr>
 
 <tr>
-<td class="etype">t/=d</td>
-<td class="edesc">
+<th>t/=d</th>
+<td>
 <p class="head">Set tremolo depth slide length to <var>x</var> beats</p>
 </td>
 </tr>
 
 <tr>
-<td class="etype">-&gt;f+</td>
-<td class="edesc">
+<th>-&gt;f+</th>
+<td>
 <p class="head">Turn on force carrying</p>
 With carrying enabled, following notes will use the force state (fixed force,
 slide and tremolo) of the current note.
@@ -122,31 +122,31 @@ slide and tremolo) of the current note.
 </tr>
 
 <tr>
-<td class="etype">-&gt;f-</td>
-<td class="edesc">
+<th>-&gt;f-</th>
+<td>
 <p class="head">Turn off force carrying</p>
 With carrying disabled, following notes will use the default force state.
 </td>
 </tr>
 
 <tr>
-<td class="etype">/p</td>
-<td class="edesc">
+<th>/p</th>
+<td>
 <p class="head">Slide pitch to <var>x</var></p>
 Use <strong>/=p</strong> to control slide duration.
 </td>
 </tr>
 
 <tr>
-<td class="etype">/=p</td>
-<td class="edesc">
+<th>/=p</th>
+<td>
 <p class="head">Set pitch slide length to <var>x</var> beats</p>
 </td>
 </tr>
 
 <tr>
-<td class="etype">vs</td>
-<td class="edesc">
+<th>vs</th>
+<td>
 <p class="head">Set vibrato speed to <var>x</var> cycles/second</p>
 By default, the new speed takes full effect immediately; use
 <strong>v/=s</strong> to control the length of transition to the new speed.
@@ -154,8 +154,8 @@ By default, the new speed takes full effect immediately; use
 </tr>
 
 <tr>
-<td class="etype">vd</td>
-<td class="edesc">
+<th>vd</th>
+<td>
 <p class="head">Set vibrato depth to <var>x</var></p>
 The depth uses a unit of 5 cents, and specifies maximum deviation: e.g. a depth
 of 240 reaches one octave above and below the centre pitch.
@@ -165,22 +165,22 @@ By default, the new depth takes full effect immediately; use
 </tr>
 
 <tr>
-<td class="etype">v/=s</td>
-<td class="edesc">
+<th>v/=s</th>
+<td>
 <p class="head">Set vibrato speed slide length to <var>x</var> beats</p>
 </td>
 </tr>
 
 <tr>
-<td class="etype">v/=d</td>
-<td class="edesc">
+<th>v/=d</th>
+<td>
 <p class="head">Set vibrato depth slide length to <var>x</var> beats</p>
 </td>
 </tr>
 
 <tr>
-<td class="etype">-&gt;p+</td>
-<td class="edesc">
+<th>-&gt;p+</th>
+<td>
 <p class="head">Turn on pitch carrying</p>
 With carrying enabled, following notes will use the pitch state (offset from
 the starting note as well as slide and vibrato) of the current note.
@@ -188,15 +188,15 @@ the starting note as well as slide and vibrato) of the current note.
 </tr>
 
 <tr>
-<td class="etype">-&gt;p-</td>
-<td class="edesc">
+<th>-&gt;p-</th>
+<td>
 <p class="head">Turn off pitch carrying</p>
 </td>
 </tr>
 
 <tr>
-<td class="etype">.sn</td>
-<td class="edesc">
+<th>.sn</th>
+<td>
 <p class="head">Select channel stream <var>x</var> (string)</p>
 This event selects the target stream used by events <strong>.s</strong>,
 <strong>/s</strong>, <strong>/=s</strong>, <strong>os</strong>,
@@ -210,102 +210,102 @@ events as well as the audio unit stream events).
 </tr>
 
 <tr>
-<td class="etype">.s</td>
-<td class="edesc">
+<th>.s</th>
+<td>
 <p class="head">Set value of a channel stream to <var>x</var></p>
 </td>
 </tr>
 
 <tr>
-<td class="etype">/s</td>
-<td class="edesc">
+<th>/s</th>
+<td>
 <p class="head">Slide channel stream to <var>x</var></p>
 </td>
 </tr>
 
 <tr>
-<td class="etype">/=s</td>
-<td class="edesc">
+<th>/=s</th>
+<td>
 <p class="head">Set slide length of channel stream to <var>x</var> beats</p>
 </td>
 </tr>
 
 <tr>
-<td class="etype">os</td>
-<td class="edesc">
+<th>os</th>
+<td>
 <p class="head">Set oscillation speed of channel stream to <var>x</var> cycles per
 second</p>
 </td>
 </tr>
 
 <tr>
-<td class="etype">od</td>
-<td class="edesc">
+<th>od</th>
+<td>
 <p class="head">Set oscillation depth of channel stream to <var>x</var></p>
 </td>
 </tr>
 
 <tr>
-<td class="etype">o/=s</td>
-<td class="edesc">
+<th>o/=s</th>
+<td>
 <p class="head">Set oscillation speed slide length of channel stream to <var>x</var>
 beats</p>
 </td>
 </tr>
 
 <tr>
-<td class="etype">o/=d</td>
-<td class="edesc">
+<th>o/=d</th>
+<td>
 <p class="head">Set oscillation depth slide length of channel stream to <var>x</var>
 beats</p>
 </td>
 </tr>
 
 <tr>
-<td class="etype">-&gt;s+</td>
-<td class="edesc">
+<th>-&gt;s+</th>
+<td>
 <p class="head">Turn on channel stream carrying</p>
 </td>
 </tr>
 
 <tr>
-<td class="etype">-&gt;s-</td>
-<td class="edesc">
+<th>-&gt;s-</th>
+<td>
 <p class="head">Turn off channel stream carrying</p>
 </td>
 </tr>
 
 <tr>
-<td class="etype">.xc</td>
-<td class="edesc">
+<th>.xc</th>
+<td>
 <p class="head">Set channel expression to <var>x</var> (string)</p>
 </td>
 </tr>
 
 <tr>
-<td class="etype">.x</td>
-<td class="edesc">
+<th>.x</th>
+<td>
 <p class="head">Set note expression to <var>x</var> (string)</p>
 </td>
 </tr>
 
 <tr>
-<td class="etype">-&gt;x+</td>
-<td class="edesc">
+<th>-&gt;x+</th>
+<td>
 <p class="head">Turn on note expression carrying</p>
 </td>
 </tr>
 
 <tr>
-<td class="etype">-&gt;x-</td>
-<td class="edesc">
+<th>-&gt;x-</th>
+<td>
 <p class="head">Turn off note expression carrying</p>
 </td>
 </tr>
 
 <tr>
-<td class="etype">.dn</td>
-<td class="edesc">
+<th>.dn</th>
+<td>
 <p class="head">Set channel device event name to <var>x</var> (string)</p>
 This event selects the device event used with event <strong>d</strong>. Note that it is
 often not necessary to use this event directly: e.g. <strong>d:name 10</strong> is
@@ -314,16 +314,16 @@ equivalent to <strong>.dn 'name'</strong> followed by <strong>d 10</strong>.
 </tr>
 
 <tr>
-<td class="etype">d</td>
-<td class="edesc">
+<th>d</th>
+<td>
 <p class="head">Fire channel device event with argument <var>x</var>
 (context-dependent type)</p>
 </td>
 </tr>
 
 <tr>
-<td class="etype">.a</td>
-<td class="edesc">
+<th>.a</th>
+<td>
 <p class="head">Set active instrument/effect to <var>x</var> (natural number)</p>
 This can be used to override the active instrument/effect in the current channel.
 Normally you shouldn't need this, as you can configure proper defaults in the
@@ -344,41 +344,41 @@ Normally you shouldn't need this, as you can configure proper defaults in the
 Master events control various playback parameters that affect the whole composition.
 </p>
 
-<table>
+<table class="events">
 
 <tr>
-<td class="etype">m.v</td>
-<td class="edesc">
+<th>m.v</th>
+<td>
 <p class="head">Set global volume to <var>x</var> dBFS</p>
 Unattenuated volume level is 0 dB.
 </td>
 </tr>
 
 <tr>
-<td class="etype">m/v</td>
-<td class="edesc">
+<th>m/v</th>
+<td>
 <p class="head">Slide global volume to <var>x</var> dBFS</p>
 Use <strong>m/=v</strong> to control slide duration.
 </td>
 </tr>
 
 <tr>
-<td class="etype">m/=v</td>
-<td class="edesc">
+<th>m/=v</th>
+<td>
 <p class="head">Set global volume slide length to <var>x</var> beats</p>
 </td>
 </tr>
 
 <tr>
-<td class="etype">m.t</td>
-<td class="edesc">
+<th>m.t</th>
+<td>
 <strong>Set tempo to <var>x</var> beats per minute</strong>
 </td>
 </tr>
 
 <tr>
-<td class="etype">m/t</td>
-<td class="edesc">
+<th>m/t</th>
+<td>
 <p class="head">Slide tempo to <var>x</var> beats per minute</p>
 Use <strong>m/=t</strong> to control slide duration. NOTE: Tempo slides are
 more coarse-grained than other slides.
@@ -386,86 +386,86 @@ more coarse-grained than other slides.
 </tr>
 
 <tr>
-<td class="etype">m/=t</td>
-<td class="edesc">
+<th>m/=t</th>
+<td>
 <p class="head">Set tempo slide length to <var>x</var> beats</p>
 </td>
 </tr>
 
 <tr>
-<td class="etype">mpd</td>
-<td class="edesc">
+<th>mpd</th>
+<td>
 <p class="head">Pattern delay for <var>x</var> beats</p>
 Suspend playback cursor at the event.
 </td>
 </tr>
 
 <tr>
-<td class="etype">m.jc</td>
-<td class="edesc">
+<th>m.jc</th>
+<td>
 <p class="head">Set jump counter to <var>x</var> (natural number)</p>
 </td>
 </tr>
 
 <tr>
-<td class="etype">m.jp</td>
-<td class="edesc">
+<th>m.jp</th>
+<td>
 <p class="head">Set jump target pattern instance <var>x</var></p>
 </td>
 </tr>
 
 <tr>
-<td class="etype">m.jr</td>
-<td class="edesc">
+<th>m.jr</th>
+<td>
 <p class="head">Set jump target row <var>x</var></p>
 </td>
 </tr>
 
 <tr>
-<td class="etype">mj</td>
-<td class="edesc">
+<th>mj</th>
+<td>
 <p class="head">Jump fixed number of times</p>
 </td>
 </tr>
 
 <tr>
-<td class="etype">m.r</td>
-<td class="edesc">
+<th>m.r</th>
+<td>
 <p class="head">Set active retuner to <var>x</var> (index)</p>
 </td>
 </tr>
 
 <tr>
-<td class="etype">m.rfp</td>
-<td class="edesc">
+<th>m.rfp</th>
+<td>
 <p class="head">Set fixed pitch of the active retuner to <var>x</var></p>
 </td>
 </tr>
 
 <tr>
-<td class="etype">m.rc</td>
-<td class="edesc">
+<th>m.rc</th>
+<td>
 <p class="head">Set tuning centre of the active retuner to <var>x</var></p>
 </td>
 </tr>
 
 <tr>
-<td class="etype">m.ro</td>
-<td class="edesc">
+<th>m.ro</th>
+<td>
 <p class="head">Set pitch offset of the active retuner to <var>x</var></p>
 </td>
 </tr>
 
 <tr>
-<td class="etype">mmr</td>
-<td class="edesc">
+<th>mmr</th>
+<td>
 <p class="head">Apply initial settings of retuner <var>x</var> to the active retuner</p>
 </td>
 </tr>
 
 <tr>
-<td class="etype">m&lt;r</td>
-<td class="edesc">
+<th>m&lt;r</th>
+<td>
 <p class="head">Reset active retuner</p>
 </td>
 </tr>
@@ -487,11 +487,11 @@ event. Otherwise, the channel in which the audio unit events are fired does not 
 the end result in any other way.
 </p>
 
-<table>
+<table class="events">
 
 <tr>
-<td class="etype">a.sus</td>
-<td class="edesc">
+<th>a.sus</th>
+<td>
 <p class="head">Set instrument sustain value to <var>x</var></p>
 Valid range for <var>x</var> is [0..1]. 0 (default) disables sustain completely; 1
 applies full sustain. Sustain slows down or pauses the progress of note release
@@ -501,61 +501,61 @@ released note.
 </tr>
 
 <tr>
-<td class="etype">a.s</td>
-<td class="edesc">
+<th>a.s</th>
+<td>
 <p class="head">Set value of audio unit stream to <var>x</var></p>
 </td>
 </tr>
 
 <tr>
-<td class="etype">a/s</td>
-<td class="edesc">
+<th>a/s</th>
+<td>
 <p class="head">Slide value of audio unit stream to <var>x</var></p>
 Use <strong>a/=s</strong> to control slide duration.
 </td>
 </tr>
 
 <tr>
-<td class="etype">a/=s</td>
-<td class="edesc">
+<th>a/=s</th>
+<td>
 <p class="head">Set slide length of audio unit stream to <var>x</var> beats</p>
 </td>
 </tr>
 
 <tr>
-<td class="etype">aos</td>
-<td class="edesc">
+<th>aos</th>
+<td>
 <p class="head">Set oscillation speed of audio unit stream to <var>x</var> cycles per
 second</p>
 </td>
 </tr>
 
 <tr>
-<td class="etype">aod</td>
-<td class="edesc">
+<th>aod</th>
+<td>
 <p class="head">Set oscillation depth of audio unit stream to <var>x</var></p>
 </td>
 </tr>
 
 <tr>
-<td class="etype">ao/=s</td>
-<td class="edesc">
+<th>ao/=s</th>
+<td>
 <p class="head">Set oscillation speed slide length of audio unit stream to <var>x</var>
 beats</p>
 </td>
 </tr>
 
 <tr>
-<td class="etype">ao/=d</td>
-<td class="edesc">
+<th>ao/=d</th>
+<td>
 <p class="head">Set oscillation depth slide length of audio unit stream to <var>x</var>
 beats</p>
 </td>
 </tr>
 
 <tr>
-<td class="etype">ad</td>
-<td class="edesc">
+<th>ad</th>
+<td>
 <p class="head">Fire audio unit device event with argument <var>x</var>
 (context-dependent type)</p>
 </td>
