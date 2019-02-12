@@ -43,6 +43,7 @@ class Browser(QTextBrowser, Updater):
         super().__init__()
         self.setAcceptRichText(True)
         self.setReadOnly(True)
+        self.setOpenExternalLinks(True)
 
         self._get_help_data = get_help_data
 
