@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013-2014
-#          Tomi Jylhä-Ollila, Finland 2013-2018
+#          Tomi Jylhä-Ollila, Finland 2013-2019
 #
 # This file is part of Kunquat.
 #
@@ -14,6 +14,7 @@
 
 from kunquat.tracker.ui.qt import *
 
+from kunquat.tracker.ui.model.keymapmanager import KeyboardAction
 from .updater import Updater
 
 
@@ -29,7 +30,7 @@ class OctaveButton(QPushButton, Updater):
 
         self.setCheckable(True)
         self.setFixedWidth(60)
-        self.setToolTip("Select octave ('<': previous, '>': next)")
+        self.setToolTip('Select octave')
         layout = QHBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         octavename = QLabel()
@@ -58,6 +59,15 @@ class OctaveButton(QPushButton, Updater):
         self.register_action('signal_octave', self._update_pressed)
         self.register_action('signal_init', self._update_pressed)
         self.register_action('signal_style_changed', self._update_style)
+
+        keymap_mgr = self._ui_model.get_keymap_manager()
+        lower_key_name = keymap_mgr.get_key_name(
+                keymap_mgr.get_action_location(KeyboardAction.OCTAVE_DOWN))
+        higher_key_name = keymap_mgr.get_key_name(
+                keymap_mgr.get_action_location(KeyboardAction.OCTAVE_UP))
+        if lower_key_name and higher_key_name:
+            self.setToolTip('Select octave ({}: lower, {}: higher)'.format(
+                lower_key_name, higher_key_name))
 
         self._update_name()
         self._update_pressed()

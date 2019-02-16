@@ -15,6 +15,7 @@ from kunquat.tracker.ui.qt import *
 
 from kunquat.kunquat.limits import *
 import kunquat.tracker.cmdline as cmdline
+from kunquat.tracker.ui.model.keymapmanager import KeyboardAction
 from kunquat.tracker.ui.model.trigger import Trigger
 from kunquat.tracker.ui.model.triggerposition import TriggerPosition
 import kunquat.tracker.ui.model.tstamp as tstamp
@@ -270,7 +271,7 @@ class RestButton(IconButton):
 
         self.setFlat(True)
         #self.setText('══')
-        self.setToolTip('Add rest (1)')
+        self.setToolTip('Add rest')
 
         self.set_sizes(_BUTTON_SIZE, _BUTTON_PADDING)
 
@@ -284,6 +285,12 @@ class RestButton(IconButton):
         self.register_action('signal_silence', self._update_enabled)
 
         self._sheet_mgr = self._ui_model.get_sheet_manager()
+
+        keymap_mgr = self._ui_model.get_keymap_manager()
+        key_name = keymap_mgr.get_key_name(
+                keymap_mgr.get_action_location(KeyboardAction.REST))
+        if key_name:
+            self.setToolTip('Add rest ({})'.format(key_name))
 
         self.clicked.connect(self._clicked)
 
@@ -554,7 +561,7 @@ class ConvertTriggerButton(IconButton):
         super().__init__()
         self.setFlat(True)
         #self.setText('Convert')
-        self.setToolTip('Convert between set and slide trigger (/)')
+        self.setToolTip('Convert between set and slide trigger (Ctrl + M)')
 
         self.set_sizes(_BUTTON_SIZE, _BUTTON_PADDING)
 

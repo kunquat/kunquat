@@ -22,6 +22,7 @@ import kunquat.kunquat.events as events
 from kunquat.kunquat.limits import *
 import kunquat.tracker.cmdline as cmdline
 import kunquat.tracker.ui.model.tstamp as tstamp
+from kunquat.tracker.ui.model.keymapmanager import KeyboardAction
 from kunquat.tracker.ui.model.sheetmanager import SheetManager
 from kunquat.tracker.ui.model.trigger import Trigger
 from kunquat.tracker.ui.model.triggerposition import TriggerPosition
@@ -1597,11 +1598,17 @@ class View(QWidget, Updater):
         selection = self._ui_model.get_selection()
         orig_location = selection.get_location()
 
-        note_pressed = self._keyboard_mapper.process_typewriter_button_event(event)
-        if note_pressed:
-            if self._sheet_mgr.allow_note_autorepeat():
+        mapper_handled = self._keyboard_mapper.process_typewriter_button_event(event)
+        key_action = self._keyboard_mapper.get_key_action(event)
+        if mapper_handled:
+            if ((key_action.action_type == KeyboardAction.NOTE) and
+                    self._sheet_mgr.allow_note_autorepeat()):
                 self._handle_cursor_down_with_grid()
             return
+        else:
+            if key_action and (key_action.action_type == KeyboardAction.REST):
+                if (not event.isAutoRepeat()) or self._sheet_mgr.allow_note_autorepeat():
+                    self._add_rest()
 
         allow_editing_operations = (
                 not self._playback_mgr.follow_playback_cursor() or
@@ -1799,10 +1806,6 @@ class View(QWidget, Updater):
             utils.try_paste_area(self._sheet_mgr)
             selection.clear_area()
 
-        def handle_rest():
-            if (not event.isAutoRepeat()) or self._sheet_mgr.allow_note_autorepeat():
-                self._add_rest()
-
         def handle_typewriter_connection():
             if not event.isAutoRepeat():
                 connected = self._sheet_mgr.get_typewriter_connected()
@@ -1893,10 +1896,6 @@ class View(QWidget, Updater):
                 Qt.Key_Home:    handle_move_trow_start,
                 Qt.Key_End:     handle_move_trow_end,
 
-                # TODO: Some rare keyboard layouts have the 1 key in a location
-                #       that interferes with the typewriter
-                Qt.Key_1:       handle_rest,
-
                 Qt.Key_Delete:  lambda: self._perform_delete(),
                 Qt.Key_Backspace: lambda: self._perform_backspace(),
 
@@ -1913,6 +1912,7 @@ class View(QWidget, Updater):
                 Qt.Key_X:       area_cut,
                 Qt.Key_C:       area_copy,
                 Qt.Key_V:       area_paste,
+                Qt.Key_M:       handle_convert_trigger,
                 Qt.Key_Z:       handle_undo,
             },
 
@@ -1951,12 +1951,6 @@ class View(QWidget, Updater):
         if not is_handled:
             disabled_mod_map = edit_keymap.get(int(event.modifiers()), {})
             if disabled_mod_map.get(event.key()):
-                is_handled = True
-
-        # Handle slash as a separate case (as it may or may not be behind a modifier)
-        if not is_handled:
-            if event.key() == Qt.Key_Slash:
-                handle_convert_trigger()
                 is_handled = True
 
         if not is_handled:
