@@ -136,6 +136,9 @@ class KeymapManager():
         assert self._are_keymap_actions_valid(actions.values())
         self._session.keyboard_key_actions = actions
 
+        action_locations = { act: loc for (loc, act) in actions.items() }
+        self._session.keyboard_action_locations = action_locations
+
     def set_key_names(self, names):
         assert self._is_row_layout_valid(names.keys())
         self._session.keyboard_key_names = names
@@ -159,6 +162,12 @@ class KeymapManager():
 
     def get_key_name(self, location):
         return self._session.keyboard_key_names.get(location, None)
+
+    def get_action_location(self, action):
+        if not isinstance(action, KeyboardAction):
+            assert action != KeyboardAction.NOTE
+            action = KeyboardAction(action)
+        return self._session.keyboard_action_locations.get(action, None)
 
     def _get_keymap_ids(self):
         notation_mgr = self._ui_model.get_notation_manager()

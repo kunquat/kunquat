@@ -50,6 +50,7 @@ class Session():
 
         # Keyboard input
         self.keyboard_key_actions = {}
+        self.keyboard_action_locations = {}
         self.keyboard_key_names = {}
         self.keyboard_scancode_locations = {}
         self.keyboard_id_locations = {}
