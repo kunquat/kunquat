@@ -129,6 +129,8 @@ class UiLauncher():
         from kunquat.tracker.ui.views.rootview import RootView
         import kunquat.tracker.ui.views.keyboardsetup as keyboardsetup
 
+        keyboardsetup.setup(self._ui_model)
+
         error_dialog = ErrorDialog()
         root_view = RootView()
 
@@ -138,8 +140,6 @@ class UiLauncher():
 
         root_view.set_ui_model(self._ui_model)
         root_view.set_crash_dialog(error_dialog)
-
-        keyboardsetup.setup(self._ui_model)
 
         self._task_timer = QTimer()
         self._task_timer.setSingleShot(True)
