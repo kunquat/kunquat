@@ -206,6 +206,13 @@ class StyleManager():
         size_norm = self.get_style_param(size_param)
         return self.get_scaled_size(size_norm, min_size)
 
+    def get_colour_param_intensity(self, param):
+        colour = self._get_colour_from_str(self.get_style_param(param))
+        return self.get_colour_intensity(colour)
+
+    def get_colour_intensity(self, colour):
+        return (colour[0] * 0.212) + (colour[1] * 0.715) + (colour[2] * 0.072)
+
     def get_adjusted_colour(self, param, brightness):
         orig_colour = self._get_colour_from_str(self.get_style_param(param))
         adjusted_colour = (c + brightness for c in orig_colour)
@@ -287,6 +294,11 @@ class _ColourHelper():
     def __getitem__(self, name):
         if name == 'link_fg':
             return self._style_mgr.get_link_colour('text_fg_colour')
+        elif name == 'table_even_bg':
+            bg_intensity = self._style_mgr.get_colour_param_intensity('text_bg_colour')
+            brightness = 0.12 if bg_intensity < 0.5 else -0.12
+            adjusted = self._style_mgr.get_adjusted_colour('text_bg_colour', brightness)
+            return adjusted
 
         colour_param = '{}_colour'.format(name)
         return self._style_mgr.get_style_param(colour_param)

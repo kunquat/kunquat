@@ -84,7 +84,7 @@ Channel events control active notes and other parts of channel state.
 
 <table class="events">
 
-<tr>
+<tr class="even">
 <th>.f</th>
 <td>
 <p class="head">Set force to <var>x</var> dB</p>
@@ -100,7 +100,7 @@ Use <strong>/=f</strong> to control slide duration.
 </td>
 </tr>
 
-<tr>
+<tr class="even">
 <th>/=f</th>
 <td>
 <p class="head">Set force slide length to <var>x</var> beats</p>
@@ -116,7 +116,7 @@ By default, the new speed takes full effect immediately; use
 </td>
 </tr>
 
-<tr>
+<tr class="even">
 <th>td</th>
 <td>
 <p class="head">Set tremolo depth to ±<var>x</var> dB</p>
@@ -132,7 +132,7 @@ By default, the new depth takes full effect immediately; use
 </td>
 </tr>
 
-<tr>
+<tr class="even">
 <th>t/=d</th>
 <td>
 <p class="head">Set tremolo depth slide length to <var>x</var> beats</p>
@@ -148,7 +148,7 @@ slide and tremolo) of the current note.
 </td>
 </tr>
 
-<tr>
+<tr class="even">
 <th>-&gt;f-</th>
 <td>
 <p class="head">Turn off force carrying</p>
@@ -164,7 +164,7 @@ Use <strong>/=p</strong> to control slide duration.
 </td>
 </tr>
 
-<tr>
+<tr class="even">
 <th>/=p</th>
 <td>
 <p class="head">Set pitch slide length to <var>x</var> beats</p>
@@ -180,7 +180,7 @@ By default, the new speed takes full effect immediately; use
 </td>
 </tr>
 
-<tr>
+<tr class="even">
 <th>vd</th>
 <td>
 <p class="head">Set vibrato depth to <var>x</var></p>
@@ -198,7 +198,7 @@ By default, the new depth takes full effect immediately; use
 </td>
 </tr>
 
-<tr>
+<tr class="even">
 <th>v/=d</th>
 <td>
 <p class="head">Set vibrato depth slide length to <var>x</var> beats</p>
@@ -214,7 +214,7 @@ the starting note as well as slide and vibrato) of the current note.
 </td>
 </tr>
 
-<tr>
+<tr class="even">
 <th>-&gt;p-</th>
 <td>
 <p class="head">Turn off pitch carrying</p>
@@ -236,7 +236,7 @@ events as well as the audio unit stream events).
 </td>
 </tr>
 
-<tr>
+<tr class="even">
 <th>.s</th>
 <td>
 <p class="head">Set value of a channel stream to <var>x</var></p>
@@ -250,7 +250,7 @@ events as well as the audio unit stream events).
 </td>
 </tr>
 
-<tr>
+<tr class="even">
 <th>/=s</th>
 <td>
 <p class="head">Set slide length of channel stream to <var>x</var> beats</p>
@@ -265,7 +265,7 @@ second</p>
 </td>
 </tr>
 
-<tr>
+<tr class="even">
 <th>od</th>
 <td>
 <p class="head">Set oscillation depth of channel stream to <var>x</var></p>
@@ -280,7 +280,7 @@ beats</p>
 </td>
 </tr>
 
-<tr>
+<tr class="even">
 <th>o/=d</th>
 <td>
 <p class="head">Set oscillation depth slide length of channel stream to <var>x</var>
@@ -295,7 +295,7 @@ beats</p>
 </td>
 </tr>
 
-<tr>
+<tr class="even">
 <th>-&gt;s-</th>
 <td>
 <p class="head">Turn off channel stream carrying</p>
@@ -309,7 +309,7 @@ beats</p>
 </td>
 </tr>
 
-<tr>
+<tr class="even">
 <th>.x</th>
 <td>
 <p class="head">Set note expression to <var>x</var> (string)</p>
@@ -323,7 +323,7 @@ beats</p>
 </td>
 </tr>
 
-<tr>
+<tr class="even">
 <th>-&gt;x-</th>
 <td>
 <p class="head">Turn off note expression carrying</p>
@@ -340,7 +340,7 @@ equivalent to <strong>.dn 'name'</strong> followed by <strong>d 10</strong>.
 </td>
 </tr>
 
-<tr>
+<tr class="even">
 <th>d</th>
 <td>
 <p class="head">Fire channel device event with argument <var>x</var>
@@ -372,7 +372,7 @@ Master events control various playback parameters that affect the whole composit
 
 <table class="events">
 
-<tr>
+<tr class="even">
 <th>m.v</th>
 <td>
 <p class="head">Set global volume to <var>x</var> dBFS</p>
@@ -388,7 +388,7 @@ Use <strong>m/=v</strong> to control slide duration.
 </td>
 </tr>
 
-<tr>
+<tr class="even">
 <th>m/=v</th>
 <td>
 <p class="head">Set global volume slide length to <var>x</var> beats</p>
@@ -402,7 +402,7 @@ Use <strong>m/=v</strong> to control slide duration.
 </td>
 </tr>
 
-<tr>
+<tr class="even">
 <th>m/t</th>
 <td>
 <p class="head">Slide tempo to <var>x</var> beats per minute</p>
@@ -418,7 +418,7 @@ more coarse-grained than other slides.
 </td>
 </tr>
 
-<tr>
+<tr class="even">
 <th>mpd</th>
 <td>
 <p class="head">Pattern delay for <var>x</var> beats</p>
@@ -433,7 +433,7 @@ Suspend playback cursor at the event.
 </td>
 </tr>
 
-<tr>
+<tr class="even">
 <th>m.jp</th>
 <td>
 <p class="head">Set jump target pattern instance <var>x</var></p>
@@ -447,7 +447,7 @@ Suspend playback cursor at the event.
 </td>
 </tr>
 
-<tr>
+<tr class="even">
 <th>mj</th>
 <td>
 <p class="head">Jump fixed number of times</p>
@@ -461,7 +461,7 @@ Suspend playback cursor at the event.
 </td>
 </tr>
 
-<tr>
+<tr class="even">
 <th>m.rfp</th>
 <td>
 <p class="head">Set fixed pitch of the active retuner to <var>x</var></p>
@@ -475,7 +475,7 @@ Suspend playback cursor at the event.
 </td>
 </tr>
 
-<tr>
+<tr class="even">
 <th>m.ro</th>
 <td>
 <p class="head">Set pitch offset of the active retuner to <var>x</var></p>
@@ -489,7 +489,7 @@ Suspend playback cursor at the event.
 </td>
 </tr>
 
-<tr>
+<tr class="even">
 <th>m&lt;r</th>
 <td>
 <p class="head">Reset active retuner</p>
@@ -515,7 +515,7 @@ the end result in any other way.
 
 <table class="events">
 
-<tr>
+<tr class="even">
 <th>a.sus</th>
 <td>
 <p class="head">Set instrument sustain value to <var>x</var></p>
@@ -533,7 +533,7 @@ released note.
 </td>
 </tr>
 
-<tr>
+<tr class="even">
 <th>a/s</th>
 <td>
 <p class="head">Slide value of audio unit stream to <var>x</var></p>
@@ -548,7 +548,7 @@ Use <strong>a/=s</strong> to control slide duration.
 </td>
 </tr>
 
-<tr>
+<tr class="even">
 <th>aos</th>
 <td>
 <p class="head">Set oscillation speed of audio unit stream to <var>x</var> cycles per
@@ -563,7 +563,7 @@ second</p>
 </td>
 </tr>
 
-<tr>
+<tr class="even">
 <th>ao/=s</th>
 <td>
 <p class="head">Set oscillation speed slide length of audio unit stream to <var>x</var>
@@ -579,7 +579,7 @@ beats</p>
 </td>
 </tr>
 
-<tr>
+<tr class="even">
 <th>ad</th>
 <td>
 <p class="head">Fire audio unit device event with argument <var>x</var>
