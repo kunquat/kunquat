@@ -2,6 +2,16 @@
 
 <!--
 NOTE: This document contains weird hacks due to buggy and limited support in Qt.
+
+The following special syntax is supported:
+    {actionkey[action]} - expands to a key name associated with action, which is one of:
+        noteR_I     - note played with the note input layout at row R, index I
+        octave_down - move to lower octave or hit bank
+        octave_up   - move to higher octave or hit bank
+        play        - play the full composition
+        rest        - insert rest
+        silence     - stop playback of all sounds
+
 -->
 
 <head>
