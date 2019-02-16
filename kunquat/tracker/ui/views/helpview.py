@@ -13,6 +13,7 @@
 
 from kunquat.tracker.ui.qt import *
 
+from kunquat.tracker.ui.model.keymapmanager import KeyboardNoteAction
 from .updater import Updater
 from .utils import get_default_font_info
 
@@ -54,17 +55,51 @@ class Browser(QTextBrowser, Updater):
         self.register_action('signal_style_changed', self._update_style)
         self._update_style()
 
+    def _fill_help_vars(self, help_fmt):
+        kwargs = {
+            'actionkey': _ActionKeyHelper(self._ui_model.get_keymap_manager()),
+        }
+
+        doc = help_fmt.format(**kwargs)
+        return doc
+
     def _update_style(self):
         style_mgr = self._ui_model.get_style_manager()
         _, font_size = get_default_font_info(style_mgr)
         style_sheet = style_mgr.get_help_style(font_size)
 
-        help_data = self._get_help_data()
+        help_doc = self._fill_help_vars(self._get_help_data())
 
         self.document().setDefaultStyleSheet(style_sheet)
-        self.document().setHtml(help_data)
+        self.document().setHtml(help_doc)
 
         # TODO: try to show the same top row when font size changes
         self.moveCursor(QTextCursor.Start)
+
+
+class _ActionKeyHelper():
+
+    def __init__(self, keymap_mgr):
+        self._keymap_mgr = keymap_mgr
+
+    def __getitem__(self, name):
+        if name.startswith('note'):
+            action = None
+            loc_str = name[4:]
+            parts = loc_str.split('_')
+            if len(parts) == 2:
+                row_str, index_str = parts
+                try:
+                    row = int(row_str)
+                    index = int(index_str)
+                    action = KeyboardNoteAction(row, index)
+                except ValueError:
+                    pass
+        else:
+            action = name
+
+        key_name = self._keymap_mgr.get_key_name(
+                self._keymap_mgr.get_action_location(action))
+        return key_name or '‽'
 
 
