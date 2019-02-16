@@ -48,6 +48,12 @@ class Session():
         self._visible_uis = set()
         self._signalled_uis = set()
 
+        # Keyboard input
+        self.keyboard_key_actions = {}
+        self.keyboard_key_names = {}
+        self.keyboard_scancode_locations = {}
+        self.keyboard_id_locations = {}
+
         # Stats
         self._output_speed = 0
         self._render_speed = 0
