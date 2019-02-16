@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013-2014
-#          Tomi Jylhä-Ollila, Finland 2013-2018
+#          Tomi Jylhä-Ollila, Finland 2013-2019
 #
 # This file is part of Kunquat.
 #
@@ -14,6 +14,7 @@
 
 from kunquat.tracker.ui.qt import *
 
+from kunquat.tracker.ui.model.keymapmanager import KeyboardAction
 from .updater import Updater
 
 
@@ -108,6 +109,7 @@ class TypewriterButton(QPushButton, Updater):
 
         self._row = row
         self._index = index
+        self._key_name = None
         self._selected_control = None
         self.setFixedSize(QSize(60, 60))
         layout = QVBoxLayout(self)
@@ -160,9 +162,22 @@ class TypewriterButton(QPushButton, Updater):
         name = self._button_model.get_name()
         if name != None:
             self._notename.setText(name)
+
+            keymap_mgr = self._ui_model.get_keymap_manager()
+            keymap_row_index = (
+                    keymap_mgr.get_typewriter_row_offsets()[self._row] + self._index)
+            self._key_name = keymap_mgr.get_key_name((self._row, keymap_row_index))
+            if self._key_name:
+                play_type = 'hit' if keymap_mgr.is_hit_keymap_active() else 'note'
+                self.setToolTip(
+                        'Play {} {} ({})'.format(play_type, name, self._key_name))
+            else:
+                self.setToolTip('')
+
             self.setEnabled(True)
         else:
             self._notename.setText('')
+            self.setToolTip('')
             self.setEnabled(False)
 
     def _update_key_checked_properties(self):
