@@ -613,7 +613,7 @@ QTableView:disabled, QTreeView:disabled, QListView:disabled, QTextEdit:disabled
 
 QTableView
 {
-    gridline-color: <bg_colour_dark>;
+    gridline-color: <table_grid_line_colour>;
 }
 
 QTableView::item
