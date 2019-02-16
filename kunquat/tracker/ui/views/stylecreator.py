@@ -155,7 +155,7 @@ class StyleCreator():
             return self._adjust_brightness(colour, -contrast)
 
         def make_table_grid_line(colour):
-            intensity = colour[0] * 0.212 + colour[1] * 0.715  + colour[2] * 0.072
+            intensity = style_mgr.get_colour_intensity(colour)
             contrast = table_grid_contrast if intensity < 0.5 else -table_grid_contrast
             return self._adjust_brightness(colour, contrast)
 
