@@ -48,12 +48,20 @@ class Browser(QTextBrowser, Updater):
 
         self._get_help_data = get_help_data
 
+        self._pos_norm = 0
+
         doc = QTextDocument()
         self.setDocument(doc)
 
     def _on_setup(self):
         self.register_action('signal_style_changed', self._update_style)
+
+        self.verticalScrollBar().valueChanged.connect(self._on_position_changed)
+        self.verticalScrollBar().rangeChanged.connect(self._on_range_changed)
+        self.textChanged.connect(self._update_relative_pos)
+
         self._update_style()
+        self.moveCursor(QTextCursor.Start)
 
     def _fill_help_vars(self, help_fmt):
         kwargs = {
@@ -62,6 +70,9 @@ class Browser(QTextBrowser, Updater):
 
         doc = help_fmt.format(**kwargs)
         return doc
+
+    def _on_range_changed(self, new_min, new_max):
+        self._update_relative_pos()
 
     def _update_style(self):
         style_mgr = self._ui_model.get_style_manager()
@@ -73,8 +84,22 @@ class Browser(QTextBrowser, Updater):
         self.document().setDefaultStyleSheet(style_sheet)
         self.document().setHtml(help_doc)
 
-        # TODO: try to show the same top row when font size changes
-        self.moveCursor(QTextCursor.Start)
+    def _update_relative_pos(self):
+        scrollbar = self.verticalScrollBar()
+        scroll_max = scrollbar.maximum()
+        if scroll_max > 0:
+            end_pos = scrollbar.pageStep() + scroll_max
+            new_pos = int(self._pos_norm * end_pos)
+        else:
+            new_pos = 0
+        scrollbar.setValue(new_pos)
+
+    def _on_position_changed(self, pos):
+        scrollbar = self.verticalScrollBar()
+        scroll_max = scrollbar.maximum()
+        if scroll_max > 0:
+            end_pos = scroll_max + scrollbar.pageStep()
+            self._pos_norm = pos / end_pos
 
 
 class _ActionKeyHelper():
