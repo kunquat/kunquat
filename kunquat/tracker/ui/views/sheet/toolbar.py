@@ -675,13 +675,18 @@ class ZoomButton(IconButton):
                 self._updater.signal_update('signal_sheet_column_width')
 
 
-class SheetHelpButton(QPushButton, Updater):
+class SheetHelpButton(IconButton):
 
     def __init__(self):
         super().__init__()
-        self.setText('Help')
+        self.setFlat(True)
+        self.setToolTip('Help')
+
+        self.set_sizes(_BUTTON_SIZE, _BUTTON_PADDING)
 
     def _on_setup(self):
+        super()._on_setup()
+        self.set_icon('help')
         self.clicked.connect(self._show_help)
 
     def _show_help(self):
