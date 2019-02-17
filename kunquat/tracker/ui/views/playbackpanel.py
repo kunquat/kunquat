@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015-2018
+# Author: Tomi Jylhä-Ollila, Finland 2015-2019
 #
 # This file is part of Kunquat.
 #
@@ -14,6 +14,7 @@
 from kunquat.tracker.ui.qt import *
 
 import kunquat.tracker.cmdline as cmdline
+from kunquat.tracker.ui.model.keymapmanager import KeyboardAction
 from .iconbutton import IconButton
 from .playbackposition import PlaybackPosition
 from .updater import Updater
@@ -61,11 +62,18 @@ class PlayButton(IconButton):
 
     def __init__(self):
         super().__init__(flat=True)
-        self.setToolTip('Play (Comma)')
+        self.setToolTip('Play')
 
     def _on_setup(self):
         super()._on_setup()
         self.set_icon('play')
+
+        keymap_mgr = self._ui_model.get_keymap_manager()
+        key_name = keymap_mgr.get_key_name(
+                keymap_mgr.get_action_location(KeyboardAction.PLAY))
+        if key_name:
+            self.setToolTip('Play ({})'.format(key_name))
+
         self.clicked.connect(self._ui_model.play)
 
 
@@ -73,11 +81,18 @@ class PlayPatternButton(IconButton):
 
     def __init__(self):
         super().__init__(flat=True)
-        self.setToolTip('Play Pattern (Ctrl + Comma)')
+        self.setToolTip('Play Pattern')
 
     def _on_setup(self):
         super()._on_setup()
         self.set_icon('play_pattern')
+
+        keymap_mgr = self._ui_model.get_keymap_manager()
+        key_name = keymap_mgr.get_key_name(
+                keymap_mgr.get_action_location(KeyboardAction.PLAY))
+        if key_name:
+            self.setToolTip('Play Pattern (Ctrl + {})'.format(key_name))
+
         self.clicked.connect(self._ui_model.play_pattern)
 
 
@@ -85,11 +100,18 @@ class PlayFromCursorButton(IconButton):
 
     def __init__(self):
         super().__init__(flat=True)
-        self.setToolTip('Play from Cursor (Alt + Comma)')
+        self.setToolTip('Play from Cursor')
 
     def _on_setup(self):
         super()._on_setup()
         self.set_icon('play_from_cursor')
+
+        keymap_mgr = self._ui_model.get_keymap_manager()
+        key_name = keymap_mgr.get_key_name(
+                keymap_mgr.get_action_location(KeyboardAction.PLAY))
+        if key_name:
+            self.setToolTip('Play from Cursor (Alt + {})'.format(key_name))
+
         self.clicked.connect(self._ui_model.play_from_cursor)
 
 
@@ -135,13 +157,19 @@ class SilenceButton(IconButton):
         super().__init__(flat=True)
         self._playback_mgr = None
 
-        self.setToolTip('Silence (Period)')
+        self.setToolTip('Silence')
 
     def _on_setup(self):
         super()._on_setup()
         self._playback_mgr = self._ui_model.get_playback_manager()
 
         self.set_icon('silence')
+
+        keymap_mgr = self._ui_model.get_keymap_manager()
+        key_name = keymap_mgr.get_key_name(
+                keymap_mgr.get_action_location(KeyboardAction.SILENCE))
+        if key_name:
+            self.setToolTip('Silence ({})'.format(key_name))
 
         self.clicked.connect(self._clicked)
 
