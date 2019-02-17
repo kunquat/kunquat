@@ -48,6 +48,7 @@ class Share():
         'file_kqti',
         'file_sample',
         'follow_playback',
+        'help',
         'input_compact',
         'input_full',
         'new_pattern',
