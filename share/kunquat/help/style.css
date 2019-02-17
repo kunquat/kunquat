@@ -81,12 +81,12 @@ table
     margin-bottom: <px[1]>;
 }
 
-table.events tr.even
+table tr.even
 {
     background-color: <col[table_even_bg]>;
 }
 
-table.events td
+table td
 {
     padding-top: <px[0.5]>;
     padding-left: <px[1.5]>;
@@ -94,7 +94,7 @@ table.events td
     padding-bottom: <px[0.5]>;
 }
 
-table.events th
+table th
 {
     padding-top: <px[0.5]>;
     padding-left: <px[0.5]>;
@@ -104,7 +104,12 @@ table.events th
     font-weight: bold;
 }
 
-table.events td .head, table.events td .head var
+table.keys th
+{
+    font-weight: normal;
+}
+
+table td .head, table td .head var
 {
     margin-top: 0;
     margin-left: 0;
@@ -112,6 +117,11 @@ table.events td .head, table.events td .head var
     margin-bottom: 0;
     font-size: <pt[1]>;
     text-align: left;
+}
+
+.key
+{
+    font-weight: bold;
 }
 
 

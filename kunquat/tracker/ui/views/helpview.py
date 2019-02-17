@@ -100,6 +100,9 @@ class _ActionKeyHelper():
 
         key_name = self._keymap_mgr.get_key_name(
                 self._keymap_mgr.get_action_location(action))
-        return key_name or '‽'
+        if key_name:
+            return '<span class="key">{}</span>'.format(key_name)
+
+        return '‽'
 
 

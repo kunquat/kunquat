@@ -46,25 +46,87 @@ including tutorials, see the on-line documentation at
 <div class="head"><a name="quick_edit">Quick editing instructions</a></div>
 
 <p>
-Use your keyboard to play your current instrument. The keyboard layout for playing notes
-is similar to a piano keyboard. You can usually find one of the octaves starting at the
-key &lsquo;<strong>{actionkey[note1_0]}</strong>&rsquo;, some of the octave above at the
-key &lsquo;<strong>{actionkey[note1_7]}</strong>&rsquo;, and an octave below at the key
-&lsquo;<strong>{actionkey[note3_0]}</strong>&rsquo;. Use
-&lsquo;<strong>{actionkey[octave_down]}</strong>&rsquo; to reach lower octaves and
-&lsquo;<strong>{actionkey[octave_up]}</strong>&rsquo; to reach higher ones.
+These are some of the essential keys used for composition editing. For more controls, see
+the tool bar above the notation view, as well as the controls below the notation view.
 </p>
 
-<p>
-Press Space to enable editing mode. This allows you to enter notes you play into the
-cursor location. Press &lsquo;<strong>{actionkey[rest]}</strong>&rsquo; to add rest.
-Insert toggles replace mode.
-</p>
+<table class="keys">
 
-<p>
-When editing, Return allows you to add any event trigger at the cursor position, or in
-replace mode, change the argument of an existing event at the cursor position.
-</p>
+<tr class="even">
+<th>
+{actionkey[note1_0]}, {actionkey[note1_1]}, {actionkey[note1_2]}, ...,
+{actionkey[note1_9]}
+</th>
+<td>Play/add notes (these keys work like white keys on a piano)</td>
+</tr>
+
+<tr>
+<th>
+{actionkey[note3_0]}, {actionkey[note3_1]}, {actionkey[note3_2]}, ...,
+{actionkey[note3_6]}
+</th>
+<td>Play/add notes (an octave below)</td>
+</tr>
+
+<tr class="even">
+<th>{actionkey[octave_down]} / {actionkey[octave_up]}</th>
+<td>Change to lower/higher octave</td>
+</tr>
+
+<tr>
+<th>{actionkey[play]}</th>
+<td>Play composition</td>
+</tr>
+
+<tr class="even">
+<th><span class="key">Ctrl</span> + {actionkey[play]}</th>
+<td>Play pattern</td>
+</tr>
+
+<tr>
+<th><span class="key">Alt</span> + {actionkey[play]}</th>
+<td>Play from cursor / playback marker</td>
+</tr>
+
+<tr class="even">
+<th><span class="key">Ctrl</span> + <span class="key">Alt</span> + {actionkey[play]}</th>
+<td>Set/clear playback marker</td>
+</tr>
+
+<tr>
+<th>{actionkey[silence]}</th>
+<td>Stop all playback</td>
+</tr>
+
+<tr class="even">
+<th>{actionkey[rest]}</th>
+<td>Add rest</td>
+</tr>
+
+<tr>
+<th><span class="key">Space</span></th>
+<td>Toggle editing mode</td>
+</tr>
+
+<tr class="even">
+<th><span class="key">Insert</span></th>
+<td>Toggle replace mode</td>
+</tr>
+
+<tr>
+<th><span class="key">Return</span></th>
+<td>
+Editing (when not on an existing trigger): Insert an event trigger<br/>
+Editing (on a trigger in replace mode): Modify parameter value of a trigger
+</td>
+</tr>
+
+<tr class="even">
+<th><span class="key">Esc</span></th>
+<td>Exit editing mode</td>
+</tr>
+
+</table>
 
 </section>
 
