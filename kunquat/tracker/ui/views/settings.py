@@ -751,6 +751,8 @@ class ColourSelector(QWidget):
             'sv_marker_thickness' : 2,
         }
 
+        self._style_mgr = None
+
         self._hue_outer_radius = None
         self._hue_ring = None
         self._sv_triangle = None
@@ -768,10 +770,12 @@ class ColourSelector(QWidget):
         self.setMouseTracking(True)
 
     def update_style(self, style_mgr):
+        self._style_mgr = style_mgr
+
         config = {
-            'hue_marker_thickness'  : style_mgr.get_scaled_size(0.2),
-            'sv_marker_radius'      : style_mgr.get_scaled_size(0.5),
-            'sv_marker_thickness'   : style_mgr.get_scaled_size(0.2),
+            'hue_marker_thickness'  : self._style_mgr.get_scaled_size(0.2),
+            'sv_marker_radius'      : self._style_mgr.get_scaled_size(0.5),
+            'sv_marker_thickness'   : self._style_mgr.get_scaled_size(0.2),
         }
 
         self._config.update(config)
@@ -985,7 +989,8 @@ class ColourSelector(QWidget):
         self.colourSelected.emit()
 
     def _get_marker_colour(self, colour):
-        intensity = colour.red() * 0.212 + colour.green() * 0.715 + colour.blue() * 0.072
+        intensity = self._style_mgr.get_colour_intensity(
+                (colour.red(), colour.green(), colour.blue()))
         return QColor(0xff, 0xff, 0xff) if intensity < 127 else QColor(0, 0, 0)
 
     def _make_sv_gradients(self):

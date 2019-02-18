@@ -53,6 +53,10 @@ class SheetManager():
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
 
+    def get_help(self):
+        share = self._controller.get_share()
+        return share.get_help_text('sheet')
+
     def flush_latest_column(self):
         self._session.set_last_column(None)
 

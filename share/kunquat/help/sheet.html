@@ -1,0 +1,662 @@
+<html>
+
+<!--
+NOTE: This document contains weird hacks due to buggy and limited support in Qt.
+
+The following special syntax is supported:
+    {actionkey[action]} - expands to a key name associated with action, which is one of:
+        noteR_I     - note played with the note input layout at row R, index I
+        octave_down - move to lower octave or hit bank
+        octave_up   - move to higher octave or hit bank
+        play        - play the full composition
+        rest        - insert rest
+        silence     - stop playback of all sounds
+
+-->
+
+<head>
+</head>
+
+<body>
+
+<pre>
+ 
+</pre>
+
+<div class="head">Composition sheet</div>
+
+<p>
+This is a quick reference for composition sheet editing. For more in-depth documentation
+including tutorials, see the on-line documentation at
+<a href="http://kunquat.org/documentation">http://kunquat.org/documentation</a>.
+</p>
+
+<ul>
+<li><a href="#quick_edit">Quick editing instructions</a></li>
+<li><a href="#event_types">Event types</a>
+    <ul>
+    <li><a href="#channel_events">Channel events</a></li>
+    <li><a href="#master_events">Master events</a></li>
+    <li><a href="#au_events">Audio unit events</a></li>
+    </ul></li>
+</ul>
+
+<section>
+
+<div class="head"><a name="quick_edit">Quick editing instructions</a></div>
+
+<p>
+These are some of the essential keys used for composition editing. For more controls, see
+the tool bar above the notation view, as well as the controls below the notation view.
+</p>
+
+<table class="keys">
+
+<tr class="even">
+<th>
+{actionkey[note1_0]}, {actionkey[note1_1]}, {actionkey[note1_2]}, ...,
+{actionkey[note1_9]}
+</th>
+<td>Play/add notes (these keys work like white keys on a piano)</td>
+</tr>
+
+<tr>
+<th>
+{actionkey[note3_0]}, {actionkey[note3_1]}, {actionkey[note3_2]}, ...,
+{actionkey[note3_6]}
+</th>
+<td>Play/add notes (an octave below)</td>
+</tr>
+
+<tr class="even">
+<th>{actionkey[octave_down]} / {actionkey[octave_up]}</th>
+<td>Change to lower/higher octave</td>
+</tr>
+
+<tr>
+<th>{actionkey[play]}</th>
+<td>Play composition</td>
+</tr>
+
+<tr class="even">
+<th><span class="key">Ctrl</span> + {actionkey[play]}</th>
+<td>Play pattern</td>
+</tr>
+
+<tr>
+<th><span class="key">Alt</span> + {actionkey[play]}</th>
+<td>Play from cursor / playback marker</td>
+</tr>
+
+<tr class="even">
+<th><span class="key">Ctrl</span> + <span class="key">Alt</span> + {actionkey[play]}</th>
+<td>Set/clear playback marker</td>
+</tr>
+
+<tr>
+<th>{actionkey[silence]}</th>
+<td>Stop all playback</td>
+</tr>
+
+<tr class="even">
+<th>{actionkey[rest]}</th>
+<td>Add rest</td>
+</tr>
+
+<tr>
+<th><span class="key">Space</span></th>
+<td>Toggle editing mode</td>
+</tr>
+
+<tr class="even">
+<th><span class="key">Insert</span></th>
+<td>Toggle replace mode</td>
+</tr>
+
+<tr>
+<th><span class="key">Return</span></th>
+<td>
+Editing (when not on an existing trigger): Insert an event trigger<br/>
+Editing (on a trigger in replace mode): Modify parameter value of a trigger
+</td>
+</tr>
+
+<tr class="even">
+<th><span class="key">Esc</span></th>
+<td>Exit editing mode</td>
+</tr>
+
+</table>
+
+</section>
+
+<section>
+<div class="head"><a name="event_types">Event types</a></div>
+
+<p>
+Unless otherwise stated, events that expect an argument accept any real number.
+</p>
+
+<section>
+<div class="head"><a name="channel_events">Channel events</a></div>
+
+<p>
+Channel events control active notes and other parts of channel state.
+</p>
+
+<table class="events">
+
+<tr class="even">
+<th>.f</th>
+<td>
+<p class="head">Set force to <var>x</var> dB</p>
+Unattenuated force level is 30 dB by default.
+</td>
+</tr>
+
+<tr>
+<th>/f</th>
+<td>
+<p class="head">Slide force to <var>x</var> dB</p>
+Use <strong>/=f</strong> to control slide duration.
+</td>
+</tr>
+
+<tr class="even">
+<th>/=f</th>
+<td>
+<p class="head">Set force slide length to <var>x</var> beats</p>
+</td>
+</tr>
+
+<tr>
+<th>ts</th>
+<td>
+<p class="head">Set tremolo speed to <var>x</var> cycles/second</p>
+By default, the new speed takes full effect immediately; use
+<strong>t/=s</strong> to control the length of transition to the new speed.
+</td>
+</tr>
+
+<tr class="even">
+<th>td</th>
+<td>
+<p class="head">Set tremolo depth to ±<var>x</var> dB</p>
+By default, the new depth takes full effect immediately; use
+<strong>t/=d</strong> to control the length of transition to the new depth.
+</td>
+</tr>
+
+<tr>
+<th>t/=s</th>
+<td>
+<p class="head">Set tremolo speed slide length to <var>x</var> beats</p>
+</td>
+</tr>
+
+<tr class="even">
+<th>t/=d</th>
+<td>
+<p class="head">Set tremolo depth slide length to <var>x</var> beats</p>
+</td>
+</tr>
+
+<tr>
+<th>-&gt;f+</th>
+<td>
+<p class="head">Turn on force carrying</p>
+With carrying enabled, following notes will use the force state (fixed force,
+slide and tremolo) of the current note.
+</td>
+</tr>
+
+<tr class="even">
+<th>-&gt;f-</th>
+<td>
+<p class="head">Turn off force carrying</p>
+With carrying disabled, following notes will use the default force state.
+</td>
+</tr>
+
+<tr>
+<th>/p</th>
+<td>
+<p class="head">Slide pitch to <var>x</var></p>
+Use <strong>/=p</strong> to control slide duration.
+</td>
+</tr>
+
+<tr class="even">
+<th>/=p</th>
+<td>
+<p class="head">Set pitch slide length to <var>x</var> beats</p>
+</td>
+</tr>
+
+<tr>
+<th>vs</th>
+<td>
+<p class="head">Set vibrato speed to <var>x</var> cycles/second</p>
+By default, the new speed takes full effect immediately; use
+<strong>v/=s</strong> to control the length of transition to the new speed.
+</td>
+</tr>
+
+<tr class="even">
+<th>vd</th>
+<td>
+<p class="head">Set vibrato depth to <var>x</var></p>
+The depth uses a unit of 5 cents, and specifies maximum deviation: e.g. a depth
+of 240 reaches one octave above and below the centre pitch.
+By default, the new depth takes full effect immediately; use
+<strong>v/=d</strong> to control the length of transition to the new depth.
+</td>
+</tr>
+
+<tr>
+<th>v/=s</th>
+<td>
+<p class="head">Set vibrato speed slide length to <var>x</var> beats</p>
+</td>
+</tr>
+
+<tr class="even">
+<th>v/=d</th>
+<td>
+<p class="head">Set vibrato depth slide length to <var>x</var> beats</p>
+</td>
+</tr>
+
+<tr>
+<th>-&gt;p+</th>
+<td>
+<p class="head">Turn on pitch carrying</p>
+With carrying enabled, following notes will use the pitch state (offset from
+the starting note as well as slide and vibrato) of the current note.
+</td>
+</tr>
+
+<tr class="even">
+<th>-&gt;p-</th>
+<td>
+<p class="head">Turn off pitch carrying</p>
+</td>
+</tr>
+
+<tr>
+<th>.sn</th>
+<td>
+<p class="head">Select channel stream <var>x</var> (string)</p>
+This event selects the target stream used by events <strong>.s</strong>,
+<strong>/s</strong>, <strong>/=s</strong>, <strong>os</strong>,
+<strong>od</strong>, <strong>o/=s</strong> and <strong>o/=d</strong>. The name
+is used to select a channel stream interface of the active instrument (configurable
+in the instrument editor). Note that it is often not necessary to use this event
+directly: e.g. <strong>.s:name 5</strong> is equivalent to <strong>.sn 'name'</strong>
+followed by <strong>.s 5</strong> (and this also works with the other channel stream
+events as well as the audio unit stream events).
+</td>
+</tr>
+
+<tr class="even">
+<th>.s</th>
+<td>
+<p class="head">Set value of a channel stream to <var>x</var></p>
+</td>
+</tr>
+
+<tr>
+<th>/s</th>
+<td>
+<p class="head">Slide channel stream to <var>x</var></p>
+</td>
+</tr>
+
+<tr class="even">
+<th>/=s</th>
+<td>
+<p class="head">Set slide length of channel stream to <var>x</var> beats</p>
+</td>
+</tr>
+
+<tr>
+<th>os</th>
+<td>
+<p class="head">Set oscillation speed of channel stream to <var>x</var> cycles per
+second</p>
+</td>
+</tr>
+
+<tr class="even">
+<th>od</th>
+<td>
+<p class="head">Set oscillation depth of channel stream to <var>x</var></p>
+</td>
+</tr>
+
+<tr>
+<th>o/=s</th>
+<td>
+<p class="head">Set oscillation speed slide length of channel stream to <var>x</var>
+beats</p>
+</td>
+</tr>
+
+<tr class="even">
+<th>o/=d</th>
+<td>
+<p class="head">Set oscillation depth slide length of channel stream to <var>x</var>
+beats</p>
+</td>
+</tr>
+
+<tr>
+<th>-&gt;s+</th>
+<td>
+<p class="head">Turn on channel stream carrying</p>
+</td>
+</tr>
+
+<tr class="even">
+<th>-&gt;s-</th>
+<td>
+<p class="head">Turn off channel stream carrying</p>
+</td>
+</tr>
+
+<tr>
+<th>.xc</th>
+<td>
+<p class="head">Set channel expression to <var>x</var> (string)</p>
+</td>
+</tr>
+
+<tr class="even">
+<th>.x</th>
+<td>
+<p class="head">Set note expression to <var>x</var> (string)</p>
+</td>
+</tr>
+
+<tr>
+<th>-&gt;x+</th>
+<td>
+<p class="head">Turn on note expression carrying</p>
+</td>
+</tr>
+
+<tr class="even">
+<th>-&gt;x-</th>
+<td>
+<p class="head">Turn off note expression carrying</p>
+</td>
+</tr>
+
+<tr>
+<th>.dn</th>
+<td>
+<p class="head">Set channel device event name to <var>x</var> (string)</p>
+This event selects the device event used with event <strong>d</strong>. Note that it is
+often not necessary to use this event directly: e.g. <strong>d:name 10</strong> is
+equivalent to <strong>.dn 'name'</strong> followed by <strong>d 10</strong>.
+</td>
+</tr>
+
+<tr class="even">
+<th>d</th>
+<td>
+<p class="head">Fire channel device event with argument <var>x</var>
+(context-dependent type)</p>
+</td>
+</tr>
+
+<tr>
+<th>.a</th>
+<td>
+<p class="head">Set active instrument/effect to <var>x</var> (natural number)</p>
+This can be used to override the active instrument/effect in the current channel.
+Normally you shouldn't need this, as you can configure proper defaults in the
+<em>Songs & channels</em> window.
+</td>
+</tr>
+
+</table>
+
+</section>
+
+
+<section>
+<div class="head"><a name="master_events">Master events</a></div>
+
+<p>
+Master events control various playback parameters that affect the whole composition.
+</p>
+
+<table class="events">
+
+<tr class="even">
+<th>m.v</th>
+<td>
+<p class="head">Set global volume to <var>x</var> dBFS</p>
+Unattenuated volume level is 0 dB.
+</td>
+</tr>
+
+<tr>
+<th>m/v</th>
+<td>
+<p class="head">Slide global volume to <var>x</var> dBFS</p>
+Use <strong>m/=v</strong> to control slide duration.
+</td>
+</tr>
+
+<tr class="even">
+<th>m/=v</th>
+<td>
+<p class="head">Set global volume slide length to <var>x</var> beats</p>
+</td>
+</tr>
+
+<tr>
+<th>m.t</th>
+<td>
+<strong>Set tempo to <var>x</var> beats per minute</strong>
+</td>
+</tr>
+
+<tr class="even">
+<th>m/t</th>
+<td>
+<p class="head">Slide tempo to <var>x</var> beats per minute</p>
+Use <strong>m/=t</strong> to control slide duration. NOTE: Tempo slides are
+more coarse-grained than other slides.
+</td>
+</tr>
+
+<tr>
+<th>m/=t</th>
+<td>
+<p class="head">Set tempo slide length to <var>x</var> beats</p>
+</td>
+</tr>
+
+<tr class="even">
+<th>mpd</th>
+<td>
+<p class="head">Pattern delay for <var>x</var> beats</p>
+Suspend playback cursor at the event.
+</td>
+</tr>
+
+<tr>
+<th>m.jc</th>
+<td>
+<p class="head">Set jump counter to <var>x</var> (natural number)</p>
+</td>
+</tr>
+
+<tr class="even">
+<th>m.jp</th>
+<td>
+<p class="head">Set jump target pattern instance <var>x</var></p>
+</td>
+</tr>
+
+<tr>
+<th>m.jr</th>
+<td>
+<p class="head">Set jump target row <var>x</var></p>
+</td>
+</tr>
+
+<tr class="even">
+<th>mj</th>
+<td>
+<p class="head">Jump fixed number of times</p>
+</td>
+</tr>
+
+<tr>
+<th>m.r</th>
+<td>
+<p class="head">Set active retuner to <var>x</var> (index)</p>
+</td>
+</tr>
+
+<tr class="even">
+<th>m.rfp</th>
+<td>
+<p class="head">Set fixed pitch of the active retuner to <var>x</var></p>
+</td>
+</tr>
+
+<tr>
+<th>m.rc</th>
+<td>
+<p class="head">Set tuning centre of the active retuner to <var>x</var></p>
+</td>
+</tr>
+
+<tr class="even">
+<th>m.ro</th>
+<td>
+<p class="head">Set pitch offset of the active retuner to <var>x</var></p>
+</td>
+</tr>
+
+<tr>
+<th>mmr</th>
+<td>
+<p class="head">Apply initial settings of retuner <var>x</var> to the active retuner</p>
+</td>
+</tr>
+
+<tr class="even">
+<th>m&lt;r</th>
+<td>
+<p class="head">Reset active retuner</p>
+</td>
+</tr>
+
+</table>
+
+</section>
+
+
+<section>
+
+<div class="head"><a name="au_events">Audio unit events</a></div>
+
+<p>
+Audio unit events control parameters that apply to a single instrument/effect as a whole.
+The target instrument/effect is determined by the channel default setting or by the
+<strong>.a</strong> event, and the target stream is specified by the <strong>.sn</strong>
+event. Otherwise, the channel in which the audio unit events are fired does not affect
+the end result in any other way.
+</p>
+
+<table class="events">
+
+<tr class="even">
+<th>a.sus</th>
+<td>
+<p class="head">Set instrument sustain value to <var>x</var></p>
+Valid range for <var>x</var> is [0..1]. 0 (default) disables sustain completely; 1
+applies full sustain. Sustain slows down or pauses the progress of note release
+envelopes. If a force release envelope is not enabled, values ≥ 0.5 disable cutting of a
+released note.
+</td>
+</tr>
+
+<tr>
+<th>a.s</th>
+<td>
+<p class="head">Set value of audio unit stream to <var>x</var></p>
+</td>
+</tr>
+
+<tr class="even">
+<th>a/s</th>
+<td>
+<p class="head">Slide value of audio unit stream to <var>x</var></p>
+Use <strong>a/=s</strong> to control slide duration.
+</td>
+</tr>
+
+<tr>
+<th>a/=s</th>
+<td>
+<p class="head">Set slide length of audio unit stream to <var>x</var> beats</p>
+</td>
+</tr>
+
+<tr class="even">
+<th>aos</th>
+<td>
+<p class="head">Set oscillation speed of audio unit stream to <var>x</var> cycles per
+second</p>
+</td>
+</tr>
+
+<tr>
+<th>aod</th>
+<td>
+<p class="head">Set oscillation depth of audio unit stream to <var>x</var></p>
+</td>
+</tr>
+
+<tr class="even">
+<th>ao/=s</th>
+<td>
+<p class="head">Set oscillation speed slide length of audio unit stream to <var>x</var>
+beats</p>
+</td>
+</tr>
+
+<tr>
+<th>ao/=d</th>
+<td>
+<p class="head">Set oscillation depth slide length of audio unit stream to <var>x</var>
+beats</p>
+</td>
+</tr>
+
+<tr class="even">
+<th>ad</th>
+<td>
+<p class="head">Fire audio unit device event with argument <var>x</var>
+(context-dependent type)</p>
+</td>
+</tr>
+
+</table>
+
+</section>
+
+<pre>
+ 
+</pre>
+
+</body>
+
+</html>

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2018
+# Author: Tomi Jylhä-Ollila, Finland 2014-2019
 #
 # This file is part of Kunquat.
 #
@@ -15,6 +15,7 @@ from kunquat.tracker.ui.qt import *
 
 from kunquat.kunquat.limits import *
 import kunquat.tracker.cmdline as cmdline
+from kunquat.tracker.ui.model.keymapmanager import KeyboardAction
 from kunquat.tracker.ui.model.trigger import Trigger
 from kunquat.tracker.ui.model.triggerposition import TriggerPosition
 import kunquat.tracker.ui.model.tstamp as tstamp
@@ -48,6 +49,8 @@ class Toolbar(QWidget, Updater):
                 ZoomButton('original_w'),
                 ZoomButton('expand_w'),
             ]
+        self._sheet_help_button = SheetHelpButton()
+
         self._grid_toggle = GridToggle()
         self._grid_editor_button = GridEditorButton()
         self._grid_selector = GridSelector()
@@ -66,6 +69,7 @@ class Toolbar(QWidget, Updater):
                 self._paste_button,
                 self._convert_tr_button,
                 *self._zoom_buttons,
+                self._sheet_help_button,
                 self._grid_toggle,
                 self._grid_editor_button,
                 self._grid_selector,
@@ -94,6 +98,8 @@ class Toolbar(QWidget, Updater):
         h.addWidget(HackSeparator())
         for button in self._zoom_buttons:
             h.addWidget(button)
+        h.addWidget(HackSeparator())
+        h.addWidget(self._sheet_help_button)
 
         spacer = QWidget()
         spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
@@ -265,7 +271,7 @@ class RestButton(IconButton):
 
         self.setFlat(True)
         #self.setText('══')
-        self.setToolTip('Add rest (1)')
+        self.setToolTip('Add rest')
 
         self.set_sizes(_BUTTON_SIZE, _BUTTON_PADDING)
 
@@ -279,6 +285,12 @@ class RestButton(IconButton):
         self.register_action('signal_silence', self._update_enabled)
 
         self._sheet_mgr = self._ui_model.get_sheet_manager()
+
+        keymap_mgr = self._ui_model.get_keymap_manager()
+        key_name = keymap_mgr.get_key_name(
+                keymap_mgr.get_action_location(KeyboardAction.REST))
+        if key_name:
+            self.setToolTip('Add rest ({})'.format(key_name))
 
         self.clicked.connect(self._clicked)
 
@@ -549,7 +561,7 @@ class ConvertTriggerButton(IconButton):
         super().__init__()
         self.setFlat(True)
         #self.setText('Convert')
-        self.setToolTip('Convert between set and slide trigger (/)')
+        self.setToolTip('Convert between set and slide trigger (Ctrl + M)')
 
         self.set_sizes(_BUTTON_SIZE, _BUTTON_PADDING)
 
@@ -661,6 +673,24 @@ class ZoomButton(IconButton):
                 new_width = self._sheet_mgr.get_column_width() - 1
             if self._sheet_mgr.set_column_width(new_width):
                 self._updater.signal_update('signal_sheet_column_width')
+
+
+class SheetHelpButton(IconButton):
+
+    def __init__(self):
+        super().__init__()
+        self.setFlat(True)
+        self.setToolTip('Help')
+
+        self.set_sizes(_BUTTON_SIZE, _BUTTON_PADDING)
+
+    def _on_setup(self):
+        super()._on_setup()
+        self.set_icon('help')
+        self.clicked.connect(self._show_help)
+
+    def _show_help(self):
+        self._ui_model.get_visibility_manager().show_sheet_help()
 
 
 class GridToggle(QCheckBox, Updater):

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2018
+# Author: Tomi Jylhä-Ollila, Finland 2014-2019
 #
 # This file is part of Kunquat.
 #
@@ -16,18 +16,11 @@ import itertools
 
 from kunquat.tracker.ui.qt import *
 
+from kunquat.tracker.ui.model.keymapmanager import KeyboardAction, KeyboardNoteAction
 from .updater import Updater
 
 
 # TODO: Define alternatives for different environments if/when needed
-
-def _generate_scancode_map():
-    yield from ((11 + x, (0, x)) for x in range(9))
-    yield from ((24 + x, (1, x)) for x in range(10))
-    yield from ((39 + x, (2, x)) for x in range(7))
-    yield from ((52 + x, (3, x)) for x in range(7))
-
-_TYPEWRITER_SCANCODE_MAP = dict(_generate_scancode_map())
 
 def _generate_keycode_map():
     # pylint: disable=line-too-long
@@ -48,81 +41,109 @@ _TYPEWRITER_KEYCODE_MAP = dict(_generate_keycode_map())
 class KeyboardMapper(Updater):
 
     def __init__(self):
-        self._sheet_mgr = None
-        self._typewriter_mgr = None
-
         super().__init__()
+        self._sheet_mgr = None
+        self._keymap_mgr = None
+        self._typewriter_mgr = None
 
     def _on_setup(self):
         self._sheet_mgr = self._ui_model.get_sheet_manager()
+        self._keymap_mgr = self._ui_model.get_keymap_manager()
         self._typewriter_mgr = self._ui_model.get_typewriter_manager()
 
     def process_typewriter_button_event(self, event):
+        has_modifiers = (event.modifiers() != Qt.NoModifier)
+        is_press = (event.type() == QEvent.KeyPress)
+        is_release = (event.type() == QEvent.KeyRelease)
+
         # Note playback
-        button = self._get_typewriter_button_model(event)
-        if button and event.modifiers() == Qt.NoModifier:
+        action = self.get_key_action(event)
+        button = self._get_typewriter_button_model(action)
+        if button and (not has_modifiers):
             if (not self._sheet_mgr.allow_note_autorepeat()) and event.isAutoRepeat():
                 return True
 
-            if event.type() == QEvent.KeyPress:
+            if is_press:
                 button.start_tracked_note()
-            elif event.type() == QEvent.KeyRelease:
+            elif is_release:
                 button.stop_tracked_note()
 
             return True
 
-        # Octave selection and hit keymap toggle
-        if self.is_octave_down(event):
+        # Other actions that need to be handled
+        if action:
+            if action.action_type == KeyboardAction.OCTAVE_DOWN:
+                if not has_modifiers:
+                    if is_press:
+                        cur_octave = self._typewriter_mgr.get_octave()
+                        self._typewriter_mgr.set_octave(max(0, cur_octave - 1))
+                    return True
+
+            elif action.action_type == KeyboardAction.OCTAVE_UP:
+                if not has_modifiers:
+                    if is_press:
+                        cur_octave = self._typewriter_mgr.get_octave()
+                        octave_count = self._typewriter_mgr.get_octave_count()
+                        self._typewriter_mgr.set_octave(
+                                min(octave_count - 1, cur_octave + 1))
+                    return True
+
+            elif action.action_type == KeyboardAction.PLAY:
+                if not has_modifiers:
+                    if is_press:
+                        self._ui_model.play()
+                    return True
+                elif (event.modifiers() == Qt.ControlModifier):
+                    if is_press:
+                        self._ui_model.play_pattern()
+                    return True
+                elif (event.modifiers() == Qt.AltModifier):
+                    if is_press:
+                        self._ui_model.play_from_cursor()
+                    return True
+
+            elif action.action_type == KeyboardAction.REST:
+                pass # Skipped, only handled in the sheet view
+
+            elif action.action_type == KeyboardAction.SILENCE:
+                if not has_modifiers:
+                    if is_press:
+                        self._ui_model.silence()
+                    return True
+
+        if self.is_hit_keymap_toggle(event):
             if event.type() == QEvent.KeyPress:
-                cur_octave = self._typewriter_mgr.get_octave()
-                self._typewriter_mgr.set_octave(max(0, cur_octave - 1))
-            return True
-        elif self.is_octave_up(event):
-            if event.type() == QEvent.KeyPress:
-                cur_octave = self._typewriter_mgr.get_octave()
-                octave_count = self._typewriter_mgr.get_octave_count()
-                self._typewriter_mgr.set_octave(min(octave_count - 1, cur_octave + 1))
-            return True
-        elif self.is_hit_keymap_toggle(event):
-            if event.type() == QEvent.KeyPress:
-                keymap_mgr = self._ui_model.get_keymap_manager()
-                is_hit_keymap_active = keymap_mgr.is_hit_keymap_active()
-                keymap_mgr.set_hit_keymap_active(not is_hit_keymap_active)
+                is_hit_keymap_active = self._keymap_mgr.is_hit_keymap_active()
+                self._keymap_mgr.set_hit_keymap_active(not is_hit_keymap_active)
                 self._updater.signal_update('signal_select_keymap')
             return True
 
         return False
 
-    def _get_typewriter_button_model(self, event):
+    def get_key_action(self, event):
         if sys.platform.startswith('darwin'):
-            typewriter_map = _TYPEWRITER_KEYCODE_MAP
-            code = event.key()
+            pass # TODO
         else:
-            typewriter_map = _TYPEWRITER_SCANCODE_MAP
             code = event.nativeScanCode()
+            loc = self._keymap_mgr.get_scancode_location(code)
+            if loc:
+                return self._keymap_mgr.get_key_action(loc)
 
-        try:
-            row, index = typewriter_map[code]
-        except KeyError:
+        return None
+
+    def _get_typewriter_button_model(self, action):
+        if not isinstance(action, KeyboardNoteAction):
             return None
 
+        row, index = action.row, action.index
         button = self._typewriter_mgr.get_button_model(row, index)
         return button
-
-    def is_octave_up(self, event):
-        return event.key() == Qt.Key_Greater
-
-    def is_octave_down(self, event):
-        return event.key() == Qt.Key_Less
 
     def is_hit_keymap_toggle(self, event):
         return (event.key() == Qt.Key_H) and (event.modifiers() == Qt.ControlModifier)
 
     def is_handled_key(self, event):
-        button = self._get_typewriter_button_model(event)
-        return (bool(button) or
-                self.is_octave_up(event) or
-                self.is_octave_down(event) or
-                self.is_hit_keymap_toggle(event))
+        action = self.get_key_action(event)
+        return (bool(action) or self.is_hit_keymap_toggle(event))
 
 

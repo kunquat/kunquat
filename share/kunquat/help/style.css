@@ -1,0 +1,127 @@
+
+
+/*
+ * This is the style sheet used for help pages within Kunquat Tracker.
+ *
+ * The following special syntax is supported:
+ *   <pt[s]>  -- expands to point size that is s times the default font size
+ *   <px[s]>  -- expands to pixel size that is s times the default font height
+ *   <col[c]> -- expands colour parameter c to a #rgb or #rrggbb colour
+ *
+ * The following standard CSS features are NOT supported:
+ *   > (direct child in selectors)
+ *   anything else that Qt does not support
+ */
+
+
+.head, .head a
+{
+    margin-bottom: <px[1]>;
+    font-size: <pt[1.7]>;
+    font-weight: bold;
+    text-align: center;
+}
+
+section .head, section .head a
+{
+    margin-top: <px[1.5]>;
+    margin-left: <px[4]>;
+    margin-right: <px[4]>;
+    margin-bottom: <px[0.5]>;
+    font-size: <pt[1.5]>;
+    text-align: left;
+}
+
+section section .head, section section .head a
+{
+    font-size: <pt[1.2]>;
+}
+
+p
+{
+    margin-top: <px[0.8]>;
+    margin-left: <px[2]>;
+    margin-right: <px[2]>;
+    margin-bottom: <px[0.8]>;
+    font-size: <pt[1]>;
+}
+
+a:link
+{
+    color: <col[link_fg]>;
+}
+
+ul
+{
+    margin-top: 0;
+    margin-left: 0;
+    margin-right: 0;
+    margin-bottom: 0;
+}
+
+li
+{
+    margin-top: 0;
+    margin-left: <px[2]>;
+    margin-right: <px[2]>;
+    margin-bottom: 0;
+    list-style-type: none;
+}
+
+li li
+{
+    margin-left: 0;
+}
+
+table
+{
+    margin-top: <px[1]>;
+    margin-left: <px[4]>;
+    margin-right: <px[4]>;
+    margin-bottom: <px[1]>;
+}
+
+table tr.even
+{
+    background-color: <col[table_even_bg]>;
+}
+
+table td
+{
+    padding-top: <px[0.5]>;
+    padding-left: <px[1.5]>;
+    padding-right: <px[0.5]>;
+    padding-bottom: <px[0.5]>;
+}
+
+table th
+{
+    padding-top: <px[0.5]>;
+    padding-left: <px[0.5]>;
+    padding-right: <px[1.5]>;
+    padding-bottom: <px[0.5]>;
+    text-align: left;
+    font-weight: bold;
+}
+
+table.keys th
+{
+    font-weight: normal;
+}
+
+table td .head, table td .head var
+{
+    margin-top: 0;
+    margin-left: 0;
+    margin-right: 0;
+    margin-bottom: 0;
+    font-size: <pt[1]>;
+    text-align: left;
+}
+
+.key
+{
+    font-weight: bold;
+}
+
+

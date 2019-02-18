@@ -11,6 +11,8 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+import re
+
 import kunquat.tracker.config as config
 
 
@@ -126,7 +128,7 @@ class StyleManager():
         'system_load_mid_colour'            : '#dc3',
         'system_load_high_colour'           : '#e21',
         'text_bg_colour'                    : '#211d2c',
-        'text_fg_colour'                    : '#e9d0a7',
+        'text_fg_colour'                    : '#d9c7a9',
         'text_selected_bg_colour'           : '#36a',
         'text_selected_fg_colour'           : '#ffc',
         'text_disabled_fg_colour'           : '#8b7865',
@@ -204,15 +206,46 @@ class StyleManager():
         size_norm = self.get_style_param(size_param)
         return self.get_scaled_size(size_norm, min_size)
 
+    def get_colour_param_intensity(self, param):
+        colour = self._get_colour_from_str(self.get_style_param(param))
+        return self.get_colour_intensity(colour)
+
+    def get_colour_intensity(self, colour):
+        return (colour[0] * 0.212) + (colour[1] * 0.715) + (colour[2] * 0.072)
+
     def get_adjusted_colour(self, param, brightness):
         orig_colour = self._get_colour_from_str(self.get_style_param(param))
         adjusted_colour = (c + brightness for c in orig_colour)
         return self._get_str_from_colour(adjusted_colour)
 
-    def get_link_colour(self):
+    def get_link_colour(self, colour_param='fg_colour'):
         shift = (-0.3, 0.1, 0.6)
-        fg_colour = self._get_colour_from_str(self.get_style_param('fg_colour'))
+        fg_colour = self._get_colour_from_str(self.get_style_param(colour_param))
         return self._get_str_from_colour(c + s for (c, s) in zip(fg_colour, shift))
+
+    def get_help_style(self, font_size):
+        share = self._controller.get_share()
+        stored_style = share.get_help_style()
+
+        substs = {
+            '{': '{{',
+            '}': '}}',
+            '<': '{',
+            '>': '}',
+        }
+
+        patterns = ['/\*.*?\*/'] + [re.escape(k) for k in substs.keys()]
+        preformat = re.compile('|'.join(patterns), re.DOTALL)
+        pref_style = preformat.sub(lambda mo: substs.get(mo.group(0), ''), stored_style)
+
+        kwargs = {
+            'pt': _SizeHelper(font_size, 'pt'),
+            'px': _SizeHelper(self.get_scaled_size(1), 'px'),
+            'col': _ColourHelper(self),
+        }
+
+        final_style = pref_style.format(**kwargs)
+        return final_style
 
     def _get_colour_from_str(self, s):
         if len(s) == 4:
@@ -239,5 +272,35 @@ class StyleManager():
     def _get_config_style(self):
         cfg = config.get_config()
         return cfg.get_value('style') or {}
+
+
+class _SizeHelper():
+
+    def __init__(self, default_size, suffix):
+        self._size = default_size
+        self._suffix = suffix
+
+    def __getitem__(self, index):
+        rel_size = float(index)
+        abs_size = int(round(self._size * rel_size))
+        return '{}{}'.format(abs_size, self._suffix)
+
+
+class _ColourHelper():
+
+    def __init__(self, style_mgr):
+        self._style_mgr = style_mgr
+
+    def __getitem__(self, name):
+        if name == 'link_fg':
+            return self._style_mgr.get_link_colour('text_fg_colour')
+        elif name == 'table_even_bg':
+            bg_intensity = self._style_mgr.get_colour_param_intensity('text_bg_colour')
+            brightness = 0.12 if bg_intensity < 0.5 else -0.12
+            adjusted = self._style_mgr.get_adjusted_colour('text_bg_colour', brightness)
+            return adjusted
+
+        colour_param = '{}_colour'.format(name)
+        return self._style_mgr.get_style_param(colour_param)
 
 

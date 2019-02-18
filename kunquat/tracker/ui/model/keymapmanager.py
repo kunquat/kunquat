@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2014
-#          Tomi Jylhä-Ollila, Finland 2016-2017
+#          Tomi Jylhä-Ollila, Finland 2016-2019
 #
 # This file is part of Kunquat.
 #
@@ -15,6 +15,45 @@
 
 class HitKeymapID:
     pass
+
+
+class KeyboardAction():
+
+    NOTE = 'note'
+    OCTAVE_DOWN = 'octave_down'
+    OCTAVE_UP = 'octave_up'
+    PLAY = 'play'
+    REST = 'rest'
+    SILENCE = 'silence'
+
+    def __init__(self, action_type):
+        super().__init__()
+        self.action_type = action_type
+
+    def __eq__(self, other):
+        return (self.action_type == other.action_type)
+
+    def __hash__(self):
+        return hash(self.action_type)
+
+
+class KeyboardNoteAction(KeyboardAction):
+
+    def __init__(self, row, index):
+        super().__init__(KeyboardAction.NOTE)
+        self.row = row
+        self.index = index
+
+    def _get_fields(self):
+        return (self.action_type, self.row, self.index)
+
+    def __eq__(self, other):
+        if not isinstance(other, KeyboardNoteAction):
+            return False
+        return (self._get_fields() == other._get_fields())
+
+    def __hash__(self):
+        return hash(self._get_fields())
 
 
 _hit_keymap = {
@@ -39,7 +78,6 @@ class KeymapManager():
     def __init__(self):
         self._session = None
         self._updater = None
-        self._keymaps = None
         self._ui_model = None
 
     def set_controller(self, controller):
@@ -49,6 +87,87 @@ class KeymapManager():
 
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
+
+    def _are_keymap_actions_valid(self, actions):
+        ka = KeyboardAction
+
+        req_single_action_types = (
+                ka.OCTAVE_DOWN, ka.OCTAVE_UP, ka.PLAY, ka.REST, ka.SILENCE)
+        for action_type in req_single_action_types:
+            if ka(action_type) not in actions:
+                return False
+
+        note_actions = set(a for a in actions if a.action_type == ka.NOTE)
+        if len(note_actions) != 33:
+            return False
+
+        return True
+
+    def get_keyboard_row_sizes(self):
+        # The number of buttons provided for configuration on each row
+        # On a QWERTY layout, the leftmost buttons are: 1, Q, A, Z
+        return (11, 11, 11, 10)
+
+    def get_typewriter_row_sizes(self):
+        return (9, 10, 7, 7)
+
+    def get_typewriter_row_offsets(self):
+        return (1, 0, 1, 0)
+
+    def _is_row_layout_valid(self, locs):
+        row_sizes = self.get_keyboard_row_sizes()
+
+        used_locs = set()
+        for loc in locs:
+            if loc in used_locs:
+                return False
+            used_locs.add(loc)
+
+            row, index = loc
+            if not (0 <= row < len(row_sizes)):
+                return False
+            if not (0 <= index < row_sizes[row]):
+                return False
+
+        return True
+
+    def set_key_actions(self, actions):
+        assert self._is_row_layout_valid(actions.keys())
+        assert self._are_keymap_actions_valid(actions.values())
+        self._session.keyboard_key_actions = actions
+
+        action_locations = { act: loc for (loc, act) in actions.items() }
+        self._session.keyboard_action_locations = action_locations
+
+    def set_key_names(self, names):
+        assert self._is_row_layout_valid(names.keys())
+        self._session.keyboard_key_names = names
+
+    def set_scancode_locations(self, codes_to_locs):
+        assert self._is_row_layout_valid(codes_to_locs.values())
+        self._session.keyboard_scancode_locations = codes_to_locs
+
+    def set_key_id_locations(self, ids_to_locs):
+        assert self._is_row_layout_valid(ids_to_locs.values())
+        self._session.keyboard_id_locations = ids_to_locs
+
+    def get_scancode_location(self, code):
+        return self._session.keyboard_scancode_locations.get(code, None)
+
+    def get_key_id_location(self, key_id):
+        return self._session.keyboard_id_locations.get(key_id, None)
+
+    def get_key_action(self, location):
+        return self._session.keyboard_key_actions.get(location, None)
+
+    def get_key_name(self, location):
+        return self._session.keyboard_key_names.get(location, None)
+
+    def get_action_location(self, action):
+        if not isinstance(action, KeyboardAction):
+            assert action != KeyboardAction.NOTE
+            action = KeyboardAction(action)
+        return self._session.keyboard_action_locations.get(action, None)
 
     def _get_keymap_ids(self):
         notation_mgr = self._ui_model.get_notation_manager()

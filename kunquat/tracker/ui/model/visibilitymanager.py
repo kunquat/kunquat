@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2014-2018
+# Authors: Tomi Jylhä-Ollila, Finland 2014-2019
 #          Toni Ruottu, Finland 2014
 #
 # This file is part of Kunquat.
@@ -177,6 +177,12 @@ class VisibilityManager():
 
     def hide_interactivity_controls(self):
         self._hide_window(UI_IA_CONTROLS)
+
+    def show_sheet_help(self):
+        self._show_window(UI_SHEET_HELP)
+
+    def hide_sheet_help(self):
+        self._hide_window(UI_SHEET_HELP)
 
     def get_visible(self):
         return self._session.get_visible()

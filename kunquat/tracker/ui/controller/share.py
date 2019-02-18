@@ -48,6 +48,7 @@ class Share():
         'file_kqti',
         'file_sample',
         'follow_playback',
+        'help',
         'input_compact',
         'input_full',
         'new_pattern',
@@ -80,6 +81,7 @@ class Share():
         self._keymaps_path = os.path.join(self._path, 'keymaps')
         self._notations_path = os.path.join(self._path, 'notations')
         self._styles_path = os.path.join(self._path, 'styles')
+        self._help_path = os.path.join(self._path, 'help')
 
         self._notations = {}
         self._read_notations()
@@ -279,8 +281,26 @@ class Share():
         try:
             with open(ss_path, encoding='utf-8') as f:
                 ss = f.read(131072) # TODO: Add some basic sanity checks
-        except FileNotFoundError:
+        except OSError:
             return ''
         return ss
+
+    def get_help_text(self, help_name):
+        help_path = os.path.join(self._help_path, '{}.html'.format(help_name))
+        try:
+            with open(help_path, encoding='utf-8') as f:
+                help_data = f.read(131072) # TODO: Add some basic sanity checks
+        except OSError:
+            return '<p>Could not find help file at {}</p>'.format(help_path)
+        return help_data
+
+    def get_help_style(self):
+        style_path = os.path.join(self._help_path, 'style.css')
+        try:
+            with open(style_path, encoding='utf-8') as f:
+                style_data = f.read(131072) # TODO: Add some basic sanity checks
+        except OSError:
+            return ''
+        return style_data
 
 

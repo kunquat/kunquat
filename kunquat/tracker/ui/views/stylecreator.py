@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016-2018
+# Author: Tomi Jylhä-Ollila, Finland 2016-2019
 #
 # This file is part of Kunquat.
 #
@@ -94,6 +94,7 @@ class StyleCreator():
         # Get colours
         contrast = style_mgr.get_style_param('border_contrast')
         grad = -0.07
+        table_grid_contrast = 0.2
         button_brightness = style_mgr.get_style_param('button_brightness')
         button_down = style_mgr.get_style_param('button_press_brightness')
         button_down2 = 1.5 * button_down
@@ -153,6 +154,11 @@ class StyleCreator():
         def make_dark(colour):
             return self._adjust_brightness(colour, -contrast)
 
+        def make_table_grid_line(colour):
+            intensity = style_mgr.get_colour_intensity(colour)
+            contrast = table_grid_contrast if intensity < 0.5 else -table_grid_contrast
+            return self._adjust_brightness(colour, contrast)
+
         # Get derived colours
         colours = {
             'icons_path'                  : icons_path,
@@ -196,6 +202,7 @@ class StyleCreator():
             'tab_shade_top_colour_light'  : make_light(tab_shade_top_colour),
             'tab_shade_top_colour_dark'   : make_dark(tab_shade_top_colour),
             'tab_shade_bottom_colour'     : tab_shade_bottom_colour,
+            'table_grid_line_colour'      : make_table_grid_line(text_bg_colour),
             'text_bg_colour'              : text_bg_colour,
             'text_fg_colour'              : text_fg_colour,
             'text_selected_bg_colour'     : text_selected_bg_colour,
