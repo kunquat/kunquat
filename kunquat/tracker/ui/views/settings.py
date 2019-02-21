@@ -398,9 +398,10 @@ class ThemeToolBar(QToolBar, Updater):
 
 class ThemesModel(QAbstractListModel):
 
-    def __init__(self, style_mgr):
+    def __init__(self, ui_model):
         super().__init__()
-        self._style_mgr = style_mgr
+        self._style_mgr = ui_model.get_style_manager()
+        self._updater = ui_model.get_updater()
         self._fields = []
         self._make_data()
 
@@ -436,14 +437,18 @@ class ThemesModel(QAbstractListModel):
     def headerData(self, section, orientation, role):
         return None
 
-    def data(self, index, role):
+    def _index_is_valid(self, index):
+        if not index.isValid():
+            return False
         row, column = index.row(), index.column()
-        row_count = self._get_row_count()
-        if (column != 0) or not (0 <= row < row_count):
+        return (column == 0) and (0 <= row < self._get_row_count())
+
+    def data(self, index, role):
+        if not self._index_is_valid(index):
             return None
 
-        field = self._fields[row]
-        if role == Qt.DisplayRole:
+        field = self._fields[index.row()]
+        if role in (Qt.DisplayRole, Qt.EditRole):
             _, name = field
             return name
         elif role == Qt.UserRole:
@@ -451,6 +456,43 @@ class ThemesModel(QAbstractListModel):
             return theme_id
 
         return None
+
+    def setData(self, index, value, role):
+        if not self._index_is_valid(index):
+            return False
+
+        if (not isinstance(value, str)) or (not value) or (len(value) > 256):
+            return False
+
+        field = self._fields[index.row()]
+        old_theme_id, _ = field
+
+        new_theme_id = self._style_mgr.set_theme_name_and_get_new_id(old_theme_id, value)
+        self._style_mgr.set_selected_theme_id(new_theme_id)
+
+        #self.dataChanged.emit(index, index)
+        #return True
+
+        # Let's do this the Kunquat way so that we only have one update route
+        self._updater.signal_update('signal_theme_list_changed', 'signal_theme_changed')
+        return False
+
+    def flags(self, index):
+        if not index.isValid():
+            return Qt.NoItemFlags
+
+        row, column = index.row(), index.column()
+        if (column != 0) or not (0 <= row < self._get_row_count()):
+            return Qt.NoItemFlags
+
+        flags = Qt.ItemIsEnabled | Qt.ItemIsSelectable
+
+        theme_id, _ = self._fields[row]
+        theme_type, _ = theme_id
+        if theme_type == 'custom':
+            flags |= Qt.ItemIsEditable
+
+        return flags
 
 
 class ThemeList(QListView, Updater):
@@ -470,7 +512,7 @@ class ThemeList(QListView, Updater):
         if old_sm:
             old_sm.currentChanged.disconnect(self._on_index_changed)
 
-        self._model = ThemesModel(self._ui_model.get_style_manager())
+        self._model = ThemesModel(self._ui_model)
         self.setModel(self._model)
 
         self.selectionModel().currentChanged.connect(self._on_index_changed)

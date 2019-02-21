@@ -302,7 +302,7 @@ class StyleManager():
         new_theme_data['name'] = new_name
 
         cfg = config.get_config()
-        new_theme_id = ('custom', cfg.make_theme_name(new_name))
+        new_theme_id = ('custom', cfg.make_theme_name(new_name, unique=True))
         if not new_theme_id[1]:
             print('could not create a new theme ID')
             return
@@ -337,6 +337,35 @@ class StyleManager():
 
     def get_theme_name(self, theme_id):
         return self.get_theme_data(theme_id, cache=False).get('name') or ''
+
+    def set_theme_name_and_get_new_id(self, theme_id, disp_name):
+        theme_type, old_theme_name = theme_id
+        assert theme_type == 'custom'
+
+        if theme_id == self._session.cached_theme_id:
+            self.try_flush_cached_style()
+            self._session.cached_theme_id = None
+            self._session.cached_theme = None
+
+        cfg = config.get_config()
+        new_theme_name = cfg.make_theme_name(disp_name, unique=False)
+        if new_theme_name != old_theme_name:
+            new_theme_name = cfg.make_theme_name(disp_name, unique=True)
+            if not (new_theme_name and cfg.rename_theme(old_theme_name, new_theme_name)):
+                new_theme_name = old_theme_name
+
+        new_theme_id = ('custom', new_theme_name)
+
+        theme = cfg.get_theme(new_theme_name)
+        theme['name'] = disp_name
+        cfg.set_theme(new_theme_name, theme)
+
+        if not self._session.cached_theme_id:
+            self._session.cached_theme_id = new_theme_id
+            self._session.cached_theme = theme
+            self._session.is_cached_theme_modified = False
+
+        return new_theme_id
 
     def remove_theme(self, theme_id):
         theme_type, theme_name = theme_id

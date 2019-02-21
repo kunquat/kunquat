@@ -247,7 +247,7 @@ class Config():
 
         return theme_names
 
-    def make_theme_name(self, disp_name):
+    def make_theme_name(self, disp_name, unique):
         # Strip out all weirdness in the name
         norm_name = unicodedata.normalize('NFKD', disp_name)
         no_combs = ''.join(c.lower() for c in norm_name if not unicodedata.combining(c))
@@ -255,37 +255,63 @@ class Config():
         allowed_ch_name = ''.join((c if c in allowed_chs else '_') for c in no_combs)
         parts = allowed_ch_name.split('_')
         well_formed = '_'.join(p for p in parts if p)
-        if (not well_formed) or (well_formed[0] in string.digits):
-            well_formed = 't' + well_formed
+        if not well_formed:
+            well_formed = 'theme'
 
-        # Make sure the name is unique
-        used_names = self.get_theme_names()
-        final_name = well_formed
-        if well_formed in used_names:
-            for i in range(1000):
-                final_name = '{}{}'.format(well_formed, i)
-                if final_name not in used_names:
-                    break
-            else:
-                try:
-                    f, path = tempfile.mkstemp('.json', 't', self._themes_dir)
-                    f.close()
+        if unique:
+            # Make sure the name is unique
+            used_names = self.get_theme_names()
+            final_name = well_formed
+            if well_formed in used_names:
+                for i in range(1000):
+                    final_name = '{}{}'.format(well_formed, i)
+                    if final_name not in used_names:
+                        break
+                else:
                     try:
-                        st = os.stat(path)
-                        if st.st_size == 0:
-                            os.remove(path)
-                    except OSError:
-                        pass
+                        f, path = tempfile.mkstemp('.json', 't', self._themes_dir)
+                        f.close()
+                        try:
+                            st = os.stat(path)
+                            if st.st_size == 0:
+                                os.remove(path)
+                        except OSError:
+                            pass
 
-                    _, filename = os.path.split(path)
-                    final_name = filename.rpartition('.')[0]
-                except OSError:
-                    return None
+                        _, filename = os.path.split(path)
+                        final_name = filename.rpartition('.')[0]
+                    except OSError:
+                        return None
+        else:
+            final_name = well_formed
 
         return final_name
 
+    def _get_theme_path(self, theme_name):
+        return os.path.join(self._themes_dir, theme_name + '.json')
+
+    def rename_theme(self, old_name, new_name):
+        old_path = self._get_theme_path(old_name)
+        new_path = self._get_theme_path(new_name)
+
+        if not os.path.exists(old_path):
+            print('Theme path to be renamed {} does not exist'.format(old_path))
+            return False
+
+        if os.path.exists(new_path):
+            print('Theme path for new name {} already exists'.format(new_path))
+            return False
+
+        try:
+            os.rename(old_path, new_path)
+        except OSError as e:
+            print('Could not rename {} to {}: {}'.format(old_name, new_name, e.strerror))
+            return False
+
+        return True
+
     def _try_load_theme(self, theme_name):
-        theme_path = os.path.join(self._themes_dir, theme_name + '.json')
+        theme_path = self._get_theme_path(theme_name)
 
         decoded, success = self._load_json_data(theme_path, is_theme=True)
         if not success:
@@ -307,7 +333,7 @@ class Config():
         return safe_data
 
     def _try_save_theme(self, theme_name, theme):
-        theme_path = os.path.join(self._themes_dir, theme_name + '.json')
+        theme_path = self._get_theme_path(theme_name)
 
         # Make sure that our destination directory exists
         if not self._check_make_dir(self._themes_dir, is_theme=True):
@@ -336,7 +362,7 @@ class Config():
         return self._try_save_theme(theme_name, theme)
 
     def remove_theme(self, theme_name):
-        theme_path = os.path.join(self._themes_dir, theme_name + '.json')
+        theme_path = self._get_theme_path(theme_name)
         try:
             os.remove(theme_path)
         except OSError as e:
