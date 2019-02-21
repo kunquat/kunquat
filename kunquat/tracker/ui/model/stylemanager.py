@@ -316,7 +316,7 @@ class StyleManager():
 
         if theme_type == 'share':
             theme = self._share.get_theme(theme_name)
-            return theme[key]
+            return theme
 
         elif theme_type == 'custom':
             if self._session.cached_theme_id == theme_id:
