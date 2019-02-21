@@ -367,8 +367,8 @@ class ThemeToolBar(QToolBar, Updater):
         name = style_mgr.get_theme_name(theme_id)
 
         def remove():
-            stock_theme_ids = style_mgr.get_stock_theme_ids()
-            custom_theme_ids = style_mgr.get_custom_theme_ids()
+            custom_theme_ids = sorted(style_mgr.get_custom_theme_ids())
+            stock_theme_ids = sorted(style_mgr.get_stock_theme_ids())
             cur_theme_ids = custom_theme_ids + stock_theme_ids
 
             try:
@@ -408,11 +408,11 @@ class ThemesModel(QAbstractListModel):
     def _make_data(self):
         self._fields = []
 
-        stock_theme_ids = self._style_mgr.get_stock_theme_ids()
-        custom_theme_ids = self._style_mgr.get_custom_theme_ids()
+        custom_theme_ids = sorted(self._style_mgr.get_custom_theme_ids())
+        stock_theme_ids = sorted(self._style_mgr.get_stock_theme_ids())
 
-        for theme_id in itertools.chain(custom_theme_ids, stock_theme_ids):
-            self._fields.append((theme_id, self._style_mgr.get_theme_name(theme_id)))
+        self._fields = [(theme_id, self._style_mgr.get_theme_name(theme_id))
+                for theme_id in itertools.chain(custom_theme_ids, stock_theme_ids)]
 
     def _get_row_count(self):
         return len(self._fields)
