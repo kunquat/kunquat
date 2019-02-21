@@ -11,6 +11,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+import itertools
 import math
 import os
 import string
@@ -19,6 +20,7 @@ from kunquat.tracker.ui.qt import *
 
 import kunquat.tracker.cmdline as cmdline
 import kunquat.tracker.config as config
+from .confirmdialog import ConfirmDialog
 from .filedialog import FileDialog
 from .headerline import HeaderLine
 from .kqtcombobox import KqtComboBox
@@ -40,6 +42,7 @@ class Settings(QWidget, Updater):
 
         self._chord_mode = ChordMode()
 
+        self._themes = Themes()
         self._font = FontSelector()
         self._border_contrast = BorderContrast()
         self._button_brightness = ButtonBrightness()
@@ -52,6 +55,7 @@ class Settings(QWidget, Updater):
                 self._samples,
                 self._effects,
                 self._chord_mode,
+                self._themes,
                 self._font,
                 self._border_contrast,
                 self._button_brightness,
@@ -109,8 +113,9 @@ class Settings(QWidget, Updater):
         self._appearance_layout.setContentsMargins(0, 0, 0, 0)
         self._appearance_layout.setSpacing(4)
         self._appearance_layout.addWidget(self._appearance_header)
+        self._appearance_layout.addWidget(self._themes, 1)
         self._appearance_layout.addLayout(self._misc_style_layout)
-        self._appearance_layout.addWidget(self._colours)
+        self._appearance_layout.addWidget(self._colours, 3)
 
         h = QHBoxLayout()
         h.setContentsMargins(0, 0, 0, 0)
@@ -121,7 +126,9 @@ class Settings(QWidget, Updater):
 
     def _on_setup(self):
         self.register_action('signal_style_changed', self._update_style)
+        self.register_action('signal_theme_changed', self._update_enabled)
         self._update_style()
+        self._update_enabled()
 
     def _update_style(self):
         style_mgr = self._ui_model.get_style_manager()
@@ -142,6 +149,21 @@ class Settings(QWidget, Updater):
         self._appearance_layout.setSpacing(spacing_y)
 
         self.layout().setSpacing(style_mgr.get_scaled_size_param('large_padding'))
+
+    def _update_enabled(self):
+        style_mgr = self._ui_model.get_style_manager()
+        theme_id = style_mgr.get_selected_theme_id()
+        enabled = not style_mgr.is_theme_stock(theme_id)
+
+        style_widgets = (
+                self._font,
+                self._border_contrast,
+                self._button_brightness,
+                self._button_press_brightness,
+                self._colours)
+
+        for widget in style_widgets:
+            widget.setEnabled(enabled)
 
 
 class Directory(QWidget, Updater):
@@ -245,6 +267,234 @@ class ChordMode(QCheckBox, Updater):
         enabled = (state == Qt.Checked)
         config.get_config().set_value('chord_mode', enabled)
         self._updater.signal_update('signal_chord_mode_changed')
+
+
+class Themes(QWidget, Updater):
+
+    def __init__(self):
+        super().__init__()
+
+        self._toolbar = ThemeToolBar()
+        self._list = ThemeList()
+
+        self.add_to_updaters(self._toolbar, self._list)
+
+        v = QVBoxLayout()
+        v.setContentsMargins(0, 0, 0, 0)
+        v.setSpacing(0)
+        v.addWidget(self._toolbar)
+        v.addWidget(self._list)
+        self.setLayout(v)
+
+
+class RemoveThemeConfirmDialog(ConfirmDialog):
+
+    def __init__(self, ui_model, disp_name, action_confirm):
+        super().__init__(ui_model)
+
+        self._action_confirm = action_confirm
+
+        self.setWindowTitle('Confirm theme removal')
+
+        msg = 'Do you really want to remove the theme “{}”?'.format(disp_name)
+        self._set_message(msg)
+
+        self._cancel_button = QPushButton('Keep the theme')
+        self._remove_button = QPushButton('Remove the theme')
+
+        b = self._get_button_layout()
+        b.addWidget(self._cancel_button)
+        b.addWidget(self._remove_button)
+
+        self._cancel_button.setFocus(Qt.PopupFocusReason)
+
+        self._remove_button.clicked.connect(self._remove)
+        self._cancel_button.clicked.connect(self.close)
+
+    def _remove(self):
+        self._action_confirm()
+        self.close()
+
+
+class ThemeToolBar(QToolBar, Updater):
+
+    def __init__(self):
+        super().__init__()
+        self._new_button = QToolButton()
+        self._new_button.setText('New theme')
+        self._new_button.setToolTip('Make a new theme using the current style as a base')
+        self._new_button.setEnabled(False)
+
+        self._remove_button = QToolButton()
+        self._remove_button.setText('Remove theme')
+        self._remove_button.setEnabled(False)
+
+        self.addWidget(self._new_button)
+        self.addWidget(self._remove_button)
+
+    def _on_setup(self):
+        self._new_button.clicked.connect(self._add_theme)
+        self._remove_button.clicked.connect(self._remove_theme)
+
+        self.register_action('signal_theme_changed', self._update_enabled)
+
+        self._update_enabled()
+
+    def _update_enabled(self):
+        self._new_button.setEnabled(True)
+
+        style_mgr = self._ui_model.get_style_manager()
+        selected_theme_id = style_mgr.get_selected_theme_id()
+        if selected_theme_id:
+            self._remove_button.setEnabled(
+                    not style_mgr.is_theme_stock(selected_theme_id))
+        else:
+            self._remove_button.setEnabled(False)
+
+    def _add_theme(self):
+        style_mgr = self._ui_model.get_style_manager()
+        new_theme_id = style_mgr.create_new_theme()
+        if new_theme_id:
+            style_mgr.set_selected_theme_id(new_theme_id)
+            self._updater.signal_update(
+                    'signal_theme_list_changed',
+                    'signal_theme_changed',
+                    'signal_style_changed')
+
+    def _remove_theme(self):
+        style_mgr = self._ui_model.get_style_manager()
+        theme_id = style_mgr.get_selected_theme_id()
+        name = style_mgr.get_theme_name(theme_id)
+
+        def remove():
+            stock_theme_ids = style_mgr.get_stock_theme_ids()
+            custom_theme_ids = style_mgr.get_custom_theme_ids()
+            cur_theme_ids = custom_theme_ids + stock_theme_ids
+
+            try:
+                theme_index = cur_theme_ids.index(theme_id)
+            except ValueError:
+                print('Theme ID {} not found!'.format(theme_id))
+                return
+
+            if theme_index < (len(cur_theme_ids) - 1):
+                new_selected_theme_id = cur_theme_ids[theme_index + 1]
+            else:
+                assert theme_index > 0
+                new_selected_theme_id = cur_theme_ids[theme_index - 1]
+
+            style_mgr.remove_theme(theme_id)
+
+            style_mgr.set_selected_theme_id(new_selected_theme_id)
+
+            self._updater.signal_update(
+                    'signal_theme_list_changed',
+                    'signal_theme_changed',
+                    'signal_style_changed')
+
+        dialog = RemoveThemeConfirmDialog(self._ui_model, name, remove)
+        dialog.exec_()
+
+
+class ThemesModel(QAbstractListModel):
+
+    def __init__(self, style_mgr):
+        super().__init__()
+        self._style_mgr = style_mgr
+        self._fields = []
+        self._make_data()
+
+    def _make_data(self):
+        self._fields = []
+
+        stock_theme_ids = self._style_mgr.get_stock_theme_ids()
+        custom_theme_ids = self._style_mgr.get_custom_theme_ids()
+
+        for theme_id in itertools.chain(custom_theme_ids, stock_theme_ids):
+            self._fields.append((theme_id, self._style_mgr.get_theme_name(theme_id)))
+
+    def _get_row_count(self):
+        return len(self._fields)
+
+    def get_selected_row(self):
+        selected_theme_id = self._style_mgr.get_selected_theme_id()
+
+        for i, field in enumerate(self._fields):
+            theme_id, _ = field
+            if theme_id == selected_theme_id:
+                return i
+
+        return -1
+
+    # Qt interface
+
+    def rowCount(self, parent):
+        if parent.isValid():
+            return 0
+        return self._get_row_count()
+
+    def headerData(self, section, orientation, role):
+        return None
+
+    def data(self, index, role):
+        row, column = index.row(), index.column()
+        row_count = self._get_row_count()
+        if (column != 0) or not (0 <= row < row_count):
+            return None
+
+        field = self._fields[row]
+        if role == Qt.DisplayRole:
+            _, name = field
+            return name
+        elif role == Qt.UserRole:
+            theme_id, _ = field
+            return theme_id
+
+        return None
+
+
+class ThemeList(QListView, Updater):
+
+    def __init__(self):
+        super().__init__()
+        self._model = None
+
+    def _on_setup(self):
+        self.register_action('signal_theme_changed', self._update_selection)
+        self.register_action('signal_theme_list_changed', self._update_theme_list)
+
+        self._update_theme_list()
+
+    def _update_theme_list(self):
+        old_sm = self.selectionModel()
+        if old_sm:
+            old_sm.currentChanged.disconnect(self._on_index_changed)
+
+        self._model = ThemesModel(self._ui_model.get_style_manager())
+        self.setModel(self._model)
+
+        self.selectionModel().currentChanged.connect(self._on_index_changed)
+
+        self._update_selection()
+
+    def _update_selection(self):
+        row = self._model.get_selected_row()
+
+        sm = self.selectionModel()
+        old_block = sm.blockSignals(True)
+        if row >= 0:
+            selection = self._model.createIndex(row, 0)
+            sm.setCurrentIndex(selection, QItemSelectionModel.Select)
+        else:
+            sm.reset()
+        sm.blockSignals(old_block)
+
+    def _on_index_changed(self, current, previous):
+        theme_id = self._model.data(current, Qt.UserRole)
+        if theme_id:
+            style_mgr = self._ui_model.get_style_manager()
+            style_mgr.set_selected_theme_id(theme_id)
+            self._updater.signal_update('signal_theme_changed', 'signal_style_changed')
 
 
 class FontSelector(QWidget, Updater):
