@@ -11,6 +11,8 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+from copy import deepcopy
+import itertools
 import re
 
 import kunquat.tracker.config as config
@@ -152,6 +154,8 @@ class StyleManager():
     _STYLE_CONFIG_DEFAULTS.update(_STYLE_COLOUR_DEFAULTS)
     _STYLE_DEFAULTS.update(_STYLE_CONFIG_DEFAULTS)
 
+    _THEME_DEFAULT = ('default', 'default')
+
     def __init__(self):
         self._controller = None
         self._ui_model = None
@@ -183,7 +187,25 @@ class StyleManager():
         config_style = self._get_config_style()
         return config_style.get(key, self._STYLE_DEFAULTS[key])
 
+    def try_flush_cached_style(self):
+        cached_theme_id = self._session.cached_theme_id
+        if (not cached_theme_id) or (not self._session.is_cached_theme_modified):
+            return
+
+        assert cached_theme_id[0] == 'custom'
+
+        cfg = config.get_config()
+        if cfg.set_theme(cached_theme_id[1], self._session.cached_theme):
+            self._session.is_cached_theme_modified = False
+        else:
+            print('Could not save cached theme')
+
     def set_style_param(self, key, value):
+        assert self.get_selected_theme_id()[0] == 'custom'
+
+        if self._session.cached_theme_id != self.get_selected_theme_id():
+            self.try_flush_cached_style()
+
         config_style = self._get_config_style()
 
         config_style[key] = value
@@ -193,7 +215,9 @@ class StyleManager():
                 if (k != key) and (k not in config_style):
                     config_style[k] = self._STYLE_COLOUR_DEFAULTS[k]
 
-        self._set_config_style(config_style)
+        self._session.cached_theme_id = self.get_selected_theme_id()
+        self._session.cached_theme = config_style
+        self._session.is_cached_theme_modified = True
 
     def set_reference_font_height(self, height):
         self._session.set_reference_font_height(height)
@@ -247,6 +271,90 @@ class StyleManager():
         final_style = pref_style.format(**kwargs)
         return final_style
 
+    def get_stock_theme_ids(self):
+        names = self._share.get_theme_names()
+        return [StyleManager._THEME_DEFAULT] + [('share', n) for n in names]
+
+    def get_custom_theme_ids(self):
+        cfg = config.get_config()
+        return [('custom', name) for name in cfg.get_theme_names()]
+
+    def set_selected_theme_id(self, theme_id):
+        cfg = config.get_config()
+        cfg.set_value('selected_theme_id', theme_id)
+
+    def get_selected_theme_id(self):
+        cfg = config.get_config()
+        stored_theme_id = cfg.get_value('selected_theme_id')
+        if not stored_theme_id:
+            return ('default', 'default')
+        return tuple(stored_theme_id)
+
+    def create_new_theme(self):
+        cur_theme_data = self.get_theme_data(self.get_selected_theme_id(), cache=False)
+        if 'name' in cur_theme_data:
+            new_name = 'Copy of {}'.format(cur_theme_data['name'])
+        else:
+            new_name = 'New theme'
+
+        new_theme_data = dict(StyleManager._STYLE_CONFIG_DEFAULTS)
+        new_theme_data.update(cur_theme_data)
+        new_theme_data['name'] = new_name
+
+        cfg = config.get_config()
+        new_theme_id = ('custom', cfg.make_theme_name(new_name))
+        if not new_theme_id[1]:
+            print('could not create a new theme ID')
+            return
+
+        cfg.set_theme(new_theme_id[1], new_theme_data)
+
+        return new_theme_id
+
+    def get_theme_data(self, theme_id, cache=True):
+        theme_type, theme_name = theme_id
+
+        if theme_type == 'share':
+            theme = self._share.get_theme(theme_name)
+            return theme[key]
+
+        elif theme_type == 'custom':
+            if self._session.cached_theme_id == theme_id:
+                return self._session.cached_theme
+            theme = config.get_config().get_theme(theme_name)
+            if cache:
+                self.try_flush_cached_style()
+                self._session.cached_theme_id = theme_id
+                self._session.cached_theme = theme
+            return theme
+
+        elif theme_type == 'default':
+            theme = dict(StyleManager._STYLE_CONFIG_DEFAULTS)
+            theme['name'] = 'Default'
+            return theme
+
+        assert False
+
+    def get_theme_name(self, theme_id):
+        return self.get_theme_data(theme_id, cache=False).get('name') or ''
+
+    def remove_theme(self, theme_id):
+        theme_type, theme_name = theme_id
+        assert theme_type == 'custom'
+        config.get_config().remove_theme(theme_name)
+
+    def _is_theme_colours_only(self, theme):
+        allowed_keys = (
+                'name',
+                'border_contrast',
+                'button_brightness',
+                'button_press_brightness')
+        return all((k.endswith('_colour') or (k in allowed_keys)) for k in theme.keys())
+
+    def is_theme_stock(self, theme_id):
+        theme_type, _ = theme_id
+        return (theme_type != 'custom')
+
     def _get_colour_from_str(self, s):
         if len(s) == 4:
             cs = [s[1], s[2], s[3]]
@@ -265,13 +373,8 @@ class StyleManager():
         assert len(s) == 7
         return s
 
-    def _set_config_style(self, style):
-        cfg = config.get_config()
-        cfg.set_value('style', style)
-
     def _get_config_style(self):
-        cfg = config.get_config()
-        return cfg.get_value('style') or {}
+        return self.get_theme_data(self.get_selected_theme_id()) or {}
 
 
 class _SizeHelper():

@@ -157,6 +157,7 @@ class UiLauncher():
         root_view.unregister_updaters()
         self._controller.get_updater().verify_ready_to_exit()
 
+        self._ui_model.get_style_manager().try_flush_cached_style()
         config.try_save()
 
     def halt_ui(self):
