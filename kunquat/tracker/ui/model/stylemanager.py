@@ -327,7 +327,6 @@ class StyleManager():
 
     def get_theme_data(self, theme_id, cache=True):
         theme_type, theme_name = theme_id
-        print(theme_id)
 
         if theme_type == 'share':
             theme = self._share.get_theme(theme_name)
