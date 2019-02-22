@@ -168,6 +168,20 @@ class StyleManager():
         self._session = controller.get_session()
         self._share = controller.get_share()
 
+        # Verify the existence of selected theme
+        assert self._ui_model
+        theme_id = self.get_selected_theme_id()
+        theme_type, theme_name = theme_id
+        if theme_type == 'share':
+            theme_names = self._share.get_theme_names()
+        elif theme_type == 'custom':
+            theme_names = config.get_config().get_theme_names()
+        else:
+            return
+
+        if theme_name not in theme_names:
+            self.set_selected_theme_id(StyleManager._THEME_DEFAULT)
+
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
 
@@ -313,6 +327,7 @@ class StyleManager():
 
     def get_theme_data(self, theme_id, cache=True):
         theme_type, theme_name = theme_id
+        print(theme_id)
 
         if theme_type == 'share':
             theme = self._share.get_theme(theme_name)

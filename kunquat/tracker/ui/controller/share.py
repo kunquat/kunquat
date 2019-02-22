@@ -319,7 +319,7 @@ class Share():
                 theme_data = f.read(131072)
                 unsafe_theme = json.loads(theme_data)
         except (OSError, json.JSONDecodeError):
-            return None
+            return {}
 
         theme = {}
         for k, v in unsafe_theme.items():
