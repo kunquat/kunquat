@@ -359,7 +359,7 @@ class StyleManager():
         if theme_id == self._session.cached_theme_id:
             self.try_flush_cached_style()
             self._session.cached_theme_id = None
-            self._session.cached_theme = None
+            self._session.cached_theme = {}
 
         cfg = config.get_config()
         new_theme_name = cfg.make_theme_name(disp_name, unique=False)
@@ -385,6 +385,11 @@ class StyleManager():
         theme_type, theme_name = theme_id
         assert theme_type == 'custom'
         config.get_config().remove_theme(theme_name)
+
+        if self._session.cached_theme_id == theme_id:
+            self._session.cached_theme_id = None
+            self._session.cached_theme = {}
+            self._session.is_cached_theme_modified = False
 
     def _is_theme_colours_only(self, theme):
         allowed_keys = (
