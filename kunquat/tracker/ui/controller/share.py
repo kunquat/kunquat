@@ -82,6 +82,7 @@ class Share():
         self._notations_path = os.path.join(self._path, 'notations')
         self._styles_path = os.path.join(self._path, 'styles')
         self._help_path = os.path.join(self._path, 'help')
+        self._themes_path = os.path.join(self._path, 'themes')
 
         self._notations = {}
         self._read_notations()
@@ -302,5 +303,35 @@ class Share():
         except OSError:
             return ''
         return style_data
+
+    def get_theme_names(self):
+        try:
+            fnames = (n for n in os.listdir(self._themes_path) if n.endswith('.json'))
+            theme_names = [name.rpartition('.')[0] for name in fnames]
+        except OSError:
+            theme_names = []
+        return theme_names
+
+    def get_theme(self, name):
+        theme_path = os.path.join(self._themes_path, '{}.json'.format(name))
+        try:
+            with open(theme_path, encoding='utf-8') as f:
+                theme_data = f.read(131072)
+                unsafe_theme = json.loads(theme_data)
+        except (OSError, json.JSONDecodeError):
+            return {}
+
+        theme = {}
+        for k, v in unsafe_theme.items():
+            allowed_keys = (
+                    'name',
+                    'border_contrast',
+                    'button_brightness',
+                    'button_press_brightness')
+            if k.endswith('_colour') or (k in allowed_keys):
+                # TODO: more thorough checks
+                theme[k] = v
+
+        return theme
 
 

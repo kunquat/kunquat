@@ -180,6 +180,9 @@ class Session():
 
         # Appearance
         self._ref_font_height = 0
+        self.is_cached_theme_modified = False
+        self.cached_theme_id = None
+        self.cached_theme = {}
 
     def get_output_speed(self):
         return self._output_speed
