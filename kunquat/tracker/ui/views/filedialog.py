@@ -52,6 +52,9 @@ class FileDialog(QDialog):
     def __init__(self, ui_model, mode, title, start_path, filters=0):
         super().__init__()
 
+        if not start_path:
+            start_path = os.getcwd()
+
         self._ui_model = ui_model
         self._mode = mode
         self._current_dir = None
