@@ -449,8 +449,22 @@ class Config():
         if not success:
             return
 
-        # Apply valid settings
         config_data = self._get_validated_config(jdata)
+
+        # If we have an old style configuration, remove it and store it as a new theme
+        old_style_config = config_data.pop('style', None)
+        if old_style_config:
+            theme_disp_name = 'Custom theme'
+            theme_name = self.make_theme_name(theme_disp_name, unique=False)
+            if theme_name not in self.get_theme_names():
+                old_style_data = old_style_config.get()
+                old_style_data['name'] = theme_disp_name
+                self.set_theme(theme_name, old_style_data)
+                self.set_value('selected_theme_id', ('custom', theme_name))
+
+        self._config.pop('style', None)
+
+        # Apply valid settings
         self._config.update(config_data)
 
     def _check_make_dir(self, path, is_theme):
