@@ -37,6 +37,10 @@
 #include <stdlib.h>
 
 
+#define MIN_CUTOFF_RATIO 0.0001
+#define MAX_CUTOFF_RATIO 0.4999
+
+
 void Filter_get_port_groups(
         const Device_impl* dimpl, Device_port_type port_type, Device_port_groups groups)
 {
@@ -109,7 +113,7 @@ static float get_cutoff(double rel_freq)
 static float get_cutoff_ratio(double cutoff_param, int32_t audio_rate)
 {
     const double cutoff_ratio = cents_to_Hz((cutoff_param - 24) * 100) / audio_rate;
-    return (float)clamp(cutoff_ratio, 0.0001, 0.4999);
+    return (float)clamp(cutoff_ratio, MIN_CUTOFF_RATIO, MAX_CUTOFF_RATIO);
 }
 
 
@@ -186,8 +190,8 @@ static void Filter_state_impl_apply_input_buffers(
                             _mm_mul_ps(_mm_add_ps(cutoff_param, offset), scale)),
                         inv_audio_rate);
 
-                const __m128 min_ratio = _mm_set_ps1(0.0001f);
-                const __m128 max_ratio = _mm_set_ps1(0.4999f);
+                const __m128 min_ratio = _mm_set_ps1((float)MIN_CUTOFF_RATIO);
+                const __m128 max_ratio = _mm_set_ps1((float)MAX_CUTOFF_RATIO);
                 const __m128 cutoff_ratio_clamped =
                     _mm_min_ps(_mm_max_ps(min_ratio, cutoff_ratio), max_ratio);
 
@@ -200,7 +204,8 @@ static void Filter_state_impl_apply_input_buffers(
                 const double cutoff_param = cutoff_buf[i];
                 const double cutoff_ratio =
                     fast_cents_to_Hz((cutoff_param - 24) * 100) / audio_rate;
-                const double cutoff_ratio_clamped = clamp(cutoff_ratio, 0.0001, 0.4999);
+                const double cutoff_ratio_clamped =
+                    clamp(cutoff_ratio, MIN_CUTOFF_RATIO, MAX_CUTOFF_RATIO);
 
                 cutoffs[i] = get_cutoff_fast(cutoff_ratio_clamped);
             }
