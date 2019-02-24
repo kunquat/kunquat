@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2019
  *
  * This file is part of Kunquat.
  *
@@ -160,7 +160,12 @@ int32_t Noise_vstate_render_voice(
 
     // Get output buffer
     Work_buffer* out_wb = Proc_get_voice_output_2ch(proc_ts, PORT_OUT_AUDIO_L);
-    rassert(out_wb != NULL);
+    if (out_wb == NULL)
+    {
+        vstate->active = false;
+        return 0;
+    }
+
     float* out_buffer = Work_buffer_get_contents_mut(out_wb, 0);
 
     const int order = noise_state->order;

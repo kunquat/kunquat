@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2019
  *
  * This file is part of Kunquat.
  *
@@ -148,7 +148,11 @@ int32_t Padsynth_vstate_render_voice(
 
     // Get output buffer for writing
     Work_buffer* out_wb = Proc_get_voice_output_2ch(proc_ts, PORT_OUT_AUDIO_L);
-    rassert(out_wb != NULL);
+    if (out_wb == NULL)
+    {
+        vstate->active = false;
+        return 0;
+    }
 
     // Choose our sample
     const Padsynth_sample_entry* entry =
