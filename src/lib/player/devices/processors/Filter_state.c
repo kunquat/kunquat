@@ -37,7 +37,7 @@
 #include <stdlib.h>
 
 
-#define MIN_CUTOFF_RATIO 0.0001
+#define MIN_CUTOFF_RATIO 0.00003
 #define MAX_CUTOFF_RATIO 0.4999
 
 
@@ -112,7 +112,9 @@ static float get_cutoff(double rel_freq)
 
 static float get_cutoff_ratio(double cutoff_param, int32_t audio_rate)
 {
-    const double cutoff_ratio = cents_to_Hz((cutoff_param - 24) * 100) / audio_rate;
+    const double clamped_cutoff_param = clamp(cutoff_param, -36, 136);
+    const double cutoff_ratio =
+        cents_to_Hz((clamped_cutoff_param - 24) * 100) / audio_rate;
     return (float)clamp(cutoff_ratio, MIN_CUTOFF_RATIO, MAX_CUTOFF_RATIO);
 }
 
