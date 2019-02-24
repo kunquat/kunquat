@@ -1,7 +1,7 @@
 
 
 /*
- * Authors: Tomi Jylhä-Ollila, Finland 2018
+ * Authors: Tomi Jylhä-Ollila, Finland 2018-2019
  *          Sami Koistinen, Finland 2018
  *
  * This file is part of Kunquat.
@@ -414,6 +414,8 @@ static void Filter_pstate_render_mixed(
 
     // Get output
     Work_buffer* out_wb = Proc_get_mixed_output_2ch(proc_ts, PORT_OUT_AUDIO_L);
+    if (out_wb == NULL)
+        return;
 
     const Proc_filter* filter = (const Proc_filter*)dstate->device->dimpl;
 
@@ -503,6 +505,11 @@ int32_t Filter_vstate_render_voice(
 
     // Get output
     Work_buffer* out_wb = Proc_get_voice_output_2ch(proc_ts, PORT_OUT_AUDIO_L);
+    if (out_wb == NULL)
+    {
+        vstate->active = false;
+        return 0;
+    }
 
     const Device_state* dstate = (const Device_state*)proc_state;
     const Proc_filter* filter = (const Proc_filter*)dstate->device->dimpl;
