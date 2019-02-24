@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015-2018
+# Author: Tomi Jylhä-Ollila, Finland 2015-2019
 #
 # This file is part of Kunquat.
 #
@@ -32,9 +32,23 @@ def update_ref_font_height(font, style_mgr):
 
 def get_default_font():
     screen = QApplication.primaryScreen()
+
+    # Get default true DPI based on screen size (within reason)
+    min_true_dpi = 7.2
+    max_true_dpi = 12
+    min_dpi_at_width = 350
+    max_dpi_at_width = 675
+
+    physical_width = screen.physicalSize().width()
+    dpi_add = (physical_width - min_dpi_at_width)
+    t = min(max(0, dpi_add / (max_dpi_at_width - min_dpi_at_width)), 1)
+    true_dpi = lerp_val(min_true_dpi, max_true_dpi, t)
+
+    # Scale true DPI to compensate for misconfiguration in the system
     ldpi = screen.logicalDotsPerInch()
     pdpi = screen.physicalDotsPerInch()
-    size = int(round(7.2 * pdpi / ldpi))
+    size = int(round(true_dpi * pdpi / ldpi))
+
     return QFont(QFont().defaultFamily(), size)
 
 def get_default_font_info(style_mgr):
