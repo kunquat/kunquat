@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015-2018
+# Author: Tomi Jylhä-Ollila, Finland 2015-2019
 #
 # This file is part of Kunquat.
 #
@@ -29,9 +29,6 @@ from .audiounitupdater import AudioUnitUpdater
 
 def _get_events_update_signal_type(au_id):
     return 'signal_au_events_{}'.format(au_id)
-
-def _get_events_rebuild_signal_type(au_id):
-    return 'signal_au_events_rebuild_{}'.format(au_id)
 
 def _get_stream_update_signal_type(au_id):
     return 'signal_au_streams_{}'.format(au_id)
@@ -430,9 +427,6 @@ class EventList(EditorList, AudioUnitUpdater):
 
     def _on_setup(self):
         self.register_action(
-                _get_events_rebuild_signal_type(self._au_id),
-                self._force_update_event_names)
-        self.register_action(
                 _get_events_update_signal_type(self._au_id), self._update_event_names)
 
         self._update_event_names()
@@ -440,16 +434,13 @@ class EventList(EditorList, AudioUnitUpdater):
     def _on_teardown(self):
         self.disconnect_widgets()
 
-    def _force_update_event_names(self):
-        self._update_event_names(force_rebuild=True)
-
-    def _update_event_names(self, force_rebuild=False):
+    def _update_event_names(self):
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
         self._event_names = au.get_event_names()
         self._event_names_set = set(self._event_names)
 
-        self.update_list(force_rebuild)
+        self.update_list()
 
     def _make_adder_widget(self):
         adder = EventAdder()
@@ -558,9 +549,7 @@ class EventEditor(QWidget, AudioUnitUpdater):
         if expand:
             self._bindings.setVisible(True)
         else:
-            self._updater.signal_update(
-                    _get_events_update_signal_type(self._au_id),
-                    _get_events_rebuild_signal_type(self._au_id))
+            self._updater.signal_update(_get_events_update_signal_type(self._au_id))
 
 
 class EventExpander(QPushButton):
@@ -691,9 +680,7 @@ class EventArgTypeEditor(KqtComboBox, AudioUnitUpdater):
         au = module.get_audio_unit(self._au_id)
         arg_types = au.get_event_arg_types()
         au.change_event_arg_type(self._context, arg_types[index])
-        self._updater.signal_update(
-                _get_events_update_signal_type(self._au_id),
-                _get_events_rebuild_signal_type(self._au_id))
+        self._updater.signal_update(_get_events_update_signal_type(self._au_id))
 
 
 class EventAdder(QPushButton, AudioUnitUpdater):
@@ -781,12 +768,23 @@ class EventBindings(QWidget, AudioUnitUpdater):
         self.setVisible(au.is_event_expanded(event_name))
 
         binding_targets = au.get_event_binding_targets(event_name)
+        binding_target_count = len(binding_targets)
 
         cur_binding_count = self.layout().count() - 1
 
-        # Add missing editors
         layout = self.layout()
-        for i in range(cur_binding_count, len(binding_targets)):
+
+        # Remove excess editors (if any)
+        for i in range(binding_target_count, cur_binding_count):
+            item = layout.itemAt(binding_target_count)
+            layout.removeItem(item)
+            editor = item.widget()
+            self.remove_from_updaters(editor)
+            editor.deleteLater()
+            del item
+
+        # Add missing editors (if any)
+        for i in range(cur_binding_count, binding_target_count):
             editor = EventBindTargetEditor()
             layout.insertWidget(i, editor)
 
@@ -1114,9 +1112,7 @@ class EventBindTargetRemoveButton(RemoveButton):
         module = self._ui_model.get_module()
         au = module.get_audio_unit(self._au_id)
         au.remove_event_binding(event_name, target_dev_id, target_event_name)
-        self._updater.signal_update(
-                _get_events_update_signal_type(self._au_id),
-                _get_events_rebuild_signal_type(self._au_id))
+        self._updater.signal_update(_get_events_update_signal_type(self._au_id))
 
 
 class EventBindTargetAdder(QPushButton, AudioUnitUpdater):
