@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015-2018
+# Author: Tomi Jylhä-Ollila, Finland 2015-2019
 #
 # This file is part of Kunquat.
 #
@@ -27,7 +27,7 @@ class EditorList(QWidget):
         v.addWidget(self._area)
         self.setLayout(v)
 
-    def update_list(self, force_rebuild=False):
+    def update_list(self):
         if not self._area.widget():
             self._init_container()
 
@@ -42,17 +42,13 @@ class EditorList(QWidget):
             assert cur_editor_count >= 0
             new_widget_count += 1
 
-        if (new_widget_count < layout.count()) or force_rebuild:
-            # Create contents from scratch because
-            # Qt doesn't update visuals properly on single item removal
-            self.disconnect_widgets()
-            self._init_container()
-            layout = self._area.widget().layout()
-
-            cur_editor_count = layout.count()
-            if self._has_adder:
-                cur_editor_count -= 1
-                assert cur_editor_count >= 0
+        # Remove excess editors (if any)
+        for i in range(new_editor_count, cur_editor_count):
+            item = layout.itemAt(new_editor_count)
+            self._disconnect_widget(item.widget())
+            layout.removeItem(item)
+            item.widget().deleteLater()
+            del item
 
         # Create new editors (if needed)
         for i in range(cur_editor_count, new_editor_count):
