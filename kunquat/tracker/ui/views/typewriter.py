@@ -97,7 +97,7 @@ class Typewriter(QFrame, Updater):
             for ci in range(row.count() - 2): # -2 excludes padding and end stretch
                 button = row.itemAt(ci + 1).widget()
                 assert isinstance(button, TypewriterButton)
-                led_state = led_states.get((ri, ci), 3 * [False])
+                led_state = tuple(led_states.get((ri, ci), 3 * [False]))
                 button.update_led_state(led_state)
 
     def keyPressEvent(self, event):
