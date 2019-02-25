@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2018
+# Author: Tomi Jylhä-Ollila, Finland 2014-2019
 #
 # This file is part of Kunquat.
 #
@@ -59,6 +59,26 @@ class TypewriterButtonModel():
                     return hit.get_name()
 
         return None
+
+    def get_background_image(self, size, enabled, pressed):
+        images = self._session.typewriter_button_images[size]
+        return images.backgrounds.get((enabled, pressed), None)
+
+    def set_background_image(self, size, enabled, pressed, image):
+        images = self._session.typewriter_button_images[size]
+        images.backgrounds[(enabled, pressed)] = image
+
+    def get_led_image(self, size, led_state):
+        images = self._session.typewriter_button_images[size]
+        return images.leds.get(led_state, None)
+
+    def set_led_image(self, size, led_state, image):
+        images = self._session.typewriter_button_images[size]
+        images.leds[led_state] = image
+
+    def flush_images(self, size):
+        images = self._session.typewriter_button_images[size]
+        images.backgrounds = {}
 
     def _get_pitch(self):
         return self._typewriter_mgr.get_button_pitch((self._row, self._index))

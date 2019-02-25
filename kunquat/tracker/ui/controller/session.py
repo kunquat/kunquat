@@ -39,6 +39,13 @@ class _ProcInfo():
         self.selected_sample_hit_map_force = None
 
 
+class _TypewriterButtonImages():
+
+    def __init__(self):
+        self.backgrounds = {}
+        self.leds = {}
+
+
 class Session():
 
     _DEFAULT_NOTATION_ID = (True, '12tetsharp')
@@ -183,6 +190,7 @@ class Session():
         self.is_cached_theme_modified = False
         self.cached_theme_id = None
         self.cached_theme = {}
+        self.typewriter_button_images = defaultdict(lambda: _TypewriterButtonImages())
 
     def get_output_speed(self):
         return self._output_speed
