@@ -256,6 +256,11 @@ class StyleManager():
         adjusted_colour = (c + brightness for c in orig_colour)
         return self._get_str_from_colour(adjusted_colour)
 
+    def get_scaled_colour(self, param, mult):
+        orig_colour = self._get_colour_from_str(self.get_style_param(param))
+        scaled_colour = (c * mult for c in orig_colour)
+        return self._get_str_from_colour(scaled_colour)
+
     def get_link_colour(self, colour_param='fg_colour'):
         shift = (-0.3, 0.1, 0.6)
         fg_colour = self._get_colour_from_str(self.get_style_param(colour_param))
