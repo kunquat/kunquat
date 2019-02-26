@@ -12,6 +12,8 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+import math
+
 from kunquat.tracker.ui.qt import *
 
 from kunquat.tracker.ui.model.keymapmanager import KeyboardAction
@@ -86,8 +88,6 @@ class TypewriterButton(QPushButton, Updater):
     def _update_properties(self):
         name = self._button_model.get_name()
         if name != None:
-            #self._notename.setText(name)
-
             keymap_mgr = self._ui_model.get_keymap_manager()
             keymap_row_index = (
                     keymap_mgr.get_typewriter_row_offsets()[self._row] + self._index)
@@ -101,7 +101,7 @@ class TypewriterButton(QPushButton, Updater):
 
             self.setEnabled(True)
         else:
-            #self._notename.setText('')
+            self._key_name = None
             self.setToolTip('')
             self.setEnabled(False)
 
@@ -148,6 +148,10 @@ class TypewriterButton(QPushButton, Updater):
             bg_colour = QColor(style_mgr.get_style_param('bg_colour'))
 
             button_bg_colour = get_adjusted_colour('bg_colour', button_brightness)
+            button_bg_colour_grad_centre = get_adjusted_colour(
+                    'bg_colour', button_brightness - 0.03)
+            button_bg_colour_grad = get_adjusted_colour(
+                    'bg_colour', button_brightness - 0.07)
             button_edge_light = get_adjusted_colour(
                 'bg_colour', button_brightness + border_contrast)
             button_edge_dark = get_adjusted_colour(
@@ -181,14 +185,28 @@ class TypewriterButton(QPushButton, Updater):
             painter.setRenderHint(QPainter.Antialiasing)
 
             # Background fill
+            painter.save()
             painter.setPen(Qt.NoPen)
-            bg_rect = QRectF(left, top, right - 1, bottom - 1).adjusted(
-                    margin, margin, -margin, -margin - led_thickness)
-            painter.fillRect(bg_rect, button_bg_colour)
+            transform = painter.transform()
+            transform.scale(1, 0.5)
+            painter.setTransform(transform)
+
+            half_width, half_height = self.width() / 2, self.height()
+            gradient = QRadialGradient(
+                    half_width, half_height,
+                    self.width() * math.sqrt(2),
+                    half_width * 0.6, half_height * 0.8)
+            gradient.setColorAt(0, button_bg_colour_grad_centre)
+            gradient.setColorAt(0.5, button_bg_colour)
+            gradient.setColorAt(1, button_bg_colour_grad)
+            bg_rect = QRectF(left, top, right - 1, 2 * (bottom - 1)).adjusted(
+                    margin, margin, -margin, 2 * (-margin - led_thickness))
+            painter.fillRect(bg_rect, QBrush(gradient))
+            painter.restore()
 
             # Neutral LED
             painter.save()
-            painter.setPen(Qt.NoPen)
+            painter.setPen(led_colour)
             painter.setBrush(QBrush(led_colour))
             led_path = QPainterPath()
             led_path.moveTo(QPointF(left, top))
@@ -332,17 +350,20 @@ class TypewriterButton(QPushButton, Updater):
 
             if self._led_state[0]:
                 fill_with_gradient(QRadialGradient(
-                        half_width, half_height, half_width,
+                        half_width, half_height,
+                        half_width,
                         self.width() * detune_offset, half_height))
 
             if self._led_state[1]:
                 fill_with_gradient(QRadialGradient(
-                        half_width, half_height, half_width,
+                        half_width, half_height,
+                        half_width,
                         half_width, half_height))
 
             if self._led_state[2]:
                 fill_with_gradient(QRadialGradient(
-                        half_width, half_height, half_width,
+                        half_width, half_height,
+                        half_width,
                         self.width() * (1 - detune_offset), half_height))
 
             painter.end()
@@ -383,9 +404,10 @@ class TypewriterButton(QPushButton, Updater):
             name_y = height * 0.54
             painter.drawImage(name_x, name_y, name_image)
 
-        led_image = self._get_led_image()
-        if led_image:
-            painter.drawImage(0, 0, led_image)
+        if self.isEnabled():
+            led_image = self._get_led_image()
+            if led_image:
+                painter.drawImage(0, 0, led_image)
 
         painter.end()
 
