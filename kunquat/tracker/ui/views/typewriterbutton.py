@@ -337,10 +337,12 @@ class TypewriterButton(QPushButton, Updater):
             painter.setCompositionMode(QPainter.CompositionMode_Plus)
 
             led_colour = QColor(style_mgr.get_style_param('active_indicator_colour'))
+            led_dim_colour = QColor(led_colour)
+            led_dim_colour.setAlpha(0x66)
 
             half_width = self.width() / 2
             half_height = pre_height / 2
-            detune_offset = 0.25
+            detune_offset = 0.15
 
             def fill_with_gradient(gradient):
                 gradient.setColorAt(0, led_colour)
@@ -349,22 +351,28 @@ class TypewriterButton(QPushButton, Updater):
                 painter.fillRect(QRectF(0, 0, self.width(), pre_height), brush)
 
             if self._led_state[0]:
-                fill_with_gradient(QRadialGradient(
+                gradient = QRadialGradient(
                         half_width, half_height,
                         half_width,
-                        self.width() * detune_offset, half_height))
+                        self.width() * detune_offset, half_height)
+                gradient.setColorAt(0.3, led_dim_colour)
+                fill_with_gradient(gradient)
 
             if self._led_state[1]:
-                fill_with_gradient(QRadialGradient(
+                gradient = QRadialGradient(
                         half_width, half_height,
                         half_width,
-                        half_width, half_height))
+                        half_width, half_height)
+                gradient.setColorAt(0.5, led_dim_colour)
+                fill_with_gradient(gradient)
 
             if self._led_state[2]:
-                fill_with_gradient(QRadialGradient(
+                gradient = QRadialGradient(
                         half_width, half_height,
                         half_width,
-                        self.width() * (1 - detune_offset), half_height))
+                        self.width() * (1 - detune_offset), half_height)
+                gradient.setColorAt(0.3, led_dim_colour)
+                fill_with_gradient(gradient)
 
             painter.end()
 
