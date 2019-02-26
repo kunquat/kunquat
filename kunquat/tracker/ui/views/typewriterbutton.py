@@ -200,7 +200,7 @@ class TypewriterButton(QPushButton, Updater):
             gradient.setColorAt(0.5, button_bg_colour)
             gradient.setColorAt(1, button_bg_colour_grad)
             bg_rect = QRectF(left, top, right - 1, 2 * (bottom - 1)).adjusted(
-                    margin, margin, -margin, 2 * (-margin - led_thickness))
+                    margin, margin, -margin, -margin - led_thickness)
             painter.fillRect(bg_rect, QBrush(gradient))
             painter.restore()
 
