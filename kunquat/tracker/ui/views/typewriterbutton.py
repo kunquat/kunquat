@@ -179,6 +179,23 @@ class TypewriterButton(QPushButton, Updater):
             right = self.width() - margin + 0.5
             bottom = self.height() - margin + 0.5
 
+            bottom_arc_focus_y = -self.height() * 3
+            bottom_focus_dist_to_centre = bottom - bottom_arc_focus_y
+            bottom_centre_to_corner = (self.width() / 2) - edge_radius
+            bottom_corner_height_from_focus = math.sqrt(
+                    bottom_focus_dist_to_centre**2 - bottom_centre_to_corner**2)
+            bottom_arc_angle_rad = math.acos(
+                    bottom_corner_height_from_focus / bottom_focus_dist_to_centre)
+            bottom_arc_angle = bottom_arc_angle_rad * 180 / math.pi
+            bottom_corner_y = bottom - (
+                    bottom_focus_dist_to_centre - bottom_corner_height_from_focus)
+            bottom_arc_diam = bottom_focus_dist_to_centre * 2
+            bottom_arc_rect = QRectF(
+                    (self.width() / 2) - bottom_focus_dist_to_centre,
+                    bottom_arc_focus_y - bottom_focus_dist_to_centre,
+                    bottom_arc_diam,
+                    bottom_arc_diam)
+
             pixmap.fill(bg_colour)
 
             painter = QPainter(pixmap)
@@ -188,7 +205,8 @@ class TypewriterButton(QPushButton, Updater):
             painter.save()
             painter.setPen(Qt.NoPen)
             transform = painter.transform()
-            transform.scale(1, 0.5)
+            bg_y_scale = 0.5
+            transform.scale(1, bg_y_scale)
             painter.setTransform(transform)
 
             half_width, half_height = self.width() / 2, self.height()
@@ -199,12 +217,25 @@ class TypewriterButton(QPushButton, Updater):
             gradient.setColorAt(0, button_bg_colour_grad_centre)
             gradient.setColorAt(0.5, button_bg_colour)
             gradient.setColorAt(1, button_bg_colour_grad)
-            bg_rect = QRectF(left, top, right - 1, 2 * (bottom - 1)).adjusted(
-                    margin, margin, -margin, -margin - led_thickness)
-            painter.fillRect(bg_rect, QBrush(gradient))
+            painter.setBrush(gradient)
+            bg_path = QPainterPath()
+            bg_path.moveTo(QPointF(right, 2 * bottom_corner_y - edge_width))
+            bg_path.lineTo(QPointF(right, top))
+            bg_path.lineTo(QPointF(left, top))
+            bg_path.lineTo(QPointF(left, 2 * bottom_corner_y - edge_width))
+            bg_arc_rect = QRectF(
+                    bottom_arc_rect.x(),
+                    bottom_arc_rect.y() / bg_y_scale,
+                    bottom_arc_rect.width(),
+                    (bottom_arc_rect.height() / bg_y_scale) - edge_width)
+            bg_path.arcTo(
+                    bg_arc_rect,
+                    -90 - bottom_arc_angle * bg_y_scale,
+                    bottom_arc_angle * 2 * bg_y_scale)
+            painter.drawPath(bg_path)
             painter.restore()
 
-            # Neutral LED
+            # LED background
             painter.save()
             painter.setPen(led_colour)
             painter.setBrush(QBrush(led_colour))
@@ -222,10 +253,12 @@ class TypewriterButton(QPushButton, Updater):
             # Dark shades
             painter.setPen(QPen(QBrush(button_edge_dark), edge_width, cap=Qt.FlatCap))
             dark_path = QPainterPath()
-            dark_path.arcMoveTo(QRectF(left, bottom - diam, diam, diam), 225)
-            dark_path.arcTo(QRectF(left, bottom - diam, diam, diam), 225, 45)
-            dark_path.lineTo(QPointF(right - edge_radius, bottom))
-            dark_path.arcTo(QRectF(right - diam, bottom - diam, diam, diam), 270, 90)
+            dark_path.arcMoveTo(QRectF(left, bottom_corner_y - diam, diam, diam), 225)
+            dark_path.arcTo(QRectF(left, bottom_corner_y - diam, diam, diam), 225, 45)
+            dark_path.arcTo(
+                    bottom_arc_rect, -90 - bottom_arc_angle, bottom_arc_angle * 2)
+            dark_path.arcTo(
+                    QRectF(right - diam, bottom_corner_y - diam, diam, diam), 270, 90)
             dark_path.lineTo(QPointF(right, top + edge_tiny_radius))
             dark_path.arcTo(QRectF(right - tiny_diam, top, tiny_diam, tiny_diam), 0, 45)
             painter.drawPath(dark_path)
@@ -233,8 +266,8 @@ class TypewriterButton(QPushButton, Updater):
             # Light shades
             painter.setPen(QPen(QBrush(button_edge_light), edge_width, cap=Qt.FlatCap))
             light_path = QPainterPath()
-            light_path.arcMoveTo(QRectF(left, bottom - diam, diam, diam), 225)
-            light_path.arcTo(QRectF(left, bottom - diam, diam, diam), 225, -45)
+            light_path.arcMoveTo(QRectF(left, bottom_corner_y - diam, diam, diam), 225)
+            light_path.arcTo(QRectF(left, bottom_corner_y - diam, diam, diam), 225, -45)
             light_path.lineTo(QPointF(left, top + edge_tiny_radius))
             light_path.arcTo(QRectF(left, top, tiny_diam, tiny_diam), 180, -90)
             light_path.lineTo(QPointF(right - edge_tiny_radius, top))
