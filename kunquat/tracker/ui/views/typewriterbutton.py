@@ -327,28 +327,30 @@ class TypewriterButton(QPushButton, Updater):
             style_mgr = self._ui_model.get_style_manager()
             led_height = style_mgr.get_scaled_size(self._get_led_thickness())
 
-            pre_height = self.height() / 2
+            image = QImage(self.width(), led_height, QImage.Format_ARGB32_Premultiplied)
+            image.fill(0)
 
-            pre_image = QImage(
-                    self.width(), pre_height, QImage.Format_ARGB32_Premultiplied)
-            pre_image.fill(0)
+            scaled_height = self.width() / 2
 
-            painter = QPainter(pre_image)
+            painter = QPainter(image)
             painter.setCompositionMode(QPainter.CompositionMode_Plus)
+            transform = painter.transform()
+            transform.scale(1, led_height / scaled_height)
+            painter.setTransform(transform)
 
             led_colour = QColor(style_mgr.get_style_param('active_indicator_colour'))
             led_dim_colour = QColor(led_colour)
             led_dim_colour.setAlpha(0x66)
 
             half_width = self.width() / 2
-            half_height = pre_height / 2
+            half_height = scaled_height / 2
             detune_offset = 0.15
 
             def fill_with_gradient(gradient):
                 gradient.setColorAt(0, led_colour)
                 gradient.setColorAt(1, QColor(0, 0, 0, 0))
                 brush = QBrush(gradient)
-                painter.fillRect(QRectF(0, 0, self.width(), pre_height), brush)
+                painter.fillRect(QRectF(0, 0, self.width(), scaled_height), brush)
 
             if self._led_state[0]:
                 gradient = QRadialGradient(
@@ -374,14 +376,6 @@ class TypewriterButton(QPushButton, Updater):
                 gradient.setColorAt(0.3, led_dim_colour)
                 fill_with_gradient(gradient)
 
-            painter.end()
-
-            image = QImage(self.width(), led_height, QImage.Format_ARGB32_Premultiplied)
-            image.fill(0)
-
-            painter = QPainter(image)
-            painter.setRenderHint(QPainter.SmoothPixmapTransform)
-            painter.drawImage(QRectF(0, 0, self.width(), led_height), pre_image)
             painter.end()
 
             self._button_model.set_led_image(size, self._led_state, image)
