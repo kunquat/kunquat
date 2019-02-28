@@ -47,10 +47,32 @@ class AudioUnit():
 
     def get_edit_create_new_instrument(self):
         transaction = self.get_edit_set_existence('instrument')
+
         transaction.update(self.get_edit_set_port_existence('out_00', True))
         transaction.update(self.get_edit_set_port_existence('out_01', True))
         transaction.update(self.get_edit_set_port_name('out_00', 'audio L'))
         transaction.update(self.get_edit_set_port_name('out_01', 'audio R'))
+
+        proc_ids = self.get_free_processor_ids()
+        assert len(proc_ids) >= 3
+        force_id, pitch_id, base_id, *_ = proc_ids
+        transaction.update(self.get_edit_add_processor(force_id, 'force'))
+        transaction.update(self.get_edit_add_processor(pitch_id, 'pitch'))
+        transaction.update(self.get_edit_add_processor(base_id, 'add'))
+
+        force_conn_id = force_id.split('/')[1]
+        pitch_conn_id = pitch_id.split('/')[1]
+        base_conn_id = base_id.split('/')[1]
+
+        conns = self.get_connections()
+        conns_list = [
+            ['{}/C/out_00'.format(pitch_conn_id), '{}/C/in_00'.format(base_conn_id)],
+            ['{}/C/out_00'.format(force_conn_id), '{}/C/in_01'.format(base_conn_id)],
+            ['{}/C/out_00'.format(base_conn_id), 'out_00'],
+            ['{}/C/out_01'.format(base_conn_id), 'out_01'],
+        ]
+        transaction.update(conns.get_edit_set_connections(conns_list))
+
         return transaction
 
     def _get_key(self, subkey):
@@ -212,17 +234,21 @@ class AudioUnit():
                 proc_ids.add(proc_id)
         return proc_ids
 
-    def get_free_processor_id(self):
+    def get_free_processor_ids(self):
         used_proc_ids = self.get_processor_ids()
         all_proc_ids = set('{}/proc_{:02x}'.format(self._au_id, i)
                 for i in range(PROCESSORS_MAX))
         free_proc_ids = all_proc_ids - used_proc_ids
         free_list = sorted(list(free_proc_ids))
+        return free_list
+
+    def get_free_processor_id(self):
+        free_list = self.get_free_processor_ids()
         if not free_list:
             return None
         return free_list[0]
 
-    def add_processor(self, proc_id, proc_type):
+    def get_edit_add_processor(self, proc_id, proc_type):
         assert proc_id.startswith(self._au_id)
         key_prefix = proc_id
         transaction = {}
@@ -239,6 +265,10 @@ class AudioUnit():
             port_manifest_key = '{}/{}/p_manifest.json'.format(key_prefix, port_id)
             transaction[port_manifest_key] = {}
 
+        return transaction
+
+    def add_processor(self, proc_id, proc_type):
+        transaction = self.get_edit_add_processor(proc_id, proc_type)
         self._store.put(transaction)
 
     def _get_hit_key_base(self, hit_index):

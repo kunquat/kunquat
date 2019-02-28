@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2018
+# Author: Tomi Jylhä-Ollila, Finland 2014-2019
 #
 # This file is part of Kunquat.
 #
@@ -146,9 +146,13 @@ class Connections():
         key = self._get_graph_key()
         return self._store.get(key, get_default_value(key))
 
-    def set_connections(self, conns):
+    def get_edit_set_connections(self, conns):
         key = self._get_graph_key()
-        self._store[key] = conns
+        return { key: conns }
+
+    def set_connections(self, conns):
+        transaction = self.get_edit_set_connections(conns)
+        self._store.put(transaction)
 
     def get_layout(self):
         key = self._get_layout_key()
