@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013
-#          Tomi Jylhä-Ollila, Finland 2013-2018
+#          Tomi Jylhä-Ollila, Finland 2013-2019
 #
 # This file is part of Kunquat.
 #
@@ -45,17 +45,29 @@ class AudioUnit():
     def get_id(self):
         return self._au_id
 
+    def get_edit_create_new_instrument(self):
+        transaction = self.get_edit_set_existence('instrument')
+        transaction.update(self.get_edit_set_port_existence('out_00', True))
+        transaction.update(self.get_edit_set_port_existence('out_01', True))
+        transaction.update(self.get_edit_set_port_name('out_00', 'audio L'))
+        transaction.update(self.get_edit_set_port_name('out_01', 'audio R'))
+        return transaction
+
     def _get_key(self, subkey):
         return '{}/{}'.format(self._au_id, subkey)
 
-    def set_existence(self, au_type):
+    def get_edit_set_existence(self, au_type):
         assert (not au_type) or (au_type in ('instrument', 'effect'))
         key = self._get_key('p_manifest.json')
         if au_type:
             manifest = { 'type': au_type }
-            self._store[key] = manifest
         else:
-            del self._store[key]
+            manifest = None
+        return { key: manifest }
+
+    def set_existence(self, au_type):
+        transaction = self.get_edit_set_existence(au_type)
+        self._store.put(transaction)
 
     def get_existence(self):
         key = self._get_key('p_manifest.json')
@@ -112,12 +124,14 @@ class AudioUnit():
             info[out_port_id] = self.get_port_name(out_port_id)
         return info
 
-    def set_port_existence(self, port_id, existence):
+    def get_edit_set_port_existence(self, port_id, existence):
         key = self._get_key('{}/p_manifest.json'.format(port_id))
-        if existence:
-            self._store[key] = {}
-        else:
-            del self._store[key]
+        manifest = {} if existence else None
+        return { key: manifest }
+
+    def set_port_existence(self, port_id, existence):
+        transaction = self.get_edit_set_port_existence(port_id, existence)
+        self._store.put(transaction)
 
     def get_free_input_port_id(self):
         for i in range(0x100):
@@ -139,9 +153,13 @@ class AudioUnit():
         key = self._get_key('{}/m_name.json'.format(port_id))
         return self._store.get(key, None)
 
-    def set_port_name(self, port_id, name):
+    def get_edit_set_port_name(self, port_id, name):
         key = self._get_key('{}/m_name.json'.format(port_id))
-        self._store[key] = name
+        return { key: name }
+
+    def set_port_name(self, port_id, name):
+        transaction = self.get_edit_set_port_name(port_id, name)
+        self._store.put(transaction)
 
     def remove_port(self, port_id):
         transaction = {

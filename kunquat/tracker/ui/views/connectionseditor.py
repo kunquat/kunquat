@@ -144,10 +144,7 @@ class ConnectionsToolBar(QToolBar, AudioUnitUpdater):
         new_control_id = module.get_free_control_id()
         new_au_id = module.get_free_au_id()
         if new_control_id and new_au_id:
-            module.add_instrument(new_au_id)
-            module.add_control(new_control_id)
-            control = module.get_control(new_control_id)
-            control.connect_to_au(new_au_id)
+            module.add_instrument_with_control(new_au_id, new_control_id)
             update_signals = ['signal_connections', 'signal_controls']
             self._updater.signal_update(*update_signals)
 

@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013
-#          Tomi Jylhä-Ollila, Finland 2013-2016
+#          Tomi Jylhä-Ollila, Finland 2013-2019
 #
 # This file is part of Kunquat.
 #
@@ -21,7 +21,6 @@ class Control():
         assert(control_id)
         self._control_id = control_id
         self._controller = None
-        self._au_number = None
         self._existence = None
         self._session = None
         self._store = None
@@ -35,12 +34,18 @@ class Control():
     def set_ui_model(self, ui_model):
         self._ui_model = ui_model
 
-    def set_existence(self, existence):
+    def get_edit_create_new(self):
+        transaction = self.get_edit_set_existence(True)
+        return transaction
+
+    def get_edit_set_existence(self, existence):
         key = '{}/p_manifest.json'.format(self._control_id)
-        if existence:
-            self._store[key] = {}
-        else:
-            del self._store[key]
+        manifest = {} if existence else None
+        return { key: manifest }
+
+    def set_existence(self, existence):
+        transaction = self.get_edit_set_existence(existence)
+        self._store.put(transaction)
 
     def get_existence(self):
         key = '{}/p_manifest.json'.format(self._control_id)
@@ -63,7 +68,7 @@ class Control():
         au = module.get_audio_unit(au_id)
         return au
 
-    def connect_to_au(self, au_id):
+    def get_edit_connect_to_au(self, au_id):
         control_num = int(self._control_id.split('_')[1], 16)
         au_num = int(au_id.split('_')[1], 16)
 
@@ -71,9 +76,12 @@ class Control():
         control_map = self._store.get(cmap_key, get_default_value(cmap_key))
         controls = dict(control_map)
         controls[control_num] = au_num
-        self._store[cmap_key] = list(controls.items())
 
-        self._au_number = au_num
+        return { cmap_key: list(controls.items()) }
+
+    def connect_to_au(self, au_id):
+        transaction = self.get_edit_connect_to_au(au_id)
+        self._store.put(transaction)
 
     def get_active_notes(self):
         notes = self._session.get_active_notes_by_control_id(self._control_id)

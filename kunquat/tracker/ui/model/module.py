@@ -213,15 +213,20 @@ class Module():
         #    return [] #valid
         return all_audio_units
 
-    def add_instrument(self, au_id):
+    def add_instrument_with_control(self, au_id, control_id):
         au = AudioUnit(au_id)
         au.set_controller(self._controller)
         au.set_ui_model(self._ui_model)
-        au.set_existence('instrument')
-        au.set_port_existence('out_00', True)
-        au.set_port_existence('out_01', True)
-        au.set_port_name('out_00', 'audio L')
-        au.set_port_name('out_01', 'audio R')
+
+        control = Control(control_id)
+        control.set_controller(self._controller)
+        control.set_ui_model(self._ui_model)
+
+        transaction = au.get_edit_create_new_instrument()
+        transaction.update(control.get_edit_create_new())
+        transaction.update(control.get_edit_connect_to_au(au_id))
+
+        self._store.put(transaction)
 
     def add_effect(self, au_id):
         au = AudioUnit(au_id)
