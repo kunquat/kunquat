@@ -412,6 +412,10 @@ class Controller():
         self._audio_engine.reset_and_pause(track_num)
         self._audio_engine.sync_call_post_action(action.__name__, args)
 
+    def _reset_active_notes(self):
+        for ch in range(CHANNELS_MAX):
+            self._session.set_active_note(ch, 'n-', None)
+
     def play(self, track=None):
         if self._session.is_playback_active():
             self._check_update_random_seed()
@@ -423,6 +427,7 @@ class Controller():
         self._session.reset_voice_stats()
         self._reset_expressions()
         self._reset_runtime_env()
+        self._reset_active_notes()
 
         if self._session.get_infinite_mode():
             self._audio_engine.tfire_event(0, ('cinfinite+', None))
@@ -441,6 +446,7 @@ class Controller():
         self._session.reset_voice_stats()
         self._reset_expressions()
         self._reset_runtime_env()
+        self._reset_active_notes()
 
         if self._session.get_infinite_mode():
             self._audio_engine.tfire_event(0, ('cinfinite+', None))
@@ -464,6 +470,7 @@ class Controller():
         self._session.reset_voice_stats()
         self._reset_expressions()
         self._reset_runtime_env()
+        self._reset_active_notes()
 
         if self._session.get_infinite_mode():
             self._audio_engine.tfire_event(0, ('cinfinite+', None))
@@ -494,10 +501,7 @@ class Controller():
         self._session.reset_voice_stats()
         self._reset_runtime_env()
         self._reset_expressions()
-
-        # Reset active notes
-        for ch in range(CHANNELS_MAX):
-            self._session.set_active_note(ch, 'n-', None)
+        self._reset_active_notes()
 
         if self._session.get_infinite_mode():
             self._audio_engine.tfire_event(0, ('cinfinite+', None))

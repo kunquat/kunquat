@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013-2014
-#          Tomi Jylhä-Ollila, Finland 2014-2018
+#          Tomi Jylhä-Ollila, Finland 2014-2019
 #
 # This file is part of Kunquat.
 #
@@ -35,6 +35,7 @@ class TypewriterManager():
         # Cached data
         self._current_map = None
         self._current_map_version = None
+        self._current_param_locations = None
         self._upper_key_ids = None
         self._lower_key_ids = None
         self._pitch_key_info = None
@@ -161,6 +162,29 @@ class TypewriterManager():
         rows = [row0, row1, row2, row3]
         self._current_map = rows
 
+        self._current_param_locations = []
+        for ri, row_length in enumerate(self._ROW_LENGTHS):
+            key_row = self._current_map[ri]
+            for ci in range(min(row_length, len(key_row))):
+                key_pitch = key_row[ci]
+                if key_pitch != None:
+                    self._current_param_locations.append((key_pitch, (ri, ci)))
+        self._current_param_locations.sort(key=lambda k: k[0])
+        if self._current_param_locations:
+            lowest_pitch, _ = self._current_param_locations[0]
+            highest_pitch, _ = self._current_param_locations[-1]
+
+            all_pitches = []
+            for row in keymap:
+                all_pitches.extend(p for p in row if p != None)
+            pitches_below_lowest = [p for p in all_pitches if p < lowest_pitch]
+            pitches_above_highest = [p for p in all_pitches if p > highest_pitch]
+            if pitches_below_lowest:
+                self._current_param_locations.insert(
+                        0, (max(pitches_below_lowest), None))
+            if pitches_above_highest:
+                self._current_param_locations.append((min(pitches_above_highest), None))
+
     def _get_button_param(self, coords, get_pitch):
         (row, column) = coords
         keymap_data = self._keymap_mgr.get_selected_keymap()
@@ -270,38 +294,65 @@ class TypewriterManager():
         self._create_current_map(keymap)
         is_hit_keymap = keymap_data.get('is_hit_keymap', False)
 
-        if is_hit_keymap:
-            active_hits = selected_control.get_active_hits()
-        else:
-            active_notes = selected_control.get_active_notes()
-
         led_states = {}
 
-        for ri, row_length in enumerate(self._ROW_LENGTHS):
-            param_row = self._current_map[ri]
-            for ci in range(min(row_length, len(param_row))):
-                if is_hit_keymap:
+        if is_hit_keymap:
+            active_hits = selected_control.get_active_hits()
+
+            for ri, row_length in enumerate(self._ROW_LENGTHS):
+                param_row = self._current_map[ri]
+                for ci in range(min(row_length, len(param_row))):
                     hit = param_row[ci]
                     states = 3 * [False]
                     if hit in active_hits.values():
                         states[1] = True
                     led_states[(ri, ci)] = states
-                else:
-                    pitch = param_row[ci]
-                    key_id = self._get_key_id_from_current_map((ri, ci))
-                    states = 3 * [False]
-                    for note in active_notes.values():
-                        if self.get_nearest_key_id(note) == key_id:
-                            if abs(note - pitch) < 0.1:
-                                states[1] = True
-                            elif note < pitch:
-                                states[0] = True
-                            elif note > pitch:
-                                states[2] = True
-                            else:
-                                assert False
+
+        else:
+            active_notes = selected_control.get_active_notes()
+
+            active_pitches = sorted(active_notes.values())
+
+            prev_key_info = None
+            key_info_iter = (k for k in self._current_param_locations)
+            cur_key_info = next(key_info_iter, None)
+
+            if cur_key_info:
+                if not cur_key_info[1]:
+                    prev_key_info = cur_key_info
+                    cur_key_info = next(key_info_iter, None)
+
+                for active_pitch in active_pitches:
+                    # Get key infos for keys surrounding the active pitch
+                    while active_pitch > cur_key_info[0]:
+                        next_key_info = next(key_info_iter, None)
+                        if next_key_info:
+                            prev_key_info = cur_key_info
+                            cur_key_info = next_key_info
+                        else:
                             break
-                    led_states[(ri, ci)] = states
+
+                    # Get key info for the key nearest to the active pitch
+                    dist_to_cur = abs(active_pitch - cur_key_info[0])
+                    if (prev_key_info and
+                            (abs(active_pitch - prev_key_info[0])) <= dist_to_cur):
+                        ref_pitch, key_pos = prev_key_info
+                    else:
+                        ref_pitch, key_pos = cur_key_info
+                        if not key_pos:
+                            break # We are past the highest key
+
+                    if key_pos:
+                        # Add LED light
+                        pitch_diff = active_pitch - ref_pitch
+                        states = led_states.get(key_pos, [False] * 3)
+                        if abs(pitch_diff) < 1:
+                            states[1] = True
+                        elif pitch_diff < 0:
+                            states[0] = True
+                        else:
+                            states[2] = True
+                        led_states[key_pos] = states
 
         return led_states
 
