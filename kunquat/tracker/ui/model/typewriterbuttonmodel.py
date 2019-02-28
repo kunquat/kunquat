@@ -79,6 +79,7 @@ class TypewriterButtonModel():
     def flush_images(self, size):
         images = self._session.typewriter_button_images[size]
         images.backgrounds = {}
+        images.leds = {}
 
     def _get_pitch(self):
         return self._typewriter_mgr.get_button_pitch((self._row, self._index))
