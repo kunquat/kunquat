@@ -98,6 +98,12 @@ class AudioUnit():
             proc.set_controller(self._controller)
             transaction.update(proc.get_edit_set_name(proc_name))
 
+        # Force parameters
+        force_proc = Processor(self._au_id, force_id)
+        force_proc.set_controller(self._controller)
+        force_params = force_proc.get_type_params(transaction)
+        transaction.update(force_params.get_edit_set_default_configuration())
+
         return transaction
 
     def _get_key(self, subkey):

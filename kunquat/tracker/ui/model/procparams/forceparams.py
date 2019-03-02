@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016-2017
+# Author: Tomi Jylhä-Ollila, Finland 2016-2019
 #
 # This file is part of Kunquat.
 #
@@ -27,8 +27,16 @@ class ForceParams(ProcParams):
     def __init__(self, proc_id, controller):
         super().__init__(proc_id, controller)
 
+    def get_edit_set_default_configuration(self):
+        transaction = self.get_edit_set_global_force(-8)
+        transaction.update(self.get_edit_set_release_ramp_enabled(True))
+        return transaction
+
     def get_global_force(self):
         return self._get_value('p_f_global_force.json', 0.0)
+
+    def get_edit_set_global_force(self, value):
+        return self._get_edit_set_value('p_f_global_force.json', value)
 
     def set_global_force(self, value):
         self._set_value('p_f_global_force.json', value)
@@ -77,6 +85,9 @@ class ForceParams(ProcParams):
 
     def get_release_ramp_enabled(self):
         return self._get_value('p_b_release_ramp.json', False)
+
+    def get_edit_set_release_ramp_enabled(self, enabled):
+        return self._get_edit_set_value('p_b_release_ramp.json', enabled)
 
     def set_release_ramp_enabled(self, enabled):
         self._set_value('p_b_release_ramp.json', enabled)
