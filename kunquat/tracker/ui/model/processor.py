@@ -129,18 +129,19 @@ class Processor():
         key = self._get_key('m_message.json')
         self._store[key] = message or None
 
-    def get_type(self):
+    def get_type(self, pending_changes=None):
         key = self._get_key('p_manifest.json')
-        manifest = self._store.get(key)
+        manifest = self._store.get(key, pending_changes=pending_changes)
         if manifest:
             return manifest['type']
         return None
 
-    def get_type_params(self):
-        if self.get_type() not in _proc_classes:
+    def get_type_params(self, pending_changes=None):
+        proc_type = self.get_type(pending_changes)
+        if proc_type not in _proc_classes:
             return None
 
-        cons = _proc_classes[self.get_type()]
+        cons = _proc_classes[proc_type]
         return cons(self._proc_id, self._controller)
 
     def get_signal_type(self):
