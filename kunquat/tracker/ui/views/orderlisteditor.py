@@ -110,9 +110,6 @@ class OrderlistEditor(QWidget, Updater):
 
         if event.modifiers() == Qt.NoModifier:
             if event.key() == Qt.Key_Insert:
-                self._handle_insert_at(0)
-                return
-            elif event.key() == Qt.Key_N:
                 self._handle_insert_at(1)
                 return
             elif event.key() == Qt.Key_Delete:
@@ -166,7 +163,7 @@ class OrderlistToolBar(QToolBar, Updater):
             return button
 
         self._new_pat_button = IconButton(flat=True)
-        self._new_pat_button.setToolTip('Add new pattern (N)')
+        self._new_pat_button.setToolTip('Add new pattern (Insert)')
         self._remove_pat_button = ShiftClickButton()
         self._remove_pat_button.setToolTip('Remove pattern (Delete)')
         self._reuse_pat_button = IconButton(flat=True)
