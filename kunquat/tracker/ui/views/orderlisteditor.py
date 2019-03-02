@@ -15,6 +15,7 @@ from kunquat.tracker.ui.qt import *
 
 from kunquat.tracker.ui.model.patterninstance import PatternInstance
 from kunquat.tracker.ui.model.song import Song
+from .confirmdialog import ConfirmDialog
 from .headerline import HeaderLine
 from .iconbutton import IconButton
 from .orderlist import Orderlist
@@ -72,6 +73,12 @@ class OrderlistEditor(QWidget, Updater):
             self._updater.signal_update('signal_order_list')
             self._waiting_for_update = True
 
+    def _confirm_handle_delete(self):
+        selection = self._orderlist.get_selected_object()
+        if isinstance(selection, PatternInstance):
+            dialog = _RemovePatternConfirmDialog(self._ui_model, self._handle_delete)
+            dialog.exec_()
+
     def _handle_delete(self):
         selection = self._orderlist.get_selected_object()
         if isinstance(selection, PatternInstance):
@@ -109,7 +116,7 @@ class OrderlistEditor(QWidget, Updater):
                 self._handle_insert_at(1)
                 return
             elif event.key() == Qt.Key_Delete:
-                self._handle_delete()
+                self._confirm_handle_delete()
                 return
         elif event.modifiers() == Qt.ShiftModifier:
             if event.key() == Qt.Key_Up:
@@ -118,7 +125,28 @@ class OrderlistEditor(QWidget, Updater):
             elif event.key() == Qt.Key_Down:
                 self._handle_move_pattern_instance(1)
                 return
+            elif event.key() == Qt.Key_Delete:
+                self._handle_delete()
+                return
         event.ignore()
+
+
+class ShiftClickButton(IconButton):
+
+    shiftClicked = Signal(name='shiftClicked')
+
+    def __init__(self, flat):
+        super().__init__(flat)
+
+    def mouseReleaseEvent(self, event):
+        if (event.button() == Qt.LeftButton) and (event.modifiers() == Qt.ShiftModifier):
+            self.shiftClicked.emit()
+            self.setDown(False)
+            event.accept()
+            return
+
+        event.ignore()
+        super().mouseReleaseEvent(event)
 
 
 class OrderlistToolBar(QToolBar, Updater):
@@ -130,14 +158,14 @@ class OrderlistToolBar(QToolBar, Updater):
         self._orderlist = orderlist
         self._selection = None
 
-        def create_button(text):
-            button = IconButton(flat=True)
+        def create_button(text, cons=IconButton):
+            button = cons(flat=True)
             button.setToolTip(text)
             button.setEnabled(False)
             return button
 
         self._new_pat_button        = create_button('New pattern')
-        self._remove_pat_button     = create_button('Remove pattern')
+        self._remove_pat_button     = create_button('Remove pattern', ShiftClickButton)
         self._reuse_pat_button      = create_button('Reuse pattern')
         self._new_song_button       = create_button('New song')
         self._remove_song_button    = create_button('Remove song')
@@ -170,10 +198,11 @@ class OrderlistToolBar(QToolBar, Updater):
         self._update_buttons_enabled(None)
 
         self._new_pat_button.clicked.connect(self._add_pattern)
-        self._remove_pat_button.clicked.connect(self._remove_pattern)
+        self._remove_pat_button.clicked.connect(self._confirm_remove_pattern)
+        self._remove_pat_button.shiftClicked.connect(self._remove_pattern)
         self._reuse_pat_button.clicked.connect(self._reuse_pattern)
         self._new_song_button.clicked.connect(self._add_song)
-        self._remove_song_button.clicked.connect(self._remove_song)
+        self._remove_song_button.clicked.connect(self._confirm_remove_song)
 
         self.register_action(
                 'signal_order_list_updated', self._update_buttons_with_selection)
@@ -223,6 +252,10 @@ class OrderlistToolBar(QToolBar, Updater):
         self._orderlist_mgr.set_orderlist_selection((track_num, system_num))
         self._updater.signal_update('signal_order_list')
 
+    def _confirm_remove_pattern(self):
+        dialog = _RemovePatternConfirmDialog(self._ui_model, self._remove_pattern)
+        dialog.exec_()
+
     def _remove_pattern(self):
         selection = self._orderlist.get_selected_object()
         if isinstance(selection, PatternInstance):
@@ -255,11 +288,60 @@ class OrderlistToolBar(QToolBar, Updater):
         self._album.insert_song(track_num)
         self._updater.signal_update('signal_order_list')
 
+    def _confirm_remove_song(self):
+        dialog = _RemoveSongConfirmDialog(self._ui_model, self._remove_song)
+        dialog.exec_()
+
     def _remove_song(self):
         selection = self._orderlist.get_selected_object()
         if isinstance(selection, Song):
             track_num = selection.get_containing_track_number()
             self._album.remove_song(track_num)
             self._updater.signal_update('signal_order_list')
+
+
+class _RemoveConfirmDialog(ConfirmDialog):
+
+    def __init__(self, ui_model, msg, target_desc, confirm_action):
+        super().__init__(ui_model)
+        self.setModal(True)
+
+        self._confirm_action = confirm_action
+
+        self.setWindowTitle('Confirm pattern removal')
+
+        self._set_message(msg)
+
+        self._cancel_button = QPushButton('Keep {}'.format(target_desc))
+        self._remove_button = QPushButton('Remove {}'.format(target_desc))
+
+        b = self._get_button_layout()
+        b.addWidget(self._cancel_button)
+        b.addWidget(self._remove_button)
+
+        self._cancel_button.clicked.connect(self.close)
+        self._remove_button.clicked.connect(self._perform_action)
+
+    def _perform_action(self):
+        self._confirm_action()
+        self.close()
+
+
+class _RemovePatternConfirmDialog(_RemoveConfirmDialog):
+
+    def __init__(self, ui_model, confirm_action):
+        msg = '<p>Do you really want to remove the pattern?</p>'
+        msg += '<p>(Tip: You can Shift+click the remove button'
+        msg += ' to remove without confirmation.)</p>'
+        target_desc = 'the pattern'
+        super().__init__(ui_model, msg, target_desc, confirm_action)
+
+
+class _RemoveSongConfirmDialog(_RemoveConfirmDialog):
+
+    def __init__(self, ui_model, confirm_action):
+        msg = '<p>Do you really want to remove the song?</p>'
+        target_desc = 'the song'
+        super().__init__(ui_model, msg, target_desc, confirm_action)
 
 
