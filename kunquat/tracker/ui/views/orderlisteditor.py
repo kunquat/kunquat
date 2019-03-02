@@ -73,6 +73,20 @@ class OrderlistEditor(QWidget, Updater):
             self._updater.signal_update('signal_order_list')
             self._waiting_for_update = True
 
+    def _handle_reuse_pattern(self):
+        selection = self._orderlist.get_selected_object()
+        if isinstance(selection, PatternInstance):
+            track_num, system_num = self._album.get_pattern_instance_location(selection)
+            song = self._album.get_song_by_track(track_num)
+            pinst = song.get_pattern_instance(system_num)
+            pattern_num = pinst.get_pattern_num()
+            instance_num = self._album.get_new_pattern_instance_num(pattern_num)
+            self._album.insert_pattern_instance(
+                    track_num, system_num + 1, pattern_num, instance_num)
+            self._orderlist_mgr.set_orderlist_selection((track_num, system_num + 1))
+            self._updater.signal_update('signal_order_list')
+            self._waiting_for_update = True
+
     def _confirm_handle_delete(self):
         selection = self._orderlist.get_selected_object()
         if isinstance(selection, PatternInstance):
@@ -111,6 +125,9 @@ class OrderlistEditor(QWidget, Updater):
         if event.modifiers() == Qt.NoModifier:
             if event.key() == Qt.Key_Insert:
                 self._handle_insert_at(1)
+                return
+            elif event.key() == Qt.Key_R:
+                self._handle_reuse_pattern()
                 return
             elif event.key() == Qt.Key_Delete:
                 self._confirm_handle_delete()
@@ -167,7 +184,7 @@ class OrderlistToolBar(QToolBar, Updater):
         self._remove_pat_button = ShiftClickButton()
         self._remove_pat_button.setToolTip('Remove pattern (Delete)')
         self._reuse_pat_button = IconButton(flat=True)
-        self._reuse_pat_button.setToolTip('Reuse pattern')
+        self._reuse_pat_button.setToolTip('Reuse pattern (R)')
         self._new_song_button = IconButton(flat=True)
         self._new_song_button.setToolTip('Add new song')
         self._remove_song_button = IconButton(flat=True)
