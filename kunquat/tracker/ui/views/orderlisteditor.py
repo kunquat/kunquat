@@ -126,7 +126,8 @@ class OrderlistEditor(QWidget, Updater):
                 self._handle_move_pattern_instance(1)
                 return
             elif event.key() == Qt.Key_Delete:
-                self._handle_delete()
+                if not event.isAutoRepeat():
+                    self._handle_delete()
                 return
         event.ignore()
 
