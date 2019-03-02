@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2018
+# Author: Tomi Jylhä-Ollila, Finland 2014-2019
 #
 # This file is part of Kunquat.
 #
@@ -113,9 +113,13 @@ class Processor():
         key = self._get_key('m_name.json')
         return self._store.get(key)
 
-    def set_name(self, name):
+    def get_edit_set_name(self, name):
         key = self._get_key('m_name.json')
-        self._store[key] = name
+        return { key: name }
+
+    def set_name(self, name):
+        transaction = self.get_edit_set_name(name)
+        self._store.put(key, name)
 
     def get_message(self):
         key = self._get_key('m_message.json')
@@ -125,18 +129,19 @@ class Processor():
         key = self._get_key('m_message.json')
         self._store[key] = message or None
 
-    def get_type(self):
+    def get_type(self, pending_changes=None):
         key = self._get_key('p_manifest.json')
-        manifest = self._store.get(key)
+        manifest = self._store.get(key, pending_changes=pending_changes)
         if manifest:
             return manifest['type']
         return None
 
-    def get_type_params(self):
-        if self.get_type() not in _proc_classes:
+    def get_type_params(self, pending_changes=None):
+        proc_type = self.get_type(pending_changes)
+        if proc_type not in _proc_classes:
             return None
 
-        cons = _proc_classes[self.get_type()]
+        cons = _proc_classes[proc_type]
         return cons(self._proc_id, self._controller)
 
     def get_signal_type(self):

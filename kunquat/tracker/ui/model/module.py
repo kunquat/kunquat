@@ -213,29 +213,50 @@ class Module():
         #    return [] #valid
         return all_audio_units
 
-    def add_instrument(self, au_id):
-        au = AudioUnit(au_id)
-        au.set_controller(self._controller)
-        au.set_ui_model(self._ui_model)
-        au.set_existence('instrument')
-        au.set_port_existence('out_00', True)
-        au.set_port_existence('out_01', True)
-        au.set_port_name('out_00', 'audio L')
-        au.set_port_name('out_01', 'audio R')
+    def _get_edit_try_connect_au_to_master(self, au_id):
+        aus = self.get_audio_units()
+        has_effects = any(au.is_effect() for au in aus)
+        if has_effects:
+            return {}
 
-    def add_effect(self, au_id):
+        conns = self.get_connections()
+        transaction = conns.get_edit_connect_ports(au_id, 'out_00', 'master', 'out_00')
+        transaction.update(conns.get_edit_connect_ports(
+            au_id, 'out_01',
+            'master', 'out_01',
+            transaction))
+        return transaction
+
+    def add_instrument_with_control(self, au_id, control_id, ins_name='New instrument'):
         au = AudioUnit(au_id)
         au.set_controller(self._controller)
         au.set_ui_model(self._ui_model)
-        au.set_existence('effect')
-        au.set_port_existence('in_00', True)
-        au.set_port_existence('in_01', True)
-        au.set_port_existence('out_00', True)
-        au.set_port_existence('out_01', True)
-        au.set_port_name('in_00', 'audio L')
-        au.set_port_name('in_01', 'audio R')
-        au.set_port_name('out_00', 'audio L')
-        au.set_port_name('out_01', 'audio R')
+
+        control = Control(control_id)
+        control.set_controller(self._controller)
+        control.set_ui_model(self._ui_model)
+
+        transaction = au.get_edit_create_new_instrument(ins_name)
+        transaction.update(control.get_edit_create_new())
+        transaction.update(control.get_edit_connect_to_au(au_id))
+        transaction.update(self._get_edit_try_connect_au_to_master(au_id))
+
+        self._store.put(transaction)
+
+    def add_effect(self, au_id, control_id):
+        au = AudioUnit(au_id)
+        au.set_controller(self._controller)
+        au.set_ui_model(self._ui_model)
+
+        control = Control(control_id)
+        control.set_controller(self._controller)
+        control.set_ui_model(self._ui_model)
+
+        transaction = au.get_edit_create_new_effect()
+        transaction.update(control.get_edit_create_new())
+        transaction.update(control.get_edit_connect_to_au(au_id))
+
+        self._store.put(transaction)
 
     def get_out_ports(self):
         out_ports = []
@@ -388,12 +409,9 @@ class Module():
     def execute_create_sandbox(self, task_executor):
         assert not self.is_saving()
         self._controller.create_sandbox()
-        kqtifile = self._controller.get_share().get_default_instrument()
-        load_au_task = self._controller.get_task_load_audio_unit(
-                kqtifile, 'au_00', 'control_00', is_sandbox=True)
+        self.add_instrument_with_control('au_00', 'control_00', 'Sine')
         finalise_task = self.finalise_create_sandbox()
-        task = chain(load_au_task, finalise_task)
-        task_executor(task)
+        task_executor(finalise_task)
 
     def start_import_au(self, path, au_id, control_id=None):
         assert not self.is_saving()

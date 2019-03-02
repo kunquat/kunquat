@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013
-#          Tomi Jylhä-Ollila, Finland 2013-2018
+#          Tomi Jylhä-Ollila, Finland 2013-2019
 #
 # This file is part of Kunquat.
 #
@@ -45,17 +45,105 @@ class AudioUnit():
     def get_id(self):
         return self._au_id
 
+    def get_edit_create_new_instrument(self, name):
+        transaction = self.get_edit_set_existence('instrument')
+
+        # Audio unit ports
+        transaction.update(self.get_edit_set_port_existence('out_00', True))
+        transaction.update(self.get_edit_set_port_existence('out_01', True))
+        transaction.update(self.get_edit_set_port_name('out_00', 'audio L'))
+        transaction.update(self.get_edit_set_port_name('out_01', 'audio R'))
+
+        # Processor essentials
+        proc_ids = self.get_free_processor_ids()
+        assert len(proc_ids) >= 3
+        force_id, pitch_id, base_id, *_ = proc_ids
+        transaction.update(self.get_edit_add_processor(force_id, 'force'))
+        transaction.update(self.get_edit_add_processor(pitch_id, 'pitch'))
+        transaction.update(self.get_edit_add_processor(base_id, 'add'))
+
+        force_conn_id = force_id.split('/')[1]
+        pitch_conn_id = pitch_id.split('/')[1]
+        base_conn_id = base_id.split('/')[1]
+
+        # Audio unit connections
+        conns = self.get_connections()
+        conns_list = [
+            ['{}/C/out_00'.format(pitch_conn_id), '{}/C/in_00'.format(base_conn_id)],
+            ['{}/C/out_00'.format(force_conn_id), '{}/C/in_01'.format(base_conn_id)],
+            ['{}/C/out_00'.format(base_conn_id), 'out_00'],
+            ['{}/C/out_01'.format(base_conn_id), 'out_01'],
+        ]
+        transaction.update(conns.get_edit_set_connections(conns_list))
+
+        layout = {
+            'Iin'           : { 'offset': (-27, 0) },
+            pitch_conn_id   : { 'offset': (-9, -4) },
+            force_conn_id   : { 'offset': (-9, 4) },
+            base_conn_id    : { 'offset': (9, 0) },
+            'master'        : { 'offset': (27, 0) },
+        }
+        transaction.update(conns.get_edit_set_layout(layout))
+
+        # Names
+        transaction.update(self.get_edit_set_name(name))
+
+        proc_names = {
+            pitch_id: 'Pitch',
+            force_id: 'Force',
+            base_id: 'Base',
+        }
+        for proc_id, proc_name in proc_names.items():
+            proc = Processor(self._au_id, proc_id)
+            proc.set_controller(self._controller)
+            transaction.update(proc.get_edit_set_name(proc_name))
+
+        # Force parameters
+        force_proc = Processor(self._au_id, force_id)
+        force_proc.set_controller(self._controller)
+        force_params = force_proc.get_type_params(transaction)
+        transaction.update(force_params.get_edit_set_default_configuration())
+
+        return transaction
+
+    def get_edit_create_new_effect(self):
+        transaction = self.get_edit_set_existence('effect')
+
+        port_infos = {
+            'in_00': 'audio L',
+            'in_01': 'audio R',
+            'out_00': 'audio L',
+            'out_01': 'audio R',
+        }
+        for port_id, port_name in port_infos.items():
+            transaction.update(self.get_edit_set_port_existence(port_id, True))
+            transaction.update(self.get_edit_set_port_name(port_id, port_name))
+
+        conns = self.get_connections()
+        transaction.update(conns.get_edit_connect_ports(
+            'Iin', 'in_00', 'master', 'out_00', transaction))
+        transaction.update(conns.get_edit_connect_ports(
+            'Iin', 'in_01', 'master', 'out_01', transaction))
+
+        transaction.update(self.get_edit_set_name('New effect'))
+
+        return transaction
+
     def _get_key(self, subkey):
         return '{}/{}'.format(self._au_id, subkey)
 
-    def set_existence(self, au_type):
+    def get_edit_set_existence(self, au_type):
         assert (not au_type) or (au_type in ('instrument', 'effect'))
         key = self._get_key('p_manifest.json')
         if au_type:
             manifest = { 'type': au_type }
-            self._store[key] = manifest
         else:
-            del self._store[key]
+            manifest = None
+        return { key: manifest }
+
+    def set_existence(self, au_type):
+        transaction = self.get_edit_set_existence(au_type)
+        self._store.put(transaction)
 
     def get_existence(self):
         key = self._get_key('p_manifest.json')
@@ -112,12 +200,14 @@ class AudioUnit():
             info[out_port_id] = self.get_port_name(out_port_id)
         return info
 
-    def set_port_existence(self, port_id, existence):
+    def get_edit_set_port_existence(self, port_id, existence):
         key = self._get_key('{}/p_manifest.json'.format(port_id))
-        if existence:
-            self._store[key] = {}
-        else:
-            del self._store[key]
+        manifest = {} if existence else None
+        return { key: manifest }
+
+    def set_port_existence(self, port_id, existence):
+        transaction = self.get_edit_set_port_existence(port_id, existence)
+        self._store.put(transaction)
 
     def get_free_input_port_id(self):
         for i in range(0x100):
@@ -139,9 +229,13 @@ class AudioUnit():
         key = self._get_key('{}/m_name.json'.format(port_id))
         return self._store.get(key, None)
 
-    def set_port_name(self, port_id, name):
+    def get_edit_set_port_name(self, port_id, name):
         key = self._get_key('{}/m_name.json'.format(port_id))
-        self._store[key] = name
+        return { key: name }
+
+    def set_port_name(self, port_id, name):
+        transaction = self.get_edit_set_port_name(port_id, name)
+        self._store.put(transaction)
 
     def remove_port(self, port_id):
         transaction = {
@@ -194,17 +288,21 @@ class AudioUnit():
                 proc_ids.add(proc_id)
         return proc_ids
 
-    def get_free_processor_id(self):
+    def get_free_processor_ids(self):
         used_proc_ids = self.get_processor_ids()
         all_proc_ids = set('{}/proc_{:02x}'.format(self._au_id, i)
                 for i in range(PROCESSORS_MAX))
         free_proc_ids = all_proc_ids - used_proc_ids
         free_list = sorted(list(free_proc_ids))
+        return free_list
+
+    def get_free_processor_id(self):
+        free_list = self.get_free_processor_ids()
         if not free_list:
             return None
         return free_list[0]
 
-    def add_processor(self, proc_id, proc_type):
+    def get_edit_add_processor(self, proc_id, proc_type):
         assert proc_id.startswith(self._au_id)
         key_prefix = proc_id
         transaction = {}
@@ -221,6 +319,10 @@ class AudioUnit():
             port_manifest_key = '{}/{}/p_manifest.json'.format(key_prefix, port_id)
             transaction[port_manifest_key] = {}
 
+        return transaction
+
+    def add_processor(self, proc_id, proc_type):
+        transaction = self.get_edit_add_processor(proc_id, proc_type)
         self._store.put(transaction)
 
     def _get_hit_key_base(self, hit_index):
@@ -394,19 +496,12 @@ class AudioUnit():
         self._updater.signal_update('signal_start_export_au')
 
     def add_effect(self, au_id):
-        key = '/'.join((self._au_id, au_id))
         au = AudioUnit(au_id)
         au.set_controller(self._controller)
         au.set_ui_model(self._ui_model)
-        au.set_existence('effect')
-        au.set_port_existence('in_00', True)
-        au.set_port_existence('in_01', True)
-        au.set_port_existence('out_00', True)
-        au.set_port_existence('out_01', True)
-        au.set_port_name('in_00', 'audio L')
-        au.set_port_name('in_01', 'audio R')
-        au.set_port_name('out_00', 'audio L')
-        au.set_port_name('out_01', 'audio R')
+
+        transaction = au.get_edit_create_new_effect()
+        self._store.put(transaction)
 
     def _remove_device(self, dev_id):
         assert dev_id.startswith(self._au_id)
@@ -442,10 +537,14 @@ class AudioUnit():
             return None
         return name
 
-    def set_name(self, name):
+    def get_edit_set_name(self, name):
         assert isinstance(name, str)
         key = self._get_key('m_name.json')
-        self._store[key] = name
+        return { key: name }
+
+    def set_name(self, name):
+        transaction = self.get_edit_set_name(name)
+        self._store.put(transaction)
 
     def get_message(self):
         key = self._get_key('m_message.json')

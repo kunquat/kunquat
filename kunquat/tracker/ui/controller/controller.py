@@ -334,13 +334,9 @@ class Controller():
         # Connect instrument
         if transaction['{}/p_manifest.json'.format(au_id)]['type'] == 'instrument':
             # Get output ports of the containing device
-            if '/' in au_id:
-                parent_au_id = au_id.split('/')[0]
-                module = self._ui_model.get_module()
-                parent_au = module.get_audio_unit(parent_au_id)
-                parent_out_ports = sorted(parent_au.get_out_ports())
-            else:
-                parent_out_ports = ['out_00', 'out_01']
+            assert '/' not in au_id
+
+            out_ports = ['out_00', 'out_01']
 
             # Get instrument output ports (manually since the model has no access yet)
             ins_out_ports = []
@@ -352,11 +348,14 @@ class Controller():
                     ins_out_ports.append(ins_out_port)
             ins_out_ports = sorted(ins_out_ports)
 
-            # Connect if the number of output ports match
-            if parent_out_ports and (len(parent_out_ports) == len(ins_out_ports)):
+            module = self._ui_model.get_module()
+            has_effects = any(au.is_effect() for au in module.get_audio_units())
+
+            # Connect if we have a single clear option
+            if (not has_effects) and (len(out_ports) == len(ins_out_ports)):
                 sub_au_id = au_id.split('/')[-1]
                 conns = self._store.get('p_connections.json', [])
-                for (send_port, recv_port) in zip(ins_out_ports, parent_out_ports):
+                for (send_port, recv_port) in zip(ins_out_ports, out_ports):
                     conns.append(['{}/{}'.format(sub_au_id, send_port), recv_port])
                 transaction['p_connections.json'] = conns
 
