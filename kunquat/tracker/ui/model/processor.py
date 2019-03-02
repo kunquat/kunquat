@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2018
+# Author: Tomi Jylhä-Ollila, Finland 2014-2019
 #
 # This file is part of Kunquat.
 #
@@ -113,9 +113,13 @@ class Processor():
         key = self._get_key('m_name.json')
         return self._store.get(key)
 
-    def set_name(self, name):
+    def get_edit_set_name(self, name):
         key = self._get_key('m_name.json')
-        self._store[key] = name
+        return { key: name }
+
+    def set_name(self, name):
+        transaction = self.get_edit_set_name(name)
+        self._store.put(key, name)
 
     def get_message(self):
         key = self._get_key('m_message.json')

@@ -48,11 +48,13 @@ class AudioUnit():
     def get_edit_create_new_instrument(self):
         transaction = self.get_edit_set_existence('instrument')
 
+        # Audio unit ports
         transaction.update(self.get_edit_set_port_existence('out_00', True))
         transaction.update(self.get_edit_set_port_existence('out_01', True))
         transaction.update(self.get_edit_set_port_name('out_00', 'audio L'))
         transaction.update(self.get_edit_set_port_name('out_01', 'audio R'))
 
+        # Processor essentials
         proc_ids = self.get_free_processor_ids()
         assert len(proc_ids) >= 3
         force_id, pitch_id, base_id, *_ = proc_ids
@@ -64,6 +66,7 @@ class AudioUnit():
         pitch_conn_id = pitch_id.split('/')[1]
         base_conn_id = base_id.split('/')[1]
 
+        # Audio unit connections
         conns = self.get_connections()
         conns_list = [
             ['{}/C/out_00'.format(pitch_conn_id), '{}/C/in_00'.format(base_conn_id)],
@@ -81,6 +84,19 @@ class AudioUnit():
             'master'        : { 'offset': (27, 0) },
         }
         transaction.update(conns.get_edit_set_layout(layout))
+
+        # Names
+        transaction.update(self.get_edit_set_name('New instrument'))
+
+        proc_names = {
+            pitch_id: 'Pitch',
+            force_id: 'Force',
+            base_id: 'Base',
+        }
+        for proc_id, proc_name in proc_names.items():
+            proc = Processor(self._au_id, proc_id)
+            proc.set_controller(self._controller)
+            transaction.update(proc.get_edit_set_name(proc_name))
 
         return transaction
 
@@ -499,10 +515,14 @@ class AudioUnit():
             return None
         return name
 
-    def set_name(self, name):
+    def get_edit_set_name(self, name):
         assert isinstance(name, str)
         key = self._get_key('m_name.json')
-        self._store[key] = name
+        return { key: name }
+
+    def set_name(self, name):
+        transaction = self.get_edit_set_name(name)
+        self._store.put(transaction)
 
     def get_message(self):
         key = self._get_key('m_message.json')
