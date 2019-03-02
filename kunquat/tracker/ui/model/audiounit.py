@@ -45,7 +45,7 @@ class AudioUnit():
     def get_id(self):
         return self._au_id
 
-    def get_edit_create_new_instrument(self):
+    def get_edit_create_new_instrument(self, name):
         transaction = self.get_edit_set_existence('instrument')
 
         # Audio unit ports
@@ -86,7 +86,7 @@ class AudioUnit():
         transaction.update(conns.get_edit_set_layout(layout))
 
         # Names
-        transaction.update(self.get_edit_set_name('New instrument'))
+        transaction.update(self.get_edit_set_name(name))
 
         proc_names = {
             pitch_id: 'Pitch',

@@ -227,7 +227,7 @@ class Module():
             transaction))
         return transaction
 
-    def add_instrument_with_control(self, au_id, control_id):
+    def add_instrument_with_control(self, au_id, control_id, ins_name='New instrument'):
         au = AudioUnit(au_id)
         au.set_controller(self._controller)
         au.set_ui_model(self._ui_model)
@@ -236,7 +236,7 @@ class Module():
         control.set_controller(self._controller)
         control.set_ui_model(self._ui_model)
 
-        transaction = au.get_edit_create_new_instrument()
+        transaction = au.get_edit_create_new_instrument(ins_name)
         transaction.update(control.get_edit_create_new())
         transaction.update(control.get_edit_connect_to_au(au_id))
         transaction.update(self._get_edit_try_connect_au_to_master(au_id))
@@ -402,12 +402,9 @@ class Module():
     def execute_create_sandbox(self, task_executor):
         assert not self.is_saving()
         self._controller.create_sandbox()
-        kqtifile = self._controller.get_share().get_default_instrument()
-        load_au_task = self._controller.get_task_load_audio_unit(
-                kqtifile, 'au_00', 'control_00', is_sandbox=True)
+        self.add_instrument_with_control('au_00', 'control_00', 'Sine')
         finalise_task = self.finalise_create_sandbox()
-        task = chain(load_au_task, finalise_task)
-        task_executor(task)
+        task_executor(finalise_task)
 
     def start_import_au(self, path, au_id, control_id=None):
         assert not self.is_saving()
