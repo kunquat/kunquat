@@ -163,30 +163,19 @@ class ConnectionsToolBar(QToolBar, AudioUnitUpdater):
 
     def _add_effect(self):
         module = self._ui_model.get_module()
-        is_control_needed = True
-        parent_device = module
+
         if self._au_id != None:
-            is_control_needed = False
-            parent_device = module.get_audio_unit(self._au_id)
-
-        new_au_id = parent_device.get_free_au_id()
-        new_control_id = module.get_free_control_id() if is_control_needed else None
-
-        if (not is_control_needed or new_control_id) and new_au_id:
-            parent_device.add_effect(new_au_id)
-            update_signals = []
-            if is_control_needed:
-                parent_device.add_control(new_control_id)
-                control = parent_device.get_control(new_control_id)
-                control.connect_to_au(new_au_id)
-                update_signals.append('signal_controls')
-
-            update_signal = 'signal_connections'
-            if self._au_id != None:
-                update_signal = '_'.join((update_signal, self._au_id))
-            update_signals.append(update_signal)
-
-            self._updater.signal_update(*update_signals)
+            au = module.get_audio_unit(self._au_id)
+            new_au_id = au.get_free_au_id()
+            if new_au_id:
+                au.add_effect(new_au_id)
+                self._updater.signal_update('signal_connections_{}'.format(self._au_id))
+        else:
+            new_au_id = module.get_free_au_id()
+            new_control_id = module.get_free_control_id()
+            if new_au_id and new_control_id:
+                module.add_effect(new_au_id, new_control_id)
+                self._updater.signal_update('signal_controls', 'signal_connections')
 
     def _import_au(self):
         module = self._ui_model.get_module()

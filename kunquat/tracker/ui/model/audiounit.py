@@ -496,7 +496,6 @@ class AudioUnit():
         self._updater.signal_update('signal_start_export_au')
 
     def add_effect(self, au_id):
-        key = '/'.join((self._au_id, au_id))
         au = AudioUnit(au_id)
         au.set_controller(self._controller)
         au.set_ui_model(self._ui_model)

@@ -243,12 +243,19 @@ class Module():
 
         self._store.put(transaction)
 
-    def add_effect(self, au_id):
+    def add_effect(self, au_id, control_id):
         au = AudioUnit(au_id)
         au.set_controller(self._controller)
         au.set_ui_model(self._ui_model)
 
+        control = Control(control_id)
+        control.set_controller(self._controller)
+        control.set_ui_model(self._ui_model)
+
         transaction = au.get_edit_create_new_effect()
+        transaction.update(control.get_edit_create_new())
+        transaction.update(control.get_edit_connect_to_au(au_id))
+
         self._store.put(transaction)
 
     def get_out_ports(self):
