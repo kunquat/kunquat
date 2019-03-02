@@ -106,6 +106,29 @@ class AudioUnit():
 
         return transaction
 
+    def get_edit_create_new_effect(self):
+        transaction = self.get_edit_set_existence('effect')
+
+        port_infos = {
+            'in_00': 'audio L',
+            'in_01': 'audio R',
+            'out_00': 'audio L',
+            'out_01': 'audio R',
+        }
+        for port_id, port_name in port_infos.items():
+            transaction.update(self.get_edit_set_port_existence(port_id, True))
+            transaction.update(self.get_edit_set_port_name(port_id, port_name))
+
+        conns = self.get_connections()
+        transaction.update(conns.get_edit_connect_ports(
+            'Iin', 'in_00', 'master', 'out_00', transaction))
+        transaction.update(conns.get_edit_connect_ports(
+            'Iin', 'in_01', 'master', 'out_01', transaction))
+
+        transaction.update(self.get_edit_set_name('New effect'))
+
+        return transaction
+
     def _get_key(self, subkey):
         return '{}/{}'.format(self._au_id, subkey)
 

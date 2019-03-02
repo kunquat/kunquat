@@ -247,15 +247,9 @@ class Module():
         au = AudioUnit(au_id)
         au.set_controller(self._controller)
         au.set_ui_model(self._ui_model)
-        au.set_existence('effect')
-        au.set_port_existence('in_00', True)
-        au.set_port_existence('in_01', True)
-        au.set_port_existence('out_00', True)
-        au.set_port_existence('out_01', True)
-        au.set_port_name('in_00', 'audio L')
-        au.set_port_name('in_01', 'audio R')
-        au.set_port_name('out_00', 'audio L')
-        au.set_port_name('out_01', 'audio R')
+
+        transaction = au.get_edit_create_new_effect()
+        self._store.put(transaction)
 
     def get_out_ports(self):
         out_ports = []
