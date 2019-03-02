@@ -142,9 +142,10 @@ class Connections():
     def _get_layout_key(self):
         return self._get_complete_key('i_connections_layout.json')
 
-    def get_connections(self):
+    def get_connections(self, pending_changes=None):
         key = self._get_graph_key()
-        return self._store.get(key, get_default_value(key))
+        return self._store.get(
+                key, get_default_value(key), pending_changes=pending_changes)
 
     def get_edit_set_connections(self, conns):
         key = self._get_graph_key()
@@ -181,6 +182,25 @@ class Connections():
                 send_ids.add(send_id)
 
         return send_ids
+
+    def _get_connection_path(self, dev_id, port_id):
+        if dev_id.startswith(('master', 'Iin')):
+            return port_id
+        sep = '/C/' if dev_id.startswith('proc') else '/'
+        return sep.join((dev_id, port_id))
+
+    def get_edit_connect_ports(
+            self,
+            src_dev_id,
+            src_port_id,
+            dest_dev_id,
+            dest_port_id,
+            pending_changes=None):
+        conns = list(self.get_connections(pending_changes))
+        src_path = self._get_connection_path(src_dev_id, src_port_id)
+        dest_path = self._get_connection_path(dest_dev_id, dest_port_id)
+        conns.append([src_path, dest_path])
+        return self.get_edit_set_connections(conns)
 
     def disconnect_device(self, dev_id):
         sub_dev_id = dev_id.split('/')[-1]

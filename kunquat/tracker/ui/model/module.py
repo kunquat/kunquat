@@ -213,6 +213,20 @@ class Module():
         #    return [] #valid
         return all_audio_units
 
+    def _get_edit_try_connect_au_to_master(self, au_id):
+        aus = self.get_audio_units()
+        has_effects = any(au.is_effect() for au in aus)
+        if has_effects:
+            return {}
+
+        conns = self.get_connections()
+        transaction = conns.get_edit_connect_ports(au_id, 'out_00', 'master', 'out_00')
+        transaction.update(conns.get_edit_connect_ports(
+            au_id, 'out_01',
+            'master', 'out_01',
+            transaction))
+        return transaction
+
     def add_instrument_with_control(self, au_id, control_id):
         au = AudioUnit(au_id)
         au.set_controller(self._controller)
@@ -225,6 +239,7 @@ class Module():
         transaction = au.get_edit_create_new_instrument()
         transaction.update(control.get_edit_create_new())
         transaction.update(control.get_edit_connect_to_au(au_id))
+        transaction.update(self._get_edit_try_connect_au_to_master(au_id))
 
         self._store.put(transaction)
 
