@@ -136,8 +136,8 @@ class ShiftClickButton(IconButton):
 
     shiftClicked = Signal(name='shiftClicked')
 
-    def __init__(self, flat):
-        super().__init__(flat)
+    def __init__(self):
+        super().__init__(flat=True)
 
     def mouseReleaseEvent(self, event):
         if (event.button() == Qt.LeftButton) and (event.modifiers() == Qt.ShiftModifier):
@@ -165,11 +165,16 @@ class OrderlistToolBar(QToolBar, Updater):
             button.setEnabled(False)
             return button
 
-        self._new_pat_button        = create_button('New pattern')
-        self._remove_pat_button     = create_button('Remove pattern', ShiftClickButton)
-        self._reuse_pat_button      = create_button('Reuse pattern')
-        self._new_song_button       = create_button('New song')
-        self._remove_song_button    = create_button('Remove song')
+        self._new_pat_button = IconButton(flat=True)
+        self._new_pat_button.setToolTip('Add new pattern (N)')
+        self._remove_pat_button = ShiftClickButton()
+        self._remove_pat_button.setToolTip('Remove pattern (Delete)')
+        self._reuse_pat_button = IconButton(flat=True)
+        self._reuse_pat_button.setToolTip('Reuse pattern')
+        self._new_song_button = IconButton(flat=True)
+        self._new_song_button.setToolTip('Add new song')
+        self._remove_song_button = IconButton(flat=True)
+        self._remove_song_button.setToolTip('Remove song')
 
         self.addWidget(self._new_pat_button)
         self.addWidget(self._remove_pat_button)
@@ -249,8 +254,8 @@ class OrderlistToolBar(QToolBar, Updater):
             return
 
         pattern_num = self._album.get_new_pattern_num()
-        self._album.insert_pattern_instance(track_num, system_num, pattern_num, 0)
-        self._orderlist_mgr.set_orderlist_selection((track_num, system_num))
+        self._album.insert_pattern_instance(track_num, system_num + 1, pattern_num, 0)
+        self._orderlist_mgr.set_orderlist_selection((track_num, system_num + 1))
         self._updater.signal_update('signal_order_list')
 
     def _confirm_remove_pattern(self):
@@ -286,7 +291,7 @@ class OrderlistToolBar(QToolBar, Updater):
             track_num = selection.get_containing_track_number()
         else:
             track_num = self._album.get_track_count()
-        self._album.insert_song(track_num)
+        self._album.insert_song(track_num + 1)
         self._updater.signal_update('signal_order_list')
 
     def _confirm_remove_song(self):
