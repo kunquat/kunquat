@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013
-#          Tomi Jylhä-Ollila, Finland 2014-2018
+#          Tomi Jylhä-Ollila, Finland 2014-2019
 #
 # This file is part of Kunquat.
 #
@@ -111,6 +111,11 @@ class Store(MutableMapping):
         transaction_id, transaction = self._pending_validation.popleft()
         assert transaction_id == validated_id
         return transaction
+
+    def get(self, key, default=None, *, pending_changes=None):
+        if pending_changes and (key in pending_changes):
+            return pending_changes[key]
+        return super().get(key, default)
 
     def get_with_version(self, key):
         # If the key has non-validated changes, return the most recent one
