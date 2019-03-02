@@ -73,6 +73,15 @@ class AudioUnit():
         ]
         transaction.update(conns.get_edit_set_connections(conns_list))
 
+        layout = {
+            'Iin'           : { 'offset': (-27, 0) },
+            pitch_conn_id   : { 'offset': (-9, -4) },
+            force_conn_id   : { 'offset': (-9, 4) },
+            base_conn_id    : { 'offset': (9, 0) },
+            'master'        : { 'offset': (27, 0) },
+        }
+        transaction.update(conns.get_edit_set_layout(layout))
+
         return transaction
 
     def _get_key(self, subkey):

@@ -158,9 +158,13 @@ class Connections():
         key = self._get_layout_key()
         return self._store.get(key, {})
 
-    def set_layout(self, layout, mark_modified=True):
+    def get_edit_set_layout(self, layout):
         key = self._get_layout_key()
-        self._store.put({ key: layout }, mark_modified=mark_modified)
+        return { key: layout }
+
+    def set_layout(self, layout, mark_modified=True):
+        transaction = self.get_edit_set_layout(layout)
+        self._store.put(transaction, mark_modified=mark_modified)
 
     def get_send_device_ids(self, recv_id):
         sub_recv_id = recv_id.split('/')[-1]
