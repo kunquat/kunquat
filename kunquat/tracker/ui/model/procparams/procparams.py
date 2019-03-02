@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015-2018
+# Author: Tomi Jylhä-Ollila, Finland 2015-2019
 #
 # This file is part of Kunquat.
 #
@@ -55,8 +55,13 @@ class ProcParams():
             return value
         return default_value
 
-    def _set_value(self, subkey, value):
+    def _get_edit_set_value(self, subkey, value):
         key = self._get_key('c/', subkey)
-        self._store[key] = value
+        transaction = { key: value }
+        return transaction
+
+    def _set_value(self, subkey, value):
+        transaction = self._get_edit_set_value(subkey, value)
+        self._store.put(transaction)
 
 
