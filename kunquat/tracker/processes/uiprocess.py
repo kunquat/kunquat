@@ -112,14 +112,8 @@ class UiProcess(Process):
     def notify_libkunquat_error(self, info):
         self._q.enqueue('notify_libkunquat_error', info)
 
-    def update_drivers(self, drivers):
-        self._q.enqueue('update_drivers', drivers)
-
     def notify_audio_rendered(self, levels):
         self._q.enqueue('notify_audio_rendered', levels)
-
-    def update_selected_driver(self, driver_class):
-        self._q.enqueue('update_selected_driver', driver_class)
 
     def update_output_speed(self, fps):
         self._q.enqueue('update_output_speed', fps)
