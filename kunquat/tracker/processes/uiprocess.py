@@ -108,9 +108,11 @@ class UiProcess(Process):
 
     def notify_kunquat_exception(self, exception):
         self._q.enqueue('notify_kunquat_exception', exception)
+        self._q.submit()
 
     def notify_libkunquat_error(self, info):
         self._q.enqueue('notify_libkunquat_error', info)
+        self._q.submit()
 
     def notify_audio_rendered(self, levels):
         self._q.enqueue('notify_audio_rendered', levels)
@@ -167,18 +169,22 @@ class UiProcess(Process):
 
     def update_import_progress(self, progress):
         self._q.enqueue('update_import_progress', progress)
+        self._q.submit()
 
     def add_imported_entry(self, key, value):
         self._q.enqueue('add_imported_entry', key, value)
 
     def notify_import_error(self, path, error):
         self._q.enqueue('notify_import_error', path, error)
+        self._q.submit()
 
     def notify_import_finished(self):
         self._q.enqueue('notify_import_finished')
+        self._q.submit()
 
     def update_transaction_progress(self, transaction_id, progress):
         self._q.enqueue('update_transaction_progress', transaction_id, progress)
+        self._q.submit()
 
     def confirm_valid_data(self, transaction_id):
         self._q.enqueue('confirm_valid_data', transaction_id)
