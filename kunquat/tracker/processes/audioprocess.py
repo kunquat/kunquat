@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016-2018
+# Author: Tomi Jylhä-Ollila, Finland 2016-2019
 #
 # This file is part of Kunquat.
 #
@@ -153,6 +153,7 @@ class AudioProcess(Process):
                     getattr(self._audio_engine, command)(*args)
             if running:
                 self._audio_engine.produce_sound()
+                self._ui_engine.submit_audio_commands()
 
 
 def create_audio_process():

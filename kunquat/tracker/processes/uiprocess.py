@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016-2018
+# Author: Tomi Jylhä-Ollila, Finland 2016-2019
 #
 # This file is part of Kunquat.
 #
@@ -37,6 +37,7 @@ class CommandQueue():
 
     def __init__(self):
         self._in = Queue()
+        self._in_pending = []
         self._out = Queue()
         self._state = self._STATE_NORMAL
         self._state_lock = Lock()
@@ -54,32 +55,37 @@ class CommandQueue():
 
         for _ in get_counter:
             try:
-                command_data = self._in.get_nowait()
+                commands = self._in.get_nowait()
             except Empty:
                 return
 
-            command, _ = command_data
-            if command in self._terminating_commands:
+            if any(ce[0] in self._terminating_commands for ce in commands):
                 # Make sure we won't block the UI before the terminating command is sent
                 with self._state_lock:
                     self._state = self._STATE_FLUSHING
-            self._out.put(command_data)
+            self._out.put(commands)
 
-    def put(self, command, *args):
+    def enqueue(self, command, *args):
+        self._in_pending.append((command, args))
+
+    def submit(self):
+        if not self._in_pending:
+            return
+
         with self._state_lock:
             is_state_normal = (self._state == self._STATE_NORMAL)
         if is_state_normal:
-            self._in.put((command, args))
+            self._in.put(self._in_pending)
+            self._in_pending = []
 
-    def get(self):
-        command_data = self._out.get_nowait()
-        command, _ = command_data
-        if command in self._terminating_commands:
+    def get_commands(self):
+        commands = self._out.get_nowait()
+        if any(ce[0] in self._terminating_commands for ce in commands):
             with self._state_lock:
                 self._state = self._STATE_FINISHED
-        return command_data
+        return commands
 
-    def get_command_count(self):
+    def get_command_list_count(self):
         return portable_qsize(self._out)
 
 
@@ -97,106 +103,116 @@ class UiProcess(Process):
     def set_audio_engine(self, audio_engine):
         self._audio_engine = audio_engine
 
+    def submit_audio_commands(self):
+        self._q.submit()
+
     def notify_kunquat_exception(self, exception):
-        self._q.put('notify_kunquat_exception', exception)
+        self._q.enqueue('notify_kunquat_exception', exception)
 
     def notify_libkunquat_error(self, info):
-        self._q.put('notify_libkunquat_error', info)
+        self._q.enqueue('notify_libkunquat_error', info)
 
     def update_drivers(self, drivers):
-        self._q.put('update_drivers', drivers)
+        self._q.enqueue('update_drivers', drivers)
 
     def notify_audio_rendered(self, levels):
-        self._q.put('notify_audio_rendered', levels)
+        self._q.enqueue('notify_audio_rendered', levels)
 
     def update_selected_driver(self, driver_class):
-        self._q.put('update_selected_driver', driver_class)
+        self._q.enqueue('update_selected_driver', driver_class)
 
     def update_output_speed(self, fps):
-        self._q.put('update_output_speed', fps)
+        self._q.enqueue('update_output_speed', fps)
 
     def update_render_speed(self, fps):
-        self._q.put('update_render_speed', fps)
+        self._q.enqueue('update_render_speed', fps)
 
     def update_render_load(self, ratio):
-        self._q.put('update_render_load', ratio)
+        self._q.enqueue('update_render_load', ratio)
 
     def update_selected_control(self, channel_number, control_number):
-        self._q.put('update_selected_control', channel_number, control_number)
+        self._q.enqueue('update_selected_control', channel_number, control_number)
 
     def update_active_note(self, channel_number, event_type, pitch):
-        self._q.put('update_active_note', channel_number, event_type, pitch)
+        self._q.enqueue('update_active_note', channel_number, event_type, pitch)
 
     def update_active_var_name(self, channel_number, var_name):
-        self._q.put('update_active_var_name', channel_number, var_name)
+        self._q.enqueue('update_active_var_name', channel_number, var_name)
 
     def update_active_var_value(self, channel_number, var_value):
-        self._q.put('update_active_var_value', channel_number, var_value)
+        self._q.enqueue('update_active_var_value', channel_number, var_value)
 
     def update_ch_expression(self, channel_number, expr_name):
-        self._q.put('update_ch_expression', channel_number, expr_name)
+        self._q.enqueue('update_ch_expression', channel_number, expr_name)
 
     def update_pending_playback_cursor_track(self, track):
-        self._q.put('update_pending_playback_cursor_track', track)
+        self._q.enqueue('update_pending_playback_cursor_track', track)
 
     def update_pending_playback_cursor_system(self, system):
-        self._q.put('update_pending_playback_cursor_system', system)
+        self._q.enqueue('update_pending_playback_cursor_system', system)
 
     def update_playback_pattern(self, piref):
-        self._q.put('update_playback_pattern', piref)
+        self._q.enqueue('update_playback_pattern', piref)
 
     def update_playback_cursor(self, row):
-        self._q.put('update_playback_cursor', row)
+        self._q.enqueue('update_playback_cursor', row)
 
     def update_active_voice_count(self, voice_count):
-        self._q.put('update_active_voice_count', voice_count)
+        self._q.enqueue('update_active_voice_count', voice_count)
 
     def update_active_vgroup_count(self, vgroup_count):
-        self._q.put('update_active_vgroup_count', vgroup_count)
+        self._q.enqueue('update_active_vgroup_count', vgroup_count)
 
     def update_event_log_with(self, channel_number, event_type, event_value, context):
-        self._q.put('update_event_log_with', channel_number, event_type, event_value, context)
+        self._q.enqueue(
+                'update_event_log_with',
+                channel_number,
+                event_type,
+                event_value,
+                context)
 
     def update_import_progress(self, progress):
-        self._q.put('update_import_progress', progress)
+        self._q.enqueue('update_import_progress', progress)
 
     def add_imported_entry(self, key, value):
-        self._q.put('add_imported_entry', key, value)
+        self._q.enqueue('add_imported_entry', key, value)
 
     def notify_import_error(self, path, error):
-        self._q.put('notify_import_error', path, error)
+        self._q.enqueue('notify_import_error', path, error)
 
     def notify_import_finished(self):
-        self._q.put('notify_import_finished')
+        self._q.enqueue('notify_import_finished')
 
     def update_transaction_progress(self, transaction_id, progress):
-        self._q.put('update_transaction_progress', transaction_id, progress)
+        self._q.enqueue('update_transaction_progress', transaction_id, progress)
 
     def confirm_valid_data(self, transaction_id):
-        self._q.put('confirm_valid_data', transaction_id)
+        self._q.enqueue('confirm_valid_data', transaction_id)
 
     def call_post_action(self, action_name, args):
-        self._q.put('call_post_action', action_name, args)
+        self._q.enqueue('call_post_action', action_name, args)
 
     # Process interface
 
     def halt(self):
-        self._q.put(HALT)
+        self._q.enqueue(HALT)
+        self._q.submit()
 
     def _process_queue(self):
         self._q.update()
-        cmd_count = self._q.get_command_count()
+        cmd_count = self._q.get_command_list_count()
         for _ in range(cmd_count):
             try:
-                command, args = self._q.get()
+                commands = self._q.get_commands()
             except Empty:
                 return
 
-            if command == HALT:
-                self._ui_launcher.halt_ui()
-                return
-            else:
-                getattr(self._controller, command)(*args)
+            for command, args in commands:
+                if command == HALT:
+                    self._ui_launcher.halt_ui()
+                    return
+                else:
+                    getattr(self._controller, command)(*args)
 
     def run(self):
         if get_start_method() != 'fork':
