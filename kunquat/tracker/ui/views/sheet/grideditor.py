@@ -738,7 +738,7 @@ class GeneralEditor(QWidget, Updater):
         sl = QHBoxLayout()
         sl.setContentsMargins(0, 0, 0, 0)
         sl.setSpacing(2)
-        sl.addWidget(QLabel('Display lines'), 0)
+        sl.addWidget(QLabel('Show lines'), 0)
         sl.addWidget(self._spacing_style, 3)
         sl.addWidget(QLabel('when spacing is ≥:'), 0)
         sl.addWidget(self._spacing_value, 1)
