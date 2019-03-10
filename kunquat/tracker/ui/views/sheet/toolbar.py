@@ -917,7 +917,7 @@ class LengthEditor(QWidget, Updater):
         h = QHBoxLayout()
         h.setContentsMargins(5, 0, 5, 0)
         h.setSpacing(5)
-        h.addWidget(QLabel('Pattern length'))
+        h.addWidget(QLabel('Pattern length:'))
         h.addWidget(self._spinbox)
         self.setLayout(h)
 

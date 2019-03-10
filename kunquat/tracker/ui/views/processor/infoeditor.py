@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015-2018
+# Author: Tomi Jylhä-Ollila, Finland 2015-2019
 #
 # This file is part of Kunquat.
 #
@@ -13,6 +13,7 @@
 
 from kunquat.tracker.ui.qt import *
 
+from kunquat.tracker.ui.views.headerline import HeaderLine
 from .processorupdater import ProcessorUpdater
 
 
@@ -30,7 +31,7 @@ class InfoEditor(QWidget, ProcessorUpdater):
         v.setContentsMargins(4, 4, 4, 4)
         v.setSpacing(4)
         v.addWidget(self._name, 0)
-        v.addWidget(QLabel('Message:'))
+        v.addWidget(HeaderLine('Message'))
         v.addWidget(self._message)
         self.setLayout(v)
 

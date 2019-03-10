@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2018
+# Author: Tomi Jylhä-Ollila, Finland 2014-2019
 #
 # This file is part of Kunquat.
 #
@@ -253,7 +253,7 @@ class TonePitchSpin(QWidget, ProcessorUpdater):
 
         h = QHBoxLayout()
         h.setContentsMargins(0, 0, 0, 0)
-        h.addWidget(QLabel('Pitch:'))
+        h.addWidget(QLabel('Pitch factor:'))
         h.addWidget(self._spin)
         self.setLayout(h)
 

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015-2018
+# Author: Tomi Jylhä-Ollila, Finland 2015-2019
 #
 # This file is part of Kunquat.
 #
@@ -738,9 +738,9 @@ class GeneralEditor(QWidget, Updater):
         sl = QHBoxLayout()
         sl.setContentsMargins(0, 0, 0, 0)
         sl.setSpacing(2)
-        sl.addWidget(QLabel('Min. spacing of style'), 0)
-        sl.addWidget(self._spacing_style, 2)
-        sl.addWidget(QLabel(':'), 0)
+        sl.addWidget(QLabel('Show lines'), 0)
+        sl.addWidget(self._spacing_style, 3)
+        sl.addWidget(QLabel('when spacing is ≥:'), 0)
         sl.addWidget(self._spacing_value, 1)
 
         ol = QHBoxLayout()

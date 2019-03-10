@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016-2018
+# Author: Tomi Jylhä-Ollila, Finland 2016-2019
 #
 # This file is part of Kunquat.
 #
@@ -13,6 +13,7 @@
 
 from kunquat.tracker.ui.qt import *
 
+from .headerline import HeaderLine
 from .numberslider import NumberSlider
 from .updater import Updater
 from .utils import get_default_font_info
@@ -74,7 +75,7 @@ class GeneralModEditor(QWidget, Updater):
         v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(4)
         v.addLayout(self._meta_layout)
-        v.addWidget(QLabel('Message:'))
+        v.addWidget(HeaderLine('Message'))
         v.addWidget(self._message)
         v.addWidget(separator)
         v.addLayout(self._global_settings_layout)
