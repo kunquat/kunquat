@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2019
  *
  * This file is part of Kunquat.
  *
@@ -46,13 +46,6 @@ EVENT_CHANNEL_DEF("v/=s",   vibrato_speed_slide,        TSTAMP,         v_nonneg
 EVENT_CHANNEL_DEF("v/=d",   vibrato_depth_slide,        TSTAMP,         v_nonneg_ts)
 EVENT_CHANNEL_DEF("->p+",   carry_pitch_on,             NONE,           NULL)
 EVENT_CHANNEL_DEF("->p-",   carry_pitch_off,            NONE,           NULL)
-
-EVENT_CHANNEL_DEF("<arp",   reset_arpeggio,             NONE,           NULL)
-EVENT_CHANNEL_DEF(".arpn",  set_arpeggio_note,          FLOAT,          v_pitch)
-EVENT_CHANNEL_DEF(".arpi",  set_arpeggio_index,         INT,            v_arp_index)
-EVENT_CHANNEL_DEF(".arps",  set_arpeggio_speed,         FLOAT,          v_arp_speed)
-EVENT_CHANNEL_DEF("arp+",   arpeggio_on,                NONE,           NULL)
-EVENT_CHANNEL_DEF("arp-",   arpeggio_off,               NONE,           NULL)
 
 EVENT_CHANNEL_NS_DEF(".sn", set_stream_name,            STRING,         v_var_name,     ".sn")
 EVENT_CHANNEL_NS_DEF(".s",  set_stream_value,           FLOAT,          v_finite_float, ".sn")
