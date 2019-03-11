@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2019
  *
  * This file is part of Kunquat.
  *
@@ -101,6 +101,8 @@ static void Read_state_modify(
 {
     rassert(rs != NULL);
     rassert(isfinite(pitch));
+    rassert(damp >= KS_MIN_DAMP);
+    rassert(damp <= KS_MAX_DAMP);
     rassert(write_pos >= 0);
     rassert(buf_len > 2);
     rassert(write_pos < buf_len);
@@ -371,7 +373,7 @@ int32_t Ks_vstate_render_voice(
 
         Read_state_init(
                 &ks_vstate->read_states[ks_vstate->primary_read_state],
-                damps[0],
+                clamp(damps[0], KS_MIN_DAMP, KS_MAX_DAMP),
                 pitches[0],
                 ks_vstate->write_pos,
                 delay_wb_size,
@@ -398,10 +400,12 @@ int32_t Ks_vstate_render_voice(
 
             const float max_damp_diff = 0.001f;
 
+            const float clamped_damp = clamp(damp, KS_MIN_DAMP, KS_MAX_DAMP);
+
             Read_state* primary_rs =
                 &ks_vstate->read_states[ks_vstate->primary_read_state];
             if (fabs(pitch - primary_rs->pitch) > max_pitch_diff ||
-                    fabs(damp - primary_rs->damp) > max_damp_diff)
+                    fabs(clamped_damp - primary_rs->damp) > max_damp_diff)
             {
                 Read_state* other_rs =
                     &ks_vstate->read_states[1 - ks_vstate->primary_read_state];
@@ -415,7 +419,7 @@ int32_t Ks_vstate_render_voice(
                 Read_state_modify(
                         other_rs,
                         cur_target_pitch,
-                        damp,
+                        clamped_damp,
                         write_pos,
                         delay_wb_size,
                         audio_rate);
