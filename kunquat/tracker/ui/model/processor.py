@@ -119,7 +119,7 @@ class Processor():
 
     def set_name(self, name):
         transaction = self.get_edit_set_name(name)
-        self._store.put(key, name)
+        self._store.put(transaction)
 
     def get_message(self):
         key = self._get_key('m_message.json')
