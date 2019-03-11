@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2019
  *
  * This file is part of Kunquat.
  *
@@ -63,32 +63,6 @@ bool v_any_ts(const Value* value)
 {
     rassert(value != NULL);
     return (value->type == VALUE_TYPE_TSTAMP);
-}
-
-
-bool v_arp_index(const Value* value)
-{
-    rassert(value != NULL);
-
-    if (value->type != VALUE_TYPE_INT)
-        return false;
-
-    const int64_t index = value->value.int_type;
-
-    return (index >= 0) && (index < KQT_ARPEGGIO_TONES_MAX);
-}
-
-
-bool v_arp_speed(const Value* value)
-{
-    rassert(value != NULL);
-
-    if (value->type != VALUE_TYPE_FLOAT)
-        return false;
-
-    const double speed = value->value.float_type;
-
-    return isfinite(speed) && (speed > 0);
 }
 
 

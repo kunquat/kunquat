@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2019
  *
  * This file is part of Kunquat.
  *
@@ -29,9 +29,6 @@ Param_validator v_any_int;
 Param_validator v_any_float;
 Param_validator v_any_str;
 Param_validator v_any_ts;
-
-Param_validator v_arp_index;
-Param_validator v_arp_speed;
 
 Param_validator v_au;
 
