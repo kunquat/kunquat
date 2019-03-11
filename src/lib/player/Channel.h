@@ -88,11 +88,6 @@ struct Channel
     double orig_pitch;
     Pitch_controls pitch_controls;
 
-    double arpeggio_ref;
-    double arpeggio_speed;
-    int arpeggio_edit_pos;
-    double arpeggio_tones[KQT_ARPEGGIO_TONES_MAX];
-
     char init_ch_expression[KQT_VAR_NAME_MAX + 1];
     bool carry_note_expression;
 };
