@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2019
  *
  * This file is part of Kunquat.
  *
@@ -866,13 +866,13 @@ START_TEST(Events_appear_in_event_buffer)
             "Wrong events received"
             KT_VALUES("%s", expected_events_1, actual_events));
 
-    kqt_Handle_fire_event(handle, 2, "[\".arpi\", 0]");
+    kqt_Handle_fire_event(handle, 2, "[\".a\", 0]");
     check_unexpected_error();
 
     actual_events = kqt_Handle_receive_events(handle);
     check_unexpected_error();
     const char expected_events_2[] =
-        "[[2, [\".arpi\", 0]]]";
+        "[[2, [\".a\", 0]]]";
 
     fail_unless(strcmp(actual_events, expected_events_2) == 0,
             "Wrong events received"

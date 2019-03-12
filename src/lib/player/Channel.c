@@ -197,11 +197,6 @@ void Channel_reset(Channel* ch)
     ch->orig_pitch = NAN;
     Pitch_controls_reset(&ch->pitch_controls);
 
-    ch->arpeggio_ref = NAN;
-    ch->arpeggio_speed = 24;
-    ch->arpeggio_edit_pos = 1;
-    ch->arpeggio_tones[0] = ch->arpeggio_tones[1] = NAN;
-
     memset(ch->init_ch_expression, '\0', KQT_VAR_NAME_MAX + 1);
     ch->carry_note_expression = false;
 

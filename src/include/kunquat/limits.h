@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2019
  *
  * This file is part of Kunquat.
  *
@@ -168,12 +168,6 @@ extern "C" {
 
 #define KQT_TUNING_TABLE_OCTAVES 16
 #define KQT_TUNING_TABLE_NOTES_MAX 128
-
-
-/**
- * Maximum number of notes in the arpeggio.
- */
-#define KQT_ARPEGGIO_TONES_MAX 64
 
 
 /**
