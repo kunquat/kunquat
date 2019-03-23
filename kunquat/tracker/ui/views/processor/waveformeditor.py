@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016-2018
+# Author: Tomi Jylhä-Ollila, Finland 2016-2019
 #
 # This file is part of Kunquat.
 #
@@ -80,6 +80,7 @@ class WaveformEditor(QWidget, ProcessorUpdater):
             'centre_line_colour': get_colour('waveform_centre_line_colour'),
             'waveform_colour': get_colour('waveform_zoomed_out_colour'),
             'disabled_colour': disabled_colour,
+            'line_thickness' : style_mgr.get_scaled_size(0.1),
         }
 
         self._waveform.set_config(config)
