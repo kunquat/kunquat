@@ -14,6 +14,7 @@
 import time
 
 from kunquat.tracker.ui.qt import *
+from .pathemboldener import embolden_path
 
 
 DEFAULT_CONFIG = {
@@ -100,71 +101,7 @@ class Waveform(QWidget):
 
             #thin_image.setPixelColor(QPoint(50, 50), QColor(0xff, 0xff, 0xff))
 
-            # Using a thick pen or filled area is too slow, so construct a thicker line
-            # by overlaying multiple copies of the thin line on top of one another
-            def overlay_imgs(thin_image, thickness):
-                if thickness <= 1:
-                    return thin_image
-
-                def get_points(overlay_pattern):
-                    offset = -((len(overlay_pattern) - 1) // 2)
-                    for row, line in enumerate(overlay_pattern):
-                        for col, c in enumerate(line):
-                            if c != ' ':
-                                yield QPoint(col + offset, row + offset)
-
-                ops = []
-                if thickness == 2:
-                    ops = [['11',
-                            '11']]
-                elif thickness == 3:
-                    ops = [[' 1 ',
-                            '111',
-                            ' 1 ']]
-                elif thickness == 4:
-                    ops = [['11',
-                            '11'],
-                           [' 1 ',
-                            '1 1',
-                            ' 1 ']]
-                elif thickness == 5:
-                    ops = [['11',
-                            '11',
-                            '11'],
-                           [' 11 ',
-                            '1  1',
-                            ' 11 ']]
-                elif thickness == 6:
-                    ops = [['11',
-                            '11'],
-                           ['  1  ',
-                            ' 1 1 ',
-                            '1   1',
-                            ' 1 1 ',
-                            '  1  ']]
-                elif thickness >= 7:
-                    ops = [[' 11 ',
-                            '1  1',
-                            '1  1',
-                            ' 11 '],
-                           [' 11 ',
-                            '1  1',
-                            '1  1',
-                            ' 11 ']]
-
-                src_image = thin_image
-                for op in ops:
-                    image = QImage(width, height, QImage.Format_ARGB32_Premultiplied)
-                    image.fill(0)
-                    painter = QPainter(image)
-                    for point in get_points(op):
-                        painter.drawImage(point, src_image)
-                    painter.end()
-                    src_image = image
-
-                return src_image
-
-            self._path_image = overlay_imgs(thin_image, line_thickness)
+            self._path_image = embolden_path(thin_image, line_thickness)
 
         self._pixmap = QPixmap(width, height)
 
