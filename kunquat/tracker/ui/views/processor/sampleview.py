@@ -660,11 +660,14 @@ class Shape():
 
             elif isinstance(shape, QPainterPath):
                 # Line that connects the samples
-                line_image = QImage(width, ch_height, QImage.Format_ARGB32_Premultiplied)
+                offset = config['line_thickness']
+                image_width = width + offset * 2
+                line_image = QImage(
+                        image_width, ch_height, QImage.Format_ARGB32_Premultiplied)
                 line_image.fill(0)
                 line_painter = QPainter(line_image)
                 line_painter.setRenderHint(QPainter.Antialiasing)
-                line_painter.translate(0.5, 0.5)
+                line_painter.translate(0.5 + offset, 0.5)
                 line_painter.scale(1, (height / 2) / ch_count)
                 line_painter.translate(0, 1)
                 pen = QPen(config['interp_colour'])
@@ -676,7 +679,10 @@ class Shape():
                 line_image = embolden_path(line_image, config['line_thickness'])
 
                 painter.setRenderHint(QPainter.SmoothPixmapTransform)
-                painter.drawImage(0, ch_y_start, line_image)
+                painter.drawImage(
+                        QRect(0, ch_y_start, width, line_image.height()),
+                        line_image,
+                        QRect(offset, 0, width, line_image.height()))
 
                 # Get transformed positions of individual items
                 tfm = painter.transform()
