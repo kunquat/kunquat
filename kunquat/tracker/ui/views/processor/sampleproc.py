@@ -1693,6 +1693,7 @@ class SampleEditor(QWidget, ProcessorUpdater):
 
         config = {
             'bg_colour'                 : get_colour('waveform_bg_colour'),
+            'line_thickness'            : style_mgr.get_scaled_size(0.1),
             'centre_line_colour'        : get_colour('waveform_centre_line_colour'),
             'zoomed_out_colour'         : get_colour('waveform_zoomed_out_colour'),
             'single_item_colour'        : get_colour('waveform_single_item_colour'),
