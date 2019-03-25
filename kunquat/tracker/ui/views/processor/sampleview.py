@@ -640,7 +640,7 @@ class Shape():
 
             # Centre line
             pen = QPen(config['centre_line_colour'])
-            pen.setCosmetic(True)
+            pen.setWidth(config['line_thickness'])
             painter.setPen(pen)
             centre_y = (ch_y_start + ch_y_stop - 1) / 2
             painter.drawLine(
