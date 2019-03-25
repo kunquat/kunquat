@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016-2018
+# Author: Tomi Jylhä-Ollila, Finland 2016-2019
 #
 # This file is part of Kunquat.
 #
@@ -19,15 +19,18 @@ from itertools import chain, islice
 from kunquat.tracker.ui.qt import *
 
 from kunquat.tracker.ui.views.iconbutton import IconButton
+from .pathemboldener import embolden_path
 
 
 DEFAULT_CONFIG = {
     'bg_colour'                 : QColor(0, 0, 0),
+    'line_thickness'            : 1,
     'centre_line_colour'        : QColor(0x66, 0x66, 0x66),
     'zoomed_out_colour'         : QColor(0x44, 0xcc, 0xff),
     'single_item_colour'        : QColor(0x44, 0xcc, 0xff),
     'interp_colour'             : QColor(0x22, 0x88, 0xaa),
-    'max_node_size'             : 6,
+    'min_node_size'             : 2,
+    'max_node_size'             : 8,
     'loop_line_colour'          : QColor(0x77, 0x99, 0xbb),
     'focused_loop_line_colour'  : QColor(0xff, 0xaa, 0x55),
     'loop_line_dash'            : [4, 4],
@@ -497,10 +500,7 @@ class SampleViewCanvas(QWidget):
 
                     painter = QPainter(pixmap)
                     painter.setRenderHint(QPainter.Antialiasing)
-                    painter.translate(0.5, 0.5)
-                    painter.scale(1, height / 2)
-                    painter.translate(0, 1)
-                    shape.draw_shape(painter, self._config)
+                    shape.draw_shape(painter, pixmap_width, height, self._config)
 
                     """
                     painter = QPainter(pixmap)
@@ -626,50 +626,84 @@ class Shape():
         self._items = []
         self._frame_step = 0
 
-    def draw_shape(self, painter, config):
+    def draw_shape(self, painter, width, height, config):
         if not self._shapes:
             return
 
         ch_count = len(self._shapes)
 
         painter.save()
-        painter.scale(1, 1 / ch_count)
-        painter.translate(0, -ch_count + 1)
 
         for i, shape in enumerate(self._shapes):
+            ch_height = height / ch_count
+            ch_y_start = i * ch_height
+            ch_y_stop = (i + 1) * ch_height
+
             # Centre line
             pen = QPen(config['centre_line_colour'])
-            pen.setCosmetic(True)
+            pen.setWidth(config['line_thickness'])
+            painter.save()
+            painter.translate(0.5, 0.5)
             painter.setPen(pen)
-            painter.drawLine(QPointF(0, 0), QPointF(self._centre_line_length, 0))
+            centre_y = (ch_y_start + ch_y_stop - 1) / 2
+            painter.drawLine(
+                    QPointF(0, centre_y), QPointF(self._centre_line_length, centre_y))
+            painter.restore()
 
             if isinstance(shape, QPolygonF):
                 # Filled blob
                 pen = QPen(config['zoomed_out_colour'])
                 pen.setCosmetic(True)
+                painter.save()
+                painter.scale(1, (height / 2) / ch_count)
+                painter.translate(0, 1 + (i * 2))
                 painter.setPen(pen)
                 painter.setBrush(config['zoomed_out_colour'])
                 painter.drawPolygon(shape)
+                painter.restore()
 
             elif isinstance(shape, QPainterPath):
                 # Line that connects the samples
+                offset = config['line_thickness']
+                image_width = width + offset * 2
+                line_image = QImage(
+                        image_width, ch_height, QImage.Format_ARGB32_Premultiplied)
+                line_image.fill(0)
+                line_painter = QPainter(line_image)
+                line_painter.setRenderHint(QPainter.Antialiasing)
+                line_painter.translate(offset, 0)
+                line_painter.scale(1, (height / 2) / ch_count)
+                line_painter.translate(0, 1)
                 pen = QPen(config['interp_colour'])
                 pen.setCosmetic(True)
-                painter.setPen(pen)
-                painter.setBrush(Qt.NoBrush)
-                painter.drawPath(shape)
+                line_painter.setPen(pen)
+                line_painter.setBrush(Qt.NoBrush)
+                line_painter.drawPath(shape)
+                line_painter.end()
+                line_image = embolden_path(line_image, config['line_thickness'])
+
+                painter.setRenderHint(QPainter.SmoothPixmapTransform)
+                painter.drawImage(
+                        QRect(0, ch_y_start, width, line_image.height()),
+                        line_image,
+                        QRect(offset, 0, width, line_image.height()))
 
                 # Get transformed positions of individual items
                 tfm = painter.transform()
+                tfm.scale(1, (height / 2) / ch_count)
+                tfm.translate(0.5, 1 + (i * 2))
                 item_points = []
                 for item_i, val in enumerate(self._items[i]):
                     item_points.append(tfm.map(QPointF(item_i, -val)))
 
                 # Draw items
-                node_width = min(max(2.0, self._frame_step / 2), config['max_node_size'])
+                min_node_size = config['min_node_size']
+                max_node_size = config['max_node_size']
+                node_width = min(max(min_node_size, self._frame_step / 2), max_node_size)
                 node_height = 0.9 * node_width
                 painter.save()
                 painter.setTransform(QTransform())
+                painter.translate(0.5, 0.5)
                 for point in item_points:
                     x, y = point.x() * self._frame_step, point.y()
                     painter.fillRect(
@@ -677,8 +711,6 @@ class Shape():
                                 node_width, node_height),
                             config['single_item_colour'])
                 painter.restore()
-
-            painter.translate(0, 2)
 
         painter.restore()
 

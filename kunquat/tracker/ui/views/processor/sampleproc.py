@@ -1693,11 +1693,13 @@ class SampleEditor(QWidget, ProcessorUpdater):
 
         config = {
             'bg_colour'                 : get_colour('waveform_bg_colour'),
+            'line_thickness'            : style_mgr.get_scaled_size(0.1),
             'centre_line_colour'        : get_colour('waveform_centre_line_colour'),
             'zoomed_out_colour'         : get_colour('waveform_zoomed_out_colour'),
             'single_item_colour'        : get_colour('waveform_single_item_colour'),
             'interp_colour'             : get_colour('waveform_interpolated_colour'),
-            'max_node_size'             : style_mgr.get_scaled_size(0.55),
+            'min_node_size'             : style_mgr.get_scaled_size(0.15),
+            'max_node_size'             : style_mgr.get_scaled_size(0.65),
             'loop_line_colour'          : get_colour('waveform_loop_marker_colour'),
             'focused_loop_line_colour'  : get_colour('waveform_focus_colour'),
             'loop_line_dash'            : [style_mgr.get_scaled_size(0.4)] * 2,
