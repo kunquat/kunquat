@@ -29,7 +29,8 @@ DEFAULT_CONFIG = {
     'zoomed_out_colour'         : QColor(0x44, 0xcc, 0xff),
     'single_item_colour'        : QColor(0x44, 0xcc, 0xff),
     'interp_colour'             : QColor(0x22, 0x88, 0xaa),
-    'max_node_size'             : 6,
+    'min_node_size'             : 2,
+    'max_node_size'             : 8,
     'loop_line_colour'          : QColor(0x77, 0x99, 0xbb),
     'focused_loop_line_colour'  : QColor(0xff, 0xaa, 0x55),
     'loop_line_dash'            : [4, 4],
@@ -641,10 +642,13 @@ class Shape():
             # Centre line
             pen = QPen(config['centre_line_colour'])
             pen.setWidth(config['line_thickness'])
+            painter.save()
+            painter.translate(0.5, 0.5)
             painter.setPen(pen)
             centre_y = (ch_y_start + ch_y_stop - 1) / 2
             painter.drawLine(
                     QPointF(0, centre_y), QPointF(self._centre_line_length, centre_y))
+            painter.restore()
 
             if isinstance(shape, QPolygonF):
                 # Filled blob
@@ -667,7 +671,7 @@ class Shape():
                 line_image.fill(0)
                 line_painter = QPainter(line_image)
                 line_painter.setRenderHint(QPainter.Antialiasing)
-                line_painter.translate(0.5 + offset, 0.5)
+                line_painter.translate(offset, 0)
                 line_painter.scale(1, (height / 2) / ch_count)
                 line_painter.translate(0, 1)
                 pen = QPen(config['interp_colour'])
@@ -693,10 +697,13 @@ class Shape():
                     item_points.append(tfm.map(QPointF(item_i, -val)))
 
                 # Draw items
-                node_width = min(max(2.0, self._frame_step / 2), config['max_node_size'])
+                min_node_size = config['min_node_size']
+                max_node_size = config['max_node_size']
+                node_width = min(max(min_node_size, self._frame_step / 2), max_node_size)
                 node_height = 0.9 * node_width
                 painter.save()
                 painter.setTransform(QTransform())
+                painter.translate(0.5, 0.5)
                 for point in item_points:
                     x, y = point.x() * self._frame_step, point.y()
                     painter.fillRect(
