@@ -23,6 +23,7 @@ from kunquat.extras.sndfile import SndFileR, SndFileError
 from kunquat.tracker.ui.qt import *
 
 from .confirmdialog import ConfirmDialog
+from .dirbranch import DirBranch
 from .utils import get_abs_window_size, get_default_font_info
 
 
@@ -92,7 +93,7 @@ class FileDialog(QDialog):
 
         allow_multiple = (self._mode == FileDialog.MODE_OPEN_MULT)
 
-        self._dir_branch = DirectoryBranch(self._ui_model)
+        self._dir_branch = DirBranch(self._ui_model)
         self._dir_view = DirectoryView(self._ui_model, filters, allow_multiple)
         self._file_name = FileName()
         self._cancel_button = QPushButton('Cancel')
@@ -329,31 +330,6 @@ class OverwriteConfirmDialog(ConfirmDialog):
     def _confirm_overwrite(self):
         self._action_confirm()
         self.close()
-
-
-class DirectoryBranch(QWidget):
-
-    def __init__(self, ui_model):
-        super().__init__()
-
-        self._ui_model = ui_model
-        self._current_dir = None
-
-        self._path = QLabel()
-
-        style_mgr = self._ui_model.get_style_manager()
-
-        h = QHBoxLayout()
-        margin = style_mgr.get_scaled_size_param('medium_padding')
-        h.setContentsMargins(margin, margin, margin, margin)
-        h.setSpacing(style_mgr.get_scaled_size_param('large_padding'))
-        h.addWidget(QLabel('Look in:'))
-        h.addWidget(self._path, 1)
-        self.setLayout(h)
-
-    def set_current_dir(self, new_dir):
-        self._current_dir = new_dir
-        self._path.setText(self._current_dir)
 
 
 class DirEntry():
