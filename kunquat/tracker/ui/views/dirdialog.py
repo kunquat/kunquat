@@ -20,7 +20,6 @@ import time
 
 from kunquat.tracker.ui.qt import *
 
-from .dirbranch import DirBranch
 from .utils import get_abs_window_size
 
 
@@ -67,7 +66,11 @@ class DirDialog(QDialog):
         self._cancel_button.clicked.connect(self.close)
         self._select_button.clicked.connect(self._choose_current_dir)
 
+        self._dir_tree_view.dirChanged.connect(self._on_dir_changed)
+
         self._set_current_dir(start_dir)
+
+        self._update_enabled()
 
     def get_path(self):
         self.exec_()
@@ -81,12 +84,50 @@ class DirDialog(QDialog):
         self._dir_branch.set_current_dir(self._current_dir)
         self._dir_tree_view.set_current_dir(self._current_dir)
 
+    def _on_dir_changed(self, dir_name):
+        if self._current_dir == dir_name:
+            return
+
+        self._current_dir = dir_name
+        self._dir_branch.set_current_dir(self._current_dir)
+
+        self._update_enabled()
+
     def _choose_current_dir(self):
         self._selected_dir = self._current_dir
         self.close()
 
+    def _update_enabled(self):
+        enabled = os.path.exists(self._current_dir)
+        self._select_button.setEnabled(enabled)
+
     def sizeHint(self):
         return get_abs_window_size(0.4, 0.5)
+
+
+class DirBranch(QWidget):
+
+    def __init__(self, ui_model):
+        super().__init__()
+
+        self._ui_model = ui_model
+        self._current_dir = None
+
+        self._path = QLabel()
+
+        style_mgr = self._ui_model.get_style_manager()
+
+        h = QHBoxLayout()
+        margin = style_mgr.get_scaled_size_param('medium_padding')
+        h.setContentsMargins(margin, margin, margin, margin)
+        h.setSpacing(style_mgr.get_scaled_size_param('large_padding'))
+        h.addWidget(QLabel('Selected directory:'))
+        h.addWidget(self._path, 1)
+        self.setLayout(h)
+
+    def set_current_dir(self, new_dir):
+        self._current_dir = new_dir
+        self._path.setText(self._current_dir)
 
 
 class DirEntry():
@@ -210,6 +251,9 @@ class DirTreeModel(QAbstractItemModel):
                 self._request_scans([scan_start_entry])
         else:
             self.startDirFound.emit()
+
+    def get_root_dir_index(self):
+        return self._get_model_index(self._roots[0])
 
     def get_resolved_start_dir_indices(self):
         return (self._get_model_index(e) for e in self._resolved_start_entries)
@@ -407,6 +451,8 @@ class DirTreeModel(QAbstractItemModel):
 
 class DirTreeView(QTreeView):
 
+    dirChanged = Signal(str, name='dirChanged')
+
     def __init__(self, ui_model):
         super().__init__()
 
@@ -423,6 +469,7 @@ class DirTreeView(QTreeView):
 
         self.model().startDirFound.connect(self._on_start_dir_found)
         self.model().startDirNotFound.connect(self._on_start_dir_not_found)
+        self.selectionModel().currentChanged.connect(self._on_dir_changed)
         self.expanded.connect(self._on_expanded)
 
     def set_current_dir(self, new_dir):
@@ -438,13 +485,24 @@ class DirTreeView(QTreeView):
 
     def _on_start_dir_not_found(self):
         indices = list(self.model().get_resolved_start_dir_indices())
+        if not indices:
+            root_index = self.model().get_root_dir_index()
+            self.expand(root_index)
+            self.selectionModel().setCurrentIndex(root_index, QItemSelectionModel.Select)
+            return
+
         for index in indices:
             self.expand(index)
         self.selectionModel().setCurrentIndex(indices[-1], QItemSelectionModel.Select)
 
-        # TODO: update current dir
-
     def _on_expanded(self, index):
         self.model().update_subdirs(index)
+
+    def _on_dir_changed(self, cur_index, prev_index):
+        entry = cur_index.internalPointer()
+        if not entry:
+            return
+
+        self.dirChanged.emit(entry.get_path())
 
 
