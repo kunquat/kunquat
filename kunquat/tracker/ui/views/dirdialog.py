@@ -32,6 +32,8 @@ class DirDialog(QDialog):
         if not start_dir:
             start_dir = os.getcwd()
 
+        start_dir = os.path.normpath(start_dir)
+
         self._ui_model = ui_model
         self._current_dir = None
         self._selected_dir = None
@@ -110,12 +112,15 @@ class DirEntry():
     def __eq__(self, other):
         return (self._path == other._path)
 
+    def _is_dir_visible(self, name):
+        return (not name.startswith('.'))
+
     def get_updated_subdirs(self):
         dirs = []
         try:
             with os.scandir(self._path) as dir_entries:
                 for dir_entry in dir_entries:
-                    if dir_entry.is_dir():
+                    if dir_entry.is_dir() and self._is_dir_visible(dir_entry.name):
                         subdir = DirEntry(dir_entry.path, self)
                         dirs.append(subdir)
         except OSError:
@@ -128,18 +133,41 @@ class DirEntry():
     def get_name(self):
         return self._name
 
+    def get_path(self):
+        return self._path
+
     def get_parent(self):
         return self._parent
+
+
+def _get_all_path_components(path):
+    if not path:
+        return []
+
+    head, tail = os.path.split(path)
+    if head == path:
+        return [head]
+
+    parts = _get_all_path_components(head)
+    parts.append(tail)
+    return parts
+
+
+def _get_root_path():
+    return os.path.split(os.sep)[0]
 
 
 class DirTreeModel(QAbstractItemModel):
 
     stepScanEntries = Signal(name='stepScanEntries')
+    startDirFound = Signal(name='startDirFound')
+    startDirNotFound = Signal(name='startDirNotFound')
 
     def __init__(self, ui_model):
         super().__init__()
         self._ui_model = ui_model
-        self._current_dir = None
+        self._start_dir_components_to_resolve = None
+        self._resolved_start_entries = []
 
         self._roots = []
 
@@ -151,15 +179,40 @@ class DirTreeModel(QAbstractItemModel):
         if sys.platform.startswith(('win32', 'cygwin')):
             raise NotImplementedError
         else:
-            self._roots = [DirEntry(os.path.split(os.sep)[0], None)]
+            self._roots = [DirEntry(_get_root_path(), None)]
 
         self._request_scans(self._roots)
 
-    def set_current_dir(self, new_dir):
-        if self._current_dir == new_dir:
-            return
+    def set_start_dir(self, new_dir):
+        self._start_dir_components_to_resolve = deque(_get_all_path_components(new_dir))
+        self._resolved_start_entries = []
 
-        self._current_dir = new_dir
+        # Try to resolve as much of our starting directory as possible
+        subdirs = self._roots
+        scan_start_entry = None
+        while self._start_dir_components_to_resolve:
+            found_next_component = False
+
+            for subdir in subdirs:
+                if subdir.get_name() == self._start_dir_components_to_resolve[0]:
+                    found_next_component = True
+                    self._resolved_start_entries.append(subdir)
+                    subdirs = subdir.subdirs
+                    self._start_dir_components_to_resolve.popleft()
+                    scan_start_entry = subdir
+                    break
+
+            if not found_next_component:
+                break
+
+        if self._start_dir_components_to_resolve:
+            if scan_start_entry:
+                self._request_scans([scan_start_entry])
+        else:
+            self.startDirFound.emit()
+
+    def get_resolved_start_dir_indices(self):
+        return (self._get_model_index(e) for e in self._resolved_start_entries)
 
     def update_subdirs(self, index):
         if not index.isValid():
@@ -170,59 +223,107 @@ class DirTreeModel(QAbstractItemModel):
         self._request_scans(entry.subdirs)
 
     def _request_scans(self, entries):
-        for entry in entries:
-            self._entries_to_scan.append(entry)
+        self._entries_to_scan.extend(entries)
 
         if entries:
             self.stepScanEntries.emit()
 
+    def _try_extend_start_dir_at(self, new_entry):
+        if not self._start_dir_components_to_resolve:
+            return
+
+        parent_entry = new_entry.get_parent()
+
+        if not self._resolved_start_entries:
+            # Try to find our first entry
+            if parent_entry:
+                return
+
+            if sys.platform.startswith(('win32', 'cygwin')):
+                raise NotImplementedError
+            else:
+                if new_entry.get_path() == self._start_dir_components_to_resolve[0]:
+                    self._resolved_start_entries.append(new_entry)
+                    self._start_dir_components_to_resolve.popleft()
+
+            if not self._start_dir_components_to_resolve:
+                self.startDirFound.emit()
+            return
+
+        # Try to continue our existing non-empty list of entries
+        if parent_entry and (parent_entry == self._resolved_start_entries[-1]):
+            if new_entry.get_name() == self._start_dir_components_to_resolve[0]:
+                self._resolved_start_entries.append(new_entry)
+                self._start_dir_components_to_resolve.popleft()
+
+                if not self._start_dir_components_to_resolve:
+                    self.startDirFound.emit()
+                else:
+                    self._request_scans([new_entry])
+
     def _step_scan_entries(self):
-        entry = self._entries_to_scan.popleft()
-        entry_model_index = self._get_model_index(entry)
-        assert entry_model_index.isValid()
+        start_time = time.time()
+        while self._entries_to_scan:
+            entry = self._entries_to_scan.popleft()
+            entry_model_index = self._get_model_index(entry)
+            assert entry_model_index.isValid()
 
-        new_subdirs = entry.get_updated_subdirs()
+            new_subdirs = entry.get_updated_subdirs()
 
-        row = 0
-        read_index = 0
-        while row < len(entry.subdirs):
-            if read_index >= len(new_subdirs):
-                remove_count = len(entry.subdirs) - row
-                self.beginRemoveRows(entry_model_index, row, row + remove_count - 1)
-                entry.subdirs[row:] = []
-                self.endRemoveRows()
-                break
+            row = 0
+            read_index = 0
+            while row < len(entry.subdirs):
+                if read_index >= len(new_subdirs):
+                    remove_count = len(entry.subdirs) - row
+                    self.beginRemoveRows(entry_model_index, row, row + remove_count - 1)
+                    entry.subdirs[row:] = []
+                    self.endRemoveRows()
+                    break
 
-            old_name = entry.subdirs[row].get_name()
-            new_name = new_subdirs[read_index].get_name()
-            if old_name == new_name:
-                row += 1
-                read_index += 1
-            elif old_name < new_name:
-                remove_count = len(takewhile(
-                    lambda e: e.get_name() < new_name, entry.subdirs[row:]))
-                assert remove_count > 0
-                self.beginRemoveRows(entry_model_index, row, row + remove_count - 1)
-                entry.subdirs[row:row + remove_count] = []
-                self.endRemoveRows()
-            else: # old_name > new_name
-                add_entries = list(takewhile(
-                    lambda e: e.get_name() < old_name, new_subdirs[read_index:]))
-                add_count = len(add_entries)
-                assert add_count > 0
+                old_name = entry.subdirs[row].get_name()
+                new_name = new_subdirs[read_index].get_name()
+                if old_name == new_name:
+                    row += 1
+                    read_index += 1
+                elif old_name < new_name:
+                    remove_count = len(takewhile(
+                        lambda e: e.get_name() < new_name, entry.subdirs[row:]))
+                    assert remove_count > 0
+                    self.beginRemoveRows(entry_model_index, row, row + remove_count - 1)
+                    entry.subdirs[row:row + remove_count] = []
+                    self.endRemoveRows()
+                else: # old_name > new_name
+                    add_entries = list(takewhile(
+                        lambda e: e.get_name() < old_name, new_subdirs[read_index:]))
+                    add_count = len(add_entries)
+                    assert add_count > 0
+                    self.beginInsertRows(entry_model_index, row, row + add_count - 1)
+                    entry.subdirs[row:row] = add_entries
+                    self.endInsertRows()
+                    read_index += add_count
+                    for e in add_entries:
+                        self._try_extend_start_dir_at(e)
+
+            if read_index < len(new_subdirs):
+                add_count = len(new_subdirs) - read_index
                 self.beginInsertRows(entry_model_index, row, row + add_count - 1)
-                entry.subdirs[row:row] = add_entries
+                entry.subdirs.extend(new_subdirs[read_index:])
                 self.endInsertRows()
-                read_index += add_count
+                for e in new_subdirs[read_index:]:
+                    self._try_extend_start_dir_at(e)
 
-        if read_index < len(new_subdirs):
-            add_count = len(new_subdirs) - read_index
-            self.beginInsertRows(entry_model_index, row, row + add_count - 1)
-            entry.subdirs.extend(new_subdirs[read_index:])
-            self.endInsertRows()
+            cur_time = time.time()
+            elapsed = cur_time - start_time
+            if elapsed > 0.03:
+                break
 
         if self._entries_to_scan:
             self.stepScanEntries.emit()
+        else:
+            if self._start_dir_components_to_resolve:
+                self.startDirNotFound.emit()
+                self._start_dir_components_to_resolve = []
+                self._resolved_start_entries = []
 
     def _get_icon(self, entry):
         if 'file_directory' not in self._icons:
@@ -312,18 +413,36 @@ class DirTreeView(QTreeView):
         self._ui_model = ui_model
         self._current_dir = None
 
-        self.setSelectionBehavior(QAbstractItemView.SelectRows)
-        self.setSelectionMode(QAbstractItemView.SingleSelection)
-
         self.setUniformRowHeights(True)
         self.setRootIsDecorated(True)
 
         self.setModel(DirTreeModel(self._ui_model))
 
+        self.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.setSelectionMode(QAbstractItemView.SingleSelection)
+
+        self.model().startDirFound.connect(self._on_start_dir_found)
+        self.model().startDirNotFound.connect(self._on_start_dir_not_found)
         self.expanded.connect(self._on_expanded)
 
     def set_current_dir(self, new_dir):
         self._current_dir = new_dir
+        self.model().set_start_dir(new_dir)
+
+    def _on_start_dir_found(self):
+        indices = list(self.model().get_resolved_start_dir_indices())
+        assert indices
+        for index in indices[:-1]:
+            self.expand(index)
+        self.selectionModel().setCurrentIndex(indices[-1], QItemSelectionModel.Select)
+
+    def _on_start_dir_not_found(self):
+        indices = list(self.model().get_resolved_start_dir_indices())
+        for index in indices:
+            self.expand(index)
+        self.selectionModel().setCurrentIndex(indices[-1], QItemSelectionModel.Select)
+
+        # TODO: update current dir
 
     def _on_expanded(self, index):
         self.model().update_subdirs(index)
