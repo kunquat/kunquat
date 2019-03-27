@@ -212,6 +212,10 @@ class DirTreeModel(QAbstractItemModel):
 
         self._roots = []
 
+        self._fs_watcher = QFileSystemWatcher()
+        self._expanded_paths = set()
+        self._selected_path = None
+
         self._entries_to_scan = deque()
         self._icons = {}
 
@@ -221,6 +225,8 @@ class DirTreeModel(QAbstractItemModel):
             raise NotImplementedError
         else:
             self._roots = [DirEntry(_get_root_path(), None)]
+
+        self._fs_watcher.directoryChanged.connect(self._on_path_modified)
 
         self._request_scans(self._roots)
 
@@ -232,8 +238,6 @@ class DirTreeModel(QAbstractItemModel):
         subdirs = self._roots
         scan_start_entry = None
         while self._start_dir_components_to_resolve:
-            found_next_component = False
-
             for subdir in subdirs:
                 if subdir.get_name() == self._start_dir_components_to_resolve[0]:
                     found_next_component = True
@@ -242,8 +246,7 @@ class DirTreeModel(QAbstractItemModel):
                     self._start_dir_components_to_resolve.popleft()
                     scan_start_entry = subdir
                     break
-
-            if not found_next_component:
+            else:
                 break
 
         if self._start_dir_components_to_resolve:
@@ -252,19 +255,86 @@ class DirTreeModel(QAbstractItemModel):
         else:
             self.startDirFound.emit()
 
+    def _on_path_modified(self, path):
+        path_components = _get_all_path_components(path)
+
+        subdirs = self._roots
+        entry = None
+        for name in path_components:
+            for subdir in subdirs:
+                if subdir.get_name() == name:
+                    entry = subdir
+                    subdirs = entry.subdirs
+                    break
+            else:
+                break
+
+        if not entry:
+            return
+
+        if os.path.exists(path):
+            self._request_scans([entry])
+        else:
+            parent_entry = entry.get_parent()
+            if parent_entry:
+                self._request_scans([parent_entry])
+            else:
+                pass # TODO: update roots
+
     def get_root_dir_index(self):
         return self._get_model_index(self._roots[0])
 
     def get_resolved_start_dir_indices(self):
         return (self._get_model_index(e) for e in self._resolved_start_entries)
 
-    def update_subdirs(self, index):
+    def select_entry(self, index):
         if not index.isValid():
             return
 
         entry = index.internalPointer()
         assert entry
+
+        path = entry.get_path()
+        if path == self._selected_path:
+            return
+
+        if self._selected_path:
+            if self._selected_path not in self._expanded_paths:
+                self._fs_watcher.removePath(self._selected_path)
+
+        if path not in self._expanded_paths:
+            self._fs_watcher.addPath(path)
+        self._selected_path = path
+
+        self._request_scans([entry])
+
+    def expand_entry(self, index):
+        if not index.isValid():
+            return
+
+        entry = index.internalPointer()
+        assert entry
+
+        path = entry.get_path()
+        if path not in self._expanded_paths:
+            self._expanded_paths.add(path)
+            if path != self._selected_path:
+                self._fs_watcher.addPath(path)
+
         self._request_scans(entry.subdirs)
+
+    def collapse_entry(self, index):
+        if not index.isValid():
+            return
+
+        entry = index.internalPointer()
+        assert entry
+
+        path = entry.get_path()
+        if path in self._expanded_paths:
+            self._expanded_paths.remove(path)
+            if path != self._selected_path:
+                self._fs_watcher.removePath(path)
 
     def _request_scans(self, entries):
         self._entries_to_scan.extend(entries)
@@ -330,7 +400,7 @@ class DirTreeModel(QAbstractItemModel):
                     row += 1
                     read_index += 1
                 elif old_name < new_name:
-                    remove_count = len(takewhile(
+                    remove_count = sum(1 for _ in takewhile(
                         lambda e: e.get_name() < new_name, entry.subdirs[row:]))
                     assert remove_count > 0
                     self.beginRemoveRows(entry_model_index, row, row + remove_count - 1)
@@ -471,6 +541,7 @@ class DirTreeView(QTreeView):
         self.model().startDirNotFound.connect(self._on_start_dir_not_found)
         self.selectionModel().currentChanged.connect(self._on_dir_changed)
         self.expanded.connect(self._on_expanded)
+        self.collapsed.connect(self._on_collapsed)
 
     def set_current_dir(self, new_dir):
         self._current_dir = new_dir
@@ -496,12 +567,17 @@ class DirTreeView(QTreeView):
         self.selectionModel().setCurrentIndex(indices[-1], QItemSelectionModel.Select)
 
     def _on_expanded(self, index):
-        self.model().update_subdirs(index)
+        self.model().expand_entry(index)
+
+    def _on_collapsed(self, index):
+        self.model().collapse_entry(index)
 
     def _on_dir_changed(self, cur_index, prev_index):
         entry = cur_index.internalPointer()
         if not entry:
             return
+
+        self.model().select_entry(cur_index)
 
         self.dirChanged.emit(entry.get_path())
 
