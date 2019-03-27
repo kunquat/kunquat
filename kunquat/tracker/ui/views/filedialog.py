@@ -47,7 +47,6 @@ class FileDialog(QDialog):
     MODE_OPEN = 'open'
     MODE_OPEN_MULT = 'open_mult'
     MODE_SAVE = 'save'
-    MODE_CHOOSE_DIR = 'choose_dir'
 
     def __init__(self, ui_model, mode, title, start_path, filters=0):
         super().__init__()
@@ -86,7 +85,6 @@ class FileDialog(QDialog):
             FileDialog.MODE_OPEN:       'Open',
             FileDialog.MODE_OPEN_MULT:  'Open',
             FileDialog.MODE_SAVE:       'Save',
-            FileDialog.MODE_CHOOSE_DIR: 'Choose',
         }
         select_text = select_texts[self._mode]
 
@@ -197,10 +195,6 @@ class FileDialog(QDialog):
                 enabled = False
             else:
                 enabled = bool(file_name)
-        elif self._mode == FileDialog.MODE_CHOOSE_DIR:
-            assert len(entries) == 1
-            entry = entries[0]
-            enabled = entry.is_dir() and (entry.name != '..')
         else:
             assert False
 
@@ -239,13 +233,6 @@ class FileDialog(QDialog):
 
             if not infos:
                 return
-            self._return_infos(infos)
-
-        elif self._mode == FileDialog.MODE_CHOOSE_DIR:
-            entries = self._dir_view.get_entries()
-            assert len(entries) == 1
-            entry = entries[0]
-            infos = [(os.path.join(self._current_dir, entry.name), None)]
             self._return_infos(infos)
 
     def _return_infos(self, infos):
