@@ -321,6 +321,9 @@ class DirTreeModel(QAbstractItemModel):
             if path != self._selected_path:
                 self._fs_watcher.addPath(path)
 
+        entry.is_open = True
+        self.dataChanged.emit(index, index, [Qt.DecorationRole])
+
         self._request_scans(entry.subdirs)
 
     def collapse_entry(self, index):
@@ -335,6 +338,9 @@ class DirTreeModel(QAbstractItemModel):
             self._expanded_paths.remove(path)
             if path != self._selected_path:
                 self._fs_watcher.removePath(path)
+
+        entry.is_open = False
+        self.dataChanged.emit(index, index, [Qt.DecorationRole])
 
     def _request_scans(self, entries):
         self._entries_to_scan.extend(entries)
@@ -440,20 +446,21 @@ class DirTreeModel(QAbstractItemModel):
                 self._resolved_start_entries = []
 
     def _get_icon(self, entry):
-        if 'file_directory' not in self._icons:
+        icon_name = 'file_directory_open' if entry.is_open else 'file_directory'
+        if icon_name not in self._icons:
             icon_bank = self._ui_model.get_icon_bank()
             style_mgr = self._ui_model.get_style_manager()
             size = style_mgr.get_scaled_size_param('file_dialog_icon_size')
             icon_size = QSize(size, size)
 
             image = QImage()
-            image.load(icon_bank.get_icon_path('file_directory'))
+            image.load(icon_bank.get_icon_path(icon_name))
             image = image.convertToFormat(QImage.Format_ARGB32_Premultiplied)
             icon = image.scaled(icon_size, Qt.IgnoreAspectRatio, Qt.SmoothTransformation)
 
-            self._icons['file_directory'] = icon
+            self._icons[icon_name] = icon
 
-        return self._icons['file_directory']
+        return self._icons[icon_name]
 
     def _get_model_index(self, entry):
         parent = entry.get_parent()
