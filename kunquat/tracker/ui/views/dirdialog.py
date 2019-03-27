@@ -532,6 +532,8 @@ class DirTreeView(QTreeView):
         self.setUniformRowHeights(True)
         self.setRootIsDecorated(True)
 
+        self.header().hide()
+
         self.setModel(DirTreeModel(self._ui_model))
 
         self.setSelectionBehavior(QAbstractItemView.SelectRows)
