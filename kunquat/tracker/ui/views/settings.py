@@ -21,7 +21,7 @@ from kunquat.tracker.ui.qt import *
 import kunquat.tracker.cmdline as cmdline
 import kunquat.tracker.config as config
 from .confirmdialog import ConfirmDialog
-from .filedialog import FileDialog
+from .dirdialog import DirDialog
 from .headerline import HeaderLine
 from .kqtcombobox import KqtComboBox
 from .numberslider import NumberSlider
@@ -214,8 +214,7 @@ class Directory(QWidget, Updater):
     def _change_dir_browse(self):
         cfg = config.get_config()
         cur_dir = cfg.get_value(self._conf_key) or os.getcwd()
-        dialog = FileDialog(
-                self._ui_model, FileDialog.MODE_CHOOSE_DIR, self._caption, cur_dir)
+        dialog = DirDialog(self._ui_model, self._caption, cur_dir)
         new_dir = dialog.get_path()
         if new_dir:
             self._change_dir_text(new_dir)
