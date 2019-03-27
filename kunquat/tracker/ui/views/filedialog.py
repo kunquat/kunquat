@@ -23,7 +23,6 @@ from kunquat.extras.sndfile import SndFileR, SndFileError
 from kunquat.tracker.ui.qt import *
 
 from .confirmdialog import ConfirmDialog
-from .dirbranch import DirBranch
 from .utils import get_abs_window_size, get_default_font_info
 
 
@@ -284,6 +283,31 @@ class FileDialog(QDialog):
 
     def sizeHint(self):
         return get_abs_window_size(0.5, 0.5)
+
+
+class DirBranch(QWidget):
+
+    def __init__(self, ui_model):
+        super().__init__()
+
+        self._ui_model = ui_model
+        self._current_dir = None
+
+        self._path = QLabel()
+
+        style_mgr = self._ui_model.get_style_manager()
+
+        h = QHBoxLayout()
+        margin = style_mgr.get_scaled_size_param('medium_padding')
+        h.setContentsMargins(margin, margin, margin, margin)
+        h.setSpacing(style_mgr.get_scaled_size_param('large_padding'))
+        h.addWidget(QLabel('Look in:'))
+        h.addWidget(self._path, 1)
+        self.setLayout(h)
+
+    def set_current_dir(self, new_dir):
+        self._current_dir = new_dir
+        self._path.setText(self._current_dir)
 
 
 _DESCS = {
