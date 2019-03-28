@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2013-2018
+# Author: Tomi Jylhä-Ollila, Finland 2013-2019
 #
 # This file is part of Kunquat.
 #
@@ -223,11 +223,12 @@ class SheetArea(QAbstractScrollArea, Updater):
         if not self._ui_model:
             return
 
-        self._total_height_px = (
-                self.viewport().get_total_height() + self._config['tr_height'])
+        tr_height = self._config['tr_height']
+        self._total_height_px = self.viewport().get_total_height() + tr_height
 
         vp_height = self.viewport().height()
         vscrollbar = self.verticalScrollBar()
+        vscrollbar.setSingleStep(tr_height)
         vscrollbar.setPageStep(vp_height)
         vscrollbar.set_actual_range(0, self._total_height_px - vp_height)
 
