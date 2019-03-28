@@ -47,7 +47,6 @@ class FileDialog(QDialog):
     MODE_OPEN = 'open'
     MODE_OPEN_MULT = 'open_mult'
     MODE_SAVE = 'save'
-    MODE_CHOOSE_DIR = 'choose_dir'
 
     def __init__(self, ui_model, mode, title, start_path, filters=0):
         super().__init__()
@@ -86,13 +85,12 @@ class FileDialog(QDialog):
             FileDialog.MODE_OPEN:       'Open',
             FileDialog.MODE_OPEN_MULT:  'Open',
             FileDialog.MODE_SAVE:       'Save',
-            FileDialog.MODE_CHOOSE_DIR: 'Choose',
         }
         select_text = select_texts[self._mode]
 
         allow_multiple = (self._mode == FileDialog.MODE_OPEN_MULT)
 
-        self._dir_branch = DirectoryBranch(self._ui_model)
+        self._dir_branch = DirBranch(self._ui_model)
         self._dir_view = DirectoryView(self._ui_model, filters, allow_multiple)
         self._file_name = FileName()
         self._cancel_button = QPushButton('Cancel')
@@ -197,10 +195,6 @@ class FileDialog(QDialog):
                 enabled = False
             else:
                 enabled = bool(file_name)
-        elif self._mode == FileDialog.MODE_CHOOSE_DIR:
-            assert len(entries) == 1
-            entry = entries[0]
-            enabled = entry.is_dir() and (entry.name != '..')
         else:
             assert False
 
@@ -241,13 +235,6 @@ class FileDialog(QDialog):
                 return
             self._return_infos(infos)
 
-        elif self._mode == FileDialog.MODE_CHOOSE_DIR:
-            entries = self._dir_view.get_entries()
-            assert len(entries) == 1
-            entry = entries[0]
-            infos = [(os.path.join(self._current_dir, entry.name), None)]
-            self._return_infos(infos)
-
     def _return_infos(self, infos):
         if self._mode != FileDialog.MODE_OPEN_MULT:
             assert len(infos) == 1
@@ -283,6 +270,31 @@ class FileDialog(QDialog):
 
     def sizeHint(self):
         return get_abs_window_size(0.5, 0.5)
+
+
+class DirBranch(QWidget):
+
+    def __init__(self, ui_model):
+        super().__init__()
+
+        self._ui_model = ui_model
+        self._current_dir = None
+
+        self._path = QLabel()
+
+        style_mgr = self._ui_model.get_style_manager()
+
+        h = QHBoxLayout()
+        margin = style_mgr.get_scaled_size_param('medium_padding')
+        h.setContentsMargins(margin, margin, margin, margin)
+        h.setSpacing(style_mgr.get_scaled_size_param('large_padding'))
+        h.addWidget(QLabel('Look in:'))
+        h.addWidget(self._path, 1)
+        self.setLayout(h)
+
+    def set_current_dir(self, new_dir):
+        self._current_dir = new_dir
+        self._path.setText(self._current_dir)
 
 
 _DESCS = {
@@ -329,31 +341,6 @@ class OverwriteConfirmDialog(ConfirmDialog):
     def _confirm_overwrite(self):
         self._action_confirm()
         self.close()
-
-
-class DirectoryBranch(QWidget):
-
-    def __init__(self, ui_model):
-        super().__init__()
-
-        self._ui_model = ui_model
-        self._current_dir = None
-
-        self._path = QLabel()
-
-        style_mgr = self._ui_model.get_style_manager()
-
-        h = QHBoxLayout()
-        margin = style_mgr.get_scaled_size_param('medium_padding')
-        h.setContentsMargins(margin, margin, margin, margin)
-        h.setSpacing(style_mgr.get_scaled_size_param('large_padding'))
-        h.addWidget(QLabel('Look in:'))
-        h.addWidget(self._path, 1)
-        self.setLayout(h)
-
-    def set_current_dir(self, new_dir):
-        self._current_dir = new_dir
-        self._path.setText(self._current_dir)
 
 
 class DirEntry():

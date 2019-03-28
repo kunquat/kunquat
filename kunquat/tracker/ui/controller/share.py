@@ -41,6 +41,7 @@ class Share():
         'edit',
         'error',
         'file_directory',
+        'file_directory_open',
         'file_error',
         'file_generic',
         'file_kqt',
