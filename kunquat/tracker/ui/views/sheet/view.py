@@ -188,6 +188,7 @@ class View(QWidget, Updater):
         for cr in self._col_rends:
             cr.set_ui_model(self._ui_model)
 
+        self.register_action('signal_style_changed', self._update_max_vertical_step)
         self.register_action('signal_notation', self._update_notation)
         self.register_action('signal_hits', self._update_hit_names)
         self.register_action('signal_ch_defaults', self._update_hit_names)
@@ -206,6 +207,12 @@ class View(QWidget, Updater):
         self.register_action('signal_column_updated', self._update_columns)
 
         self.checkFixFocus.connect(self._check_fix_focus, Qt.QueuedConnection)
+
+        self._update_max_vertical_step()
+
+    def _update_max_vertical_step(self):
+        style_mgr = self._ui_model.get_style_manager()
+        self._vertical_move_state.set_max_step(style_mgr.get_scaled_size(1.2))
 
     def _update_columns(self):
         column_updates = self._sheet_mgr.get_and_clear_column_updates()
