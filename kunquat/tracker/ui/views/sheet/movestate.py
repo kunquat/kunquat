@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2016
+# Author: Tomi Jylhä-Ollila, Finland 2014-2019
 #
 # This file is part of Kunquat.
 #
@@ -78,32 +78,30 @@ class HorizontalMoveState(AbstractMoveState):
         self.release(1)
 
 
-# Vertical movement parameters
-
-_STEP_BASE = 1.15
-_STEP_MAX = 16
-
-_STEPS = [0] + [min(int(_STEP_BASE**e), _STEP_MAX) for e in
-        takewhile(lambda n: _STEP_BASE**(n-1) <= _STEP_MAX, count(0))]
-
-_SNAP_DELAYS = list(reversed(range(7)))
-
-
 class VerticalMoveState(AbstractMoveState):
 
     def __init__(self):
         super().__init__()
         self._step_index = 0
+        self._steps = [0]
+        self._snap_delays = list(reversed(range(7)))
 
         self._is_snap_delay_enabled = False
         self._snap_delay_index = 0
         self._snap_delay_counter = 0
 
+        self.set_max_step(16)
+
+    def set_max_step(self, max_step):
+        step_base = 1.15
+        self._steps = [0] + [min(int(step_base**e), max_step) for e in
+                takewhile(lambda n: step_base**(n-1) <= max_step, count(0))]
+
     def get_delta(self):
         if self._is_snap_delay_enabled and self._snap_delay_counter > 0:
             self._snap_delay_counter -= 1
             return 0
-        return self._dir * _STEPS[min(self._step_index, len(_STEPS) - 1)]
+        return self._dir * self._steps[min(self._step_index, len(self._steps) - 1)]
 
     def press_up(self):
         self.press(-1)
@@ -134,8 +132,8 @@ class VerticalMoveState(AbstractMoveState):
 
     def try_snap_delay(self):
         if self._is_snap_delay_enabled:
-            self._snap_delay_counter = _SNAP_DELAYS[self._snap_delay_index]
+            self._snap_delay_counter = self._snap_delays[self._snap_delay_index]
             self._snap_delay_index = min(
-                    self._snap_delay_index + 1, len(_SNAP_DELAYS) - 1)
+                    self._snap_delay_index + 1, len(self._snap_delays) - 1)
 
 
