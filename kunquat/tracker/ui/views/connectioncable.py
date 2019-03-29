@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2017
+# Author: Tomi Jylhä-Ollila, Finland 2014-2019
 #
 # This file is part of Kunquat.
 #
@@ -14,7 +14,7 @@
 from kunquat.tracker.ui.qt import *
 
 
-class LineSegment():
+class ConnectionCable():
 
     def __init__(self, from_point, to_point):
         from_x, from_y = from_point

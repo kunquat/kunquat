@@ -22,7 +22,7 @@ from kunquat.tracker.ui.model.module import Module
 from kunquat.tracker.ui.model.processor import Processor
 from .audiounit.audiounitupdater import AudioUnitUpdater
 from .confirmdialog import ConfirmDialog
-from .linesegment import LineSegment
+from .connectioncable import ConnectionCable
 from . import utils
 
 
@@ -37,6 +37,7 @@ _port_font.setPointSizeF(7.5)
 DEFAULT_CONFIG = {
         'bg_colour'               : QColor(0x11, 0x11, 0x11),
         'edge_colour'             : QColor(0xcc, 0xcc, 0xcc),
+        'edge_width'              : 1,
         'focused_edge_colour'     : QColor(0xff, 0x88, 0x44),
         'focused_edge_width'      : 3,
         'edge_focus_dist_max'     : 4,
@@ -524,6 +525,7 @@ class ConnectionsView(QWidget, AudioUnitUpdater):
                 QColor(style_mgr.get_style_param('conns_bg_colour')),
             'edge_colour':
                 QColor(style_mgr.get_style_param('conns_edge_colour')),
+            'edge_width': style_mgr.get_scaled_size(0.1),
             'focused_edge_colour':
                 QColor(style_mgr.get_style_param('conns_focus_colour')),
             'invalid_port_colour':
@@ -780,8 +782,9 @@ class ConnectionsView(QWidget, AudioUnitUpdater):
             if key in self._ls_cache:
                 new_ls_cache[key] = self._ls_cache[key]
             else:
-                ls = LineSegment(from_pos, to_pos)
+                ls = ConnectionCable(from_pos, to_pos)
                 ls.set_colour(self._config['edge_colour'])
+                #ls.set_width(self._config['edge_width'])
                 ls.draw_line()
                 new_ls_cache[key] = ls
 
