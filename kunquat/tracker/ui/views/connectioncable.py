@@ -36,7 +36,11 @@ class ConnectionCable():
         self._image = QImage(width, height, QImage.Format_ARGB32_Premultiplied)
         self._image.fill(0)
 
+        self._width = 1
         self._colour = None
+
+    def set_width(self, width):
+        self._width = width
 
     def set_colour(self, colour):
         self._colour = colour
@@ -50,7 +54,9 @@ class ConnectionCable():
         #painter.setPen(QColor(0, 0xff, 0xff))
         #painter.drawRect(0, 0, self._image.width() - 1, self._image.height() - 1)
 
-        painter.setPen(self._colour)
+        pen = QPen(self._colour)
+        pen.setWidth(self._width)
+        painter.setPen(pen)
 
         y1 = 0
         y2 = self._image.height() - 1

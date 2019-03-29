@@ -784,7 +784,7 @@ class ConnectionsView(QWidget, AudioUnitUpdater):
             else:
                 ls = ConnectionCable(from_pos, to_pos)
                 ls.set_colour(self._config['edge_colour'])
-                #ls.set_width(self._config['edge_width'])
+                ls.set_width(self._config['edge_width'])
                 ls.draw_line()
                 new_ls_cache[key] = ls
 
