@@ -828,16 +828,18 @@ class ConnectionsView(QWidget, AudioUnitUpdater):
                 to_port = to_info['port']
                 to_pos = self._visible_devices[to_dev_id].get_port_centre(to_port)
                 to_x, to_y = to_pos
-                pen.setWidth(self._config['focused_edge_width'])
+                pen.setWidthF(self._config['focused_edge_width'])
             else:
                 to_pos = self._adding_edge_info['mouse_pos']
                 to_x, to_y = to_pos
+                pen.setWidthF(self._config['edge_width'])
 
             painter.save()
             painter.translate(0.5, 0.5)
             painter.setPen(pen)
             painter.setRenderHint(QPainter.Antialiasing)
-            painter.drawLine(from_x, from_y, to_x, to_y)
+            cable = ConnectionCable(from_pos, to_pos)
+            cable.draw_cable(painter)
             painter.restore()
 
         # Draw devices
