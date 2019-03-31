@@ -785,8 +785,11 @@ class ConnectionsView(QWidget, AudioUnitUpdater):
                 ls = ConnectionCable(from_pos, to_pos)
                 ls.set_colour(self._config['edge_colour'])
                 ls.set_width(self._config['edge_width'])
-                ls.draw_line()
+                ls.make_line()
                 new_ls_cache[key] = ls
+
+        painter.save()
+        painter.translate(0.5, 0.5)
 
         self._ls_cache = new_ls_cache
         for ls in self._ls_cache.values():
@@ -795,18 +798,14 @@ class ConnectionsView(QWidget, AudioUnitUpdater):
         # Highlight focused connection
         if self._focused_edge_info:
             from_path, to_path = self._focused_edge_info['paths']
-            from_x, from_y = self._get_port_centre_from_path(from_path)
-            to_x, to_y = self._get_port_centre_from_path(to_path)
+            from_pos = self._get_port_centre_from_path(from_path)
+            to_pos = self._get_port_centre_from_path(to_path)
             edge_width = self._config['focused_edge_width']
 
-            painter.save()
-            painter.translate(0.5, 0.5)
-            pen = QPen(self._config['focused_edge_colour'])
-            pen.setWidth(edge_width)
-            painter.setPen(pen)
-            painter.setRenderHint(QPainter.Antialiasing)
-            painter.drawLine(from_x, from_y, to_x, to_y)
-            painter.restore()
+            cable = ConnectionCable(from_pos, to_pos)
+            cable.draw_line(painter, edge_width, self._config['focused_edge_colour'])
+
+        painter.restore()
 
         # Draw connection that is being added
         if self._adding_edge_info:

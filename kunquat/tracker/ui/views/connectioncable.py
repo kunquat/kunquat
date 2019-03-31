@@ -36,67 +36,70 @@ class ConnectionCable():
         min_y = min(start_y, end_y)
         max_y = max(start_y, end_y)
 
-        self._start_offset_x = start_x - min_x
+        self._start_point_abs = QPointF(start_x, start_y)
+        self._texture_translation = QPointF(start_x - min_x, start_y - min_y)
+
         self._area_width = max_x - min_x
         self._area_height = max_y - min_y
 
-        self._start_point = QPointF(start_x - min_x, start_y - min_y)
-        self._control_start = QPointF(control_start_x - min_x, self._start_point.y())
+        self._control_start = QPointF(control_dist, 0)
         self._mid_point = QPointF(
-                ((start_x + end_x) / 2) - min_x,
-                ((start_y + end_y) / 2) - min_y)
-        self._end_point = QPointF(end_x - min_x, end_y - min_y)
-        self._control_end = QPointF(control_end_x - min_x, self._end_point.y())
-
-        self._image_offset_x = start_x - self._start_point.x()
-        self._image_offset_y = min_y
+                ((start_x + end_x) / 2) - start_x,
+                ((start_y + end_y) / 2) - start_y)
+        self._end_point = QPointF(end_x - start_x, end_y - start_y)
+        self._control_end = QPointF(control_end_x - start_x, end_y - start_y)
 
         self._width = 1
         self._colour = None
 
     def set_width(self, width):
         self._width = width
+        self._image = None
 
     def set_colour(self, colour):
         self._colour = colour
+        self._image = None
 
-    def draw_line(self):
-        if not self._image:
-            width = self._area_width + self._width
-            height = self._area_height + self._width
-            self._image = QImage(width, height, QImage.Format_ARGB32_Premultiplied)
-            self._image.fill(0)
+    def draw_line(self, painter, width, colour):
+        painter.save()
 
-        painter = QPainter(self._image)
-        line_width_offset = math.floor((self._width - 1) / 2) + 0.5
-        painter.translate(line_width_offset, line_width_offset)
+        painter.translate(self._start_point_abs)
         painter.setRenderHint(QPainter.Antialiasing)
 
         # Test
         #painter.setPen(QColor(0, 0xff, 0xff))
         #painter.drawRect(0, 0, self._image.width() - 1, self._image.height() - 1)
 
-        pen = QPen(self._colour)
-        pen.setWidthF(self._width)
+        pen = QPen(colour)
+        pen.setWidthF(width)
         painter.setPen(pen)
 
         path = QPainterPath()
-        path.moveTo(self._start_point)
+        path.moveTo(QPointF(0, 0))
         path.quadTo(self._control_start, self._mid_point)
         path.quadTo(self._control_end, self._end_point)
 
         painter.drawPath(path)
 
-        painter.setPen(QColor(0, 0, 0))
-        painter.drawPoint(self._start_point)
-        painter.drawPoint(self._end_point)
+        painter.restore()
+
+    def make_line(self):
+        if not self._image:
+            width = self._area_width + self._width
+            height = self._area_height + self._width
+            self._image = QImage(width, height, QImage.Format_ARGB32_Premultiplied)
+            self._image.fill(0)
+
+            painter = QPainter(self._image)
+            lwo_amount = self._width / 2
+            lwo = QPointF(lwo_amount, lwo_amount)
+            painter.translate(self._texture_translation + lwo - self._start_point_abs)
+            self.draw_line(painter, self._width, self._colour)
 
     def copy_line(self, painter):
-        line_width_offset = math.floor((self._width - 1) / 2) + 0.5
+        lwo_amount = ((self._width - 1) / 2)
+        lwo = QPointF(lwo_amount, lwo_amount)
         painter.drawImage(
-                QPointF(
-                    self._image_offset_x - line_width_offset,
-                    self._image_offset_y - line_width_offset),
-                self._image)
+                -self._texture_translation + self._start_point_abs - lwo, self._image)
 
 
