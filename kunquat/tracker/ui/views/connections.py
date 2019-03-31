@@ -838,7 +838,10 @@ class ConnectionsView(QWidget, AudioUnitUpdater):
             painter.translate(0.5, 0.5)
             painter.setPen(pen)
             painter.setRenderHint(QPainter.Antialiasing)
-            cable = ConnectionCable(from_pos, to_pos)
+            vis_from_pos, vis_to_pos = from_pos, to_pos
+            if not self._is_send_port(from_dev_id, from_port):
+                vis_from_pos, vis_to_pos = to_pos, from_pos
+            cable = ConnectionCable(vis_from_pos, vis_to_pos)
             cable.draw_cable(painter)
             painter.restore()
 
