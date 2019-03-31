@@ -22,7 +22,7 @@ from kunquat.tracker.ui.model.module import Module
 from kunquat.tracker.ui.model.processor import Processor
 from .audiounit.audiounitupdater import AudioUnitUpdater
 from .confirmdialog import ConfirmDialog
-from .linesegment import LineSegment
+from .connectioncable import ConnectionCable
 from . import utils
 
 
@@ -37,6 +37,7 @@ _port_font.setPointSizeF(7.5)
 DEFAULT_CONFIG = {
         'bg_colour'               : QColor(0x11, 0x11, 0x11),
         'edge_colour'             : QColor(0xcc, 0xcc, 0xcc),
+        'edge_width'              : 1,
         'focused_edge_colour'     : QColor(0xff, 0x88, 0x44),
         'focused_edge_width'      : 3,
         'edge_focus_dist_max'     : 4,
@@ -290,7 +291,7 @@ class ConnectionsView(QWidget, AudioUnitUpdater):
 
         self._default_offsets = {}
 
-        self._ls_cache = {}
+        self._cable_cache = {}
 
         self._edit_dev_highlights = {}
         self._pressed_dev_id = None
@@ -421,7 +422,7 @@ class ConnectionsView(QWidget, AudioUnitUpdater):
             device.set_config(self._config['devices'])
             device.draw_images()
 
-        self._ls_cache = {}
+        self._cable_cache = {}
 
         self._update_devices()
 
@@ -524,12 +525,13 @@ class ConnectionsView(QWidget, AudioUnitUpdater):
                 QColor(style_mgr.get_style_param('conns_bg_colour')),
             'edge_colour':
                 QColor(style_mgr.get_style_param('conns_edge_colour')),
+            'edge_width': style_mgr.get_scaled_size(0.1),
             'focused_edge_colour':
                 QColor(style_mgr.get_style_param('conns_focus_colour')),
             'invalid_port_colour':
                 QColor(style_mgr.get_style_param('conns_invalid_port_colour')),
             'focused_edge_width'        : style_mgr.get_scaled_size(0.3),
-            'edge_focus_dist_max'       : style_mgr.get_scaled_size(0.6, 4),
+            'edge_focus_dist_max'       : style_mgr.get_scaled_size(0.8, 4),
             'invalid_port_line_width'   : style_mgr.get_scaled_size(0.3),
             'invalid_port_marker_size'  : style_mgr.get_scaled_size(1.2),
 
@@ -769,7 +771,7 @@ class ConnectionsView(QWidget, AudioUnitUpdater):
         layout = connections.get_layout()
 
         # Draw connections
-        new_ls_cache = {}
+        new_cable_cache = {}
 
         edges = connections.get_connections()
         for edge in edges:
@@ -777,33 +779,38 @@ class ConnectionsView(QWidget, AudioUnitUpdater):
             from_pos = self._get_port_centre_from_path(from_path)
             to_pos = self._get_port_centre_from_path(to_path)
             key = (from_pos, to_pos)
-            if key in self._ls_cache:
-                new_ls_cache[key] = self._ls_cache[key]
+            if key in self._cable_cache:
+                new_cable_cache[key] = self._cable_cache[key]
             else:
-                ls = LineSegment(from_pos, to_pos)
-                ls.set_colour(self._config['edge_colour'])
-                ls.draw_line()
-                new_ls_cache[key] = ls
+                cable = ConnectionCable(from_pos, to_pos)
+                cable.set_colour(self._config['edge_colour'])
+                cable.set_width(self._config['edge_width'])
+                cable.set_focus_dist(self._config['edge_focus_dist_max'])
+                cable.make_cable()
+                new_cable_cache[key] = cable
 
-        self._ls_cache = new_ls_cache
-        for ls in self._ls_cache.values():
-            ls.copy_line(painter)
+        painter.save()
+        painter.translate(0.5, 0.5)
+
+        self._cable_cache = new_cable_cache
+        for cable in self._cable_cache.values():
+            cable.copy_cable(painter)
+            #cable.debug_show_focus_map(painter)
 
         # Highlight focused connection
         if self._focused_edge_info:
             from_path, to_path = self._focused_edge_info['paths']
-            from_x, from_y = self._get_port_centre_from_path(from_path)
-            to_x, to_y = self._get_port_centre_from_path(to_path)
-            edge_width = self._config['focused_edge_width']
+            from_pos = self._get_port_centre_from_path(from_path)
+            to_pos = self._get_port_centre_from_path(to_path)
 
-            painter.save()
-            painter.translate(0.5, 0.5)
             pen = QPen(self._config['focused_edge_colour'])
-            pen.setWidth(edge_width)
+            pen.setWidthF(self._config['focused_edge_width'])
             painter.setPen(pen)
-            painter.setRenderHint(QPainter.Antialiasing)
-            painter.drawLine(from_x, from_y, to_x, to_y)
-            painter.restore()
+
+            cable = ConnectionCable(from_pos, to_pos)
+            cable.draw_cable(painter)
+
+        painter.restore()
 
         # Draw connection that is being added
         if self._adding_edge_info:
@@ -821,16 +828,21 @@ class ConnectionsView(QWidget, AudioUnitUpdater):
                 to_port = to_info['port']
                 to_pos = self._visible_devices[to_dev_id].get_port_centre(to_port)
                 to_x, to_y = to_pos
-                pen.setWidth(self._config['focused_edge_width'])
+                pen.setWidthF(self._config['focused_edge_width'])
             else:
                 to_pos = self._adding_edge_info['mouse_pos']
                 to_x, to_y = to_pos
+                pen.setWidthF(self._config['edge_width'])
 
             painter.save()
             painter.translate(0.5, 0.5)
             painter.setPen(pen)
             painter.setRenderHint(QPainter.Antialiasing)
-            painter.drawLine(from_x, from_y, to_x, to_y)
+            vis_from_pos, vis_to_pos = from_pos, to_pos
+            if not self._is_send_port(from_dev_id, from_port):
+                vis_from_pos, vis_to_pos = to_pos, from_pos
+            cable = ConnectionCable(vis_from_pos, vis_to_pos)
+            cable.draw_cable(painter)
             painter.restore()
 
         # Draw devices
@@ -1008,8 +1020,15 @@ class ConnectionsView(QWidget, AudioUnitUpdater):
                     from_path, to_path = edge
                     from_pos = self._get_port_centre_from_path(from_path)
                     to_pos = self._get_port_centre_from_path(to_path)
-                    dist = get_dist_to_ls(area_pos, from_pos, to_pos)
-                    if dist <= self._config['edge_focus_dist_max']:
+                    key = (from_pos, to_pos)
+                    if key in self._cable_cache:
+                        cable = self._cable_cache[key]
+                    else:
+                        print('Missing cable from cache')
+                        cable = ConnectionCable(from_pos, to_pos)
+                        cable.set_focus_dist(self._config['edge_focus_dist_max'])
+                        cable.make_cable()
+                    if cable.is_near_point(area_pos):
                         new_focused_edge_info = { 'paths': edge }
 
         elif self._state == STATE_MOVING:
