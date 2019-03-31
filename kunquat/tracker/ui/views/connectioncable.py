@@ -30,6 +30,7 @@ class ConnectionCable():
         control_end_x = end_x - control_dist
 
         self._image = None
+        self._focus_map = None
 
         min_x = min(start_x, end_x, control_end_x)
         max_x = max(start_x, end_x, control_start_x)
@@ -51,6 +52,7 @@ class ConnectionCable():
 
         self._width = 1
         self._colour = None
+        self._focus_dist = 5
 
     def set_width(self, width):
         self._width = width
@@ -60,7 +62,10 @@ class ConnectionCable():
         self._colour = colour
         self._image = None
 
-    def draw_cable(self, painter, width, colour):
+    def set_focus_dist(self, dist):
+        self._focus_dist = dist
+
+    def draw_cable(self, painter):
         painter.save()
 
         painter.translate(self._start_point_abs)
@@ -70,15 +75,12 @@ class ConnectionCable():
         #painter.setPen(QColor(0, 0xff, 0xff))
         #painter.drawRect(0, 0, self._image.width() - 1, self._image.height() - 1)
 
-        pen = QPen(colour)
-        pen.setWidthF(width)
-        painter.setPen(pen)
-
         path = QPainterPath()
         path.moveTo(QPointF(0, 0))
         path.quadTo(self._control_start, self._mid_point)
         path.quadTo(self._control_end, self._end_point)
 
+        painter.setBrush(Qt.NoBrush)
         painter.drawPath(path)
 
         painter.restore()
@@ -91,15 +93,70 @@ class ConnectionCable():
             self._image.fill(0)
 
             painter = QPainter(self._image)
+
             lwo_amount = self._width / 2
             lwo = QPointF(lwo_amount, lwo_amount)
             painter.translate(self._texture_translation + lwo - self._start_point_abs)
-            self.draw_cable(painter, self._width, self._colour)
+
+            pen = QPen(self._colour)
+            pen.setWidthF(self._width)
+            painter.setPen(pen)
+
+            self.draw_cable(painter)
+
+            painter.end()
+
+        if not self._focus_map:
+            width = self._area_width + self._focus_dist * 2
+            height = self._area_height + self._focus_dist * 2
+            self._focus_map = QImage(width, height, QImage.Format_Mono)
+            self._focus_map.fill(0)
+
+            painter = QPainter(self._focus_map)
+
+            lwo_amount = self._focus_dist
+            lwo = QPointF(lwo_amount, lwo_amount)
+            painter.translate(self._texture_translation + lwo - self._start_point_abs)
+
+            pen = QPen(Qt.color0)
+            pen.setWidthF(self._focus_dist * 2)
+            pen.setCapStyle(Qt.FlatCap)
+            painter.setPen(pen)
+
+            self.draw_cable(painter)
+
+            painter.end()
 
     def copy_cable(self, painter):
         lwo_amount = ((self._width - 1) / 2)
         lwo = QPointF(lwo_amount, lwo_amount)
         painter.drawImage(
                 -self._texture_translation + self._start_point_abs - lwo, self._image)
+
+    def is_near_point(self, point):
+        assert self._focus_map
+
+        tfm = QTransform()
+        lwo = QPointF(self._focus_dist, self._focus_dist)
+        shift = self._texture_translation + lwo - self._start_point_abs
+        tfm = tfm.translate(shift.x(), shift.y())
+        img_point = tfm.map(QPointF(*point))
+
+        x = int(img_point.x())
+        y = int(img_point.y())
+        width = self._focus_map.width()
+        height = self._focus_map.height()
+        if not ((0 <= x < width) and (0 <= y < height)):
+            return False
+
+        colour = self._focus_map.pixelColor(x, y)
+        return (colour.red() != 0)
+
+    def debug_show_focus_map(self, painter):
+        lwo_amount = self._focus_dist
+        lwo = QPointF(lwo_amount, lwo_amount)
+        painter.drawImage(
+                -self._texture_translation + self._start_point_abs - lwo,
+                self._focus_map)
 
 
