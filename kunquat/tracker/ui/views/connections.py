@@ -785,7 +785,7 @@ class ConnectionsView(QWidget, AudioUnitUpdater):
                 cable = ConnectionCable(from_pos, to_pos)
                 cable.set_colour(self._config['edge_colour'])
                 cable.set_width(self._config['edge_width'])
-                cable.make_line()
+                cable.make_cable()
                 new_cable_cache[key] = cable
 
         painter.save()
@@ -793,7 +793,7 @@ class ConnectionsView(QWidget, AudioUnitUpdater):
 
         self._cable_cache = new_cable_cache
         for cable in self._cable_cache.values():
-            cable.copy_line(painter)
+            cable.copy_cable(painter)
 
         # Highlight focused connection
         if self._focused_edge_info:
@@ -803,7 +803,7 @@ class ConnectionsView(QWidget, AudioUnitUpdater):
             edge_width = self._config['focused_edge_width']
 
             cable = ConnectionCable(from_pos, to_pos)
-            cable.draw_line(painter, edge_width, self._config['focused_edge_colour'])
+            cable.draw_cable(painter, edge_width, self._config['focused_edge_colour'])
 
         painter.restore()
 

@@ -60,7 +60,7 @@ class ConnectionCable():
         self._colour = colour
         self._image = None
 
-    def draw_line(self, painter, width, colour):
+    def draw_cable(self, painter, width, colour):
         painter.save()
 
         painter.translate(self._start_point_abs)
@@ -83,7 +83,7 @@ class ConnectionCable():
 
         painter.restore()
 
-    def make_line(self):
+    def make_cable(self):
         if not self._image:
             width = self._area_width + self._width
             height = self._area_height + self._width
@@ -94,9 +94,9 @@ class ConnectionCable():
             lwo_amount = self._width / 2
             lwo = QPointF(lwo_amount, lwo_amount)
             painter.translate(self._texture_translation + lwo - self._start_point_abs)
-            self.draw_line(painter, self._width, self._colour)
+            self.draw_cable(painter, self._width, self._colour)
 
-    def copy_line(self, painter):
+    def copy_cable(self, painter):
         lwo_amount = ((self._width - 1) / 2)
         lwo = QPointF(lwo_amount, lwo_amount)
         painter.drawImage(
