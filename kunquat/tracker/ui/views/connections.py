@@ -291,7 +291,7 @@ class ConnectionsView(QWidget, AudioUnitUpdater):
 
         self._default_offsets = {}
 
-        self._ls_cache = {}
+        self._cable_cache = {}
 
         self._edit_dev_highlights = {}
         self._pressed_dev_id = None
@@ -422,7 +422,7 @@ class ConnectionsView(QWidget, AudioUnitUpdater):
             device.set_config(self._config['devices'])
             device.draw_images()
 
-        self._ls_cache = {}
+        self._cable_cache = {}
 
         self._update_devices()
 
@@ -771,7 +771,7 @@ class ConnectionsView(QWidget, AudioUnitUpdater):
         layout = connections.get_layout()
 
         # Draw connections
-        new_ls_cache = {}
+        new_cable_cache = {}
 
         edges = connections.get_connections()
         for edge in edges:
@@ -779,21 +779,21 @@ class ConnectionsView(QWidget, AudioUnitUpdater):
             from_pos = self._get_port_centre_from_path(from_path)
             to_pos = self._get_port_centre_from_path(to_path)
             key = (from_pos, to_pos)
-            if key in self._ls_cache:
-                new_ls_cache[key] = self._ls_cache[key]
+            if key in self._cable_cache:
+                new_cable_cache[key] = self._cable_cache[key]
             else:
-                ls = ConnectionCable(from_pos, to_pos)
-                ls.set_colour(self._config['edge_colour'])
-                ls.set_width(self._config['edge_width'])
-                ls.make_line()
-                new_ls_cache[key] = ls
+                cable = ConnectionCable(from_pos, to_pos)
+                cable.set_colour(self._config['edge_colour'])
+                cable.set_width(self._config['edge_width'])
+                cable.make_line()
+                new_cable_cache[key] = cable
 
         painter.save()
         painter.translate(0.5, 0.5)
 
-        self._ls_cache = new_ls_cache
-        for ls in self._ls_cache.values():
-            ls.copy_line(painter)
+        self._cable_cache = new_cable_cache
+        for cable in self._cable_cache.values():
+            cable.copy_line(painter)
 
         # Highlight focused connection
         if self._focused_edge_info:
