@@ -1144,6 +1144,7 @@ class EnvelopeView(QWidget):
 
         # Draw marker lines
         pen = QPen()
+        pen.setWidthF(self._config['loop_line_width'])
         pen.setDashPattern(self._config['loop_line_dash'])
 
         # Make sure the focused line is drawn on top
