@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2018
+# Author: Tomi Jylhä-Ollila, Finland 2014-2019
 #
 # This file is part of Kunquat.
 #
@@ -47,6 +47,7 @@ AXIS_CONFIG = {
     'label_font'  : _font,
     'label_colour': QColor(0xcc, 0xcc, 0xcc),
     'line_colour' : QColor(0xcc, 0xcc, 0xcc),
+    'line_width'  : 1,
 }
 
 
@@ -57,14 +58,17 @@ DEFAULT_CONFIG = {
     'enable_zoom_x'             : False,
     'bg_colour'                 : QColor(0, 0, 0),
     'line_colour'               : QColor(0x66, 0x88, 0xaa),
+    'line_width'                : 1,
     'node_colour'               : QColor(0xee, 0xcc, 0xaa),
     'focused_node_colour'       : QColor(0xff, 0x77, 0x22),
     'focused_node_axis_colour'  : QColor(0xff, 0x77, 0x22, 0x7f),
+    'focused_node_axis_width'   : 1,
     'node_size'                 : 7,
     'node_focus_dist_max'       : 5,
     'node_remove_dist_min'      : 200,
     'loop_line_colour'          : QColor(0x77, 0x99, 0xbb),
     'focused_loop_line_colour'  : QColor(0xee, 0xaa, 0x66),
+    'loop_line_width'           : 1,
     'loop_line_dash'            : [4, 4],
     'loop_handle_colour'        : QColor(0x88, 0xbb, 0xee),
     'focused_loop_handle_colour': QColor(0xff, 0xaa, 0x55),
@@ -576,14 +580,17 @@ class EnvelopeView(QWidget):
             'padding'                   : style_mgr.get_scaled_size(0.5),
             'bg_colour'                 : get_colour('envelope_bg_colour'),
             'line_colour'               : get_colour('envelope_curve_colour'),
+            'line_width'                : style_mgr.get_scaled_size(0.1),
             'node_colour'               : get_colour('envelope_node_colour'),
             'focused_node_colour'       : focused_colour,
             'focused_node_axis_colour'  : focused_axis_colour,
+            'focused_node_axis_width'   : style_mgr.get_scaled_size(0.1),
             'node_size'                 : style_mgr.get_scaled_size(0.55),
             'node_focus_dist_max'       : style_mgr.get_scaled_size(0.55),
             'node_remove_dist_min'      : style_mgr.get_scaled_size(25),
             'loop_line_colour'          : get_colour('envelope_loop_marker_colour'),
             'focused_loop_line_colour'  : focused_colour,
+            'loop_line_width'           : style_mgr.get_scaled_size(0.1),
             'loop_line_dash'            : [style_mgr.get_scaled_size(0.4)] * 2,
             'loop_handle_colour'        : get_colour('envelope_loop_marker_colour'),
             'focused_loop_handle_colour': focused_colour,
@@ -610,6 +617,7 @@ class EnvelopeView(QWidget):
             'label_font'    : font,
             'label_colour'  : get_colour('envelope_axis_label_colour'),
             'line_colour'   : get_colour('envelope_axis_line_colour'),
+            'line_width'    : style_mgr.get_scaled_size(0.1),
         }
 
         self._set_configs(config, axis_config)
@@ -1030,12 +1038,16 @@ class EnvelopeView(QWidget):
         painter.save()
 
         rect = self._get_envelope_rect()
+        lw = self._config['line_width']
+        image_rect = rect.adjusted(-lw, -lw, lw, lw)
 
         is_redraw_needed = (not self._curve_image) or (not self._curve_path)
 
         if not self._curve_image:
             self._curve_image = QImage(
-                    rect.width(), rect.height(), QImage.Format_ARGB32_Premultiplied)
+                    image_rect.width(),
+                    image_rect.height(),
+                    QImage.Format_ARGB32_Premultiplied)
 
         if not self._curve_path:
             self._curve_path = QPainterPath()
@@ -1045,8 +1057,8 @@ class EnvelopeView(QWidget):
 
         if is_redraw_needed:
             self._curve_image.fill(0)
-            pw = self._curve_image.width()
-            ph = self._curve_image.height()
+            pw = rect.width()
+            ph = rect.height()
 
             pp = QPainter(self._curve_image)
 
@@ -1056,20 +1068,24 @@ class EnvelopeView(QWidget):
             pp.drawRect(0, 0, pw - 1, ph - 1)
             """
 
+            lw_half = lw * 0.5
             et = self._get_envelope_transform()
-            t = et * QTransform().translate(0.5, -0.5 + ph).scale(pw - 1, -ph + 1)
-            #t = et * QTransform().translate(0, ph - 1).scale(pw - 1, -ph + 1)
+            t = et * QTransform().translate(
+                    lw_half, lw_half - 1 + ph).scale(pw - 1, -ph + 1)
             pp.setTransform(t)
 
             pen = QPen(self._config['line_colour'])
             pen.setCosmetic(True)
+            pen.setWidthF(self._config['line_width'])
             pp.setPen(pen)
             pp.setRenderHint(QPainter.Antialiasing)
             pp.drawPath(self._curve_path)
 
             pp.end()
 
-        painter.drawImage(rect, self._curve_image)
+        lw_half = lw * 0.5
+        painter.translate(lw_half, lw_half)
+        painter.drawImage(image_rect, self._curve_image)
 
         painter.restore()
 
@@ -1083,7 +1099,9 @@ class EnvelopeView(QWidget):
 
         vt = self._get_transform_to_vis()
 
-        painter.setPen(self._config['focused_node_axis_colour'])
+        pen = QPen(self._config['focused_node_axis_colour'])
+        pen.setWidthF(self._config['focused_node_axis_width'])
+        painter.setPen(pen)
 
         node_point = vt.map(QPointF(*self._focused_node))
         node_x, node_y = int(round(node_point.x())), int(round(node_point.y()))
@@ -1127,6 +1145,7 @@ class EnvelopeView(QWidget):
 
         # Draw marker lines
         pen = QPen()
+        pen.setWidthF(self._config['loop_line_width'])
         pen.setDashPattern(self._config['loop_line_dash'])
 
         # Make sure the focused line is drawn on top

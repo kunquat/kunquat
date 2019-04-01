@@ -194,6 +194,7 @@ AXIS_CONFIG = {
     'label_font'  : _font,
     'label_colour': QColor(0xcc, 0xcc, 0xcc),
     'line_colour' : QColor(0xcc, 0xcc, 0xcc),
+    'line_width'  : 1,
 }
 
 
@@ -294,6 +295,7 @@ class LoadHistory(QWidget, Updater):
             'label_font'    : font,
             'label_colour'  : get_colour('envelope_axis_label_colour'),
             'line_colour'   : get_colour('envelope_axis_line_colour'),
+            'line_width'    : style_mgr.get_scaled_size(0.1),
         }
 
         self._set_configs(config, axis_config)
