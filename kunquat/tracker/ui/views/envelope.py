@@ -47,6 +47,7 @@ AXIS_CONFIG = {
     'label_font'  : _font,
     'label_colour': QColor(0xcc, 0xcc, 0xcc),
     'line_colour' : QColor(0xcc, 0xcc, 0xcc),
+    'line_width'  : 1,
 }
 
 
@@ -616,6 +617,7 @@ class EnvelopeView(QWidget):
             'label_font'    : font,
             'label_colour'  : get_colour('envelope_axis_label_colour'),
             'line_colour'   : get_colour('envelope_axis_line_colour'),
+            'line_width'    : style_mgr.get_scaled_size(0.1),
         }
 
         self._set_configs(config, axis_config)
@@ -1069,8 +1071,7 @@ class EnvelopeView(QWidget):
             lw_half = lw * 0.5
             et = self._get_envelope_transform()
             t = et * QTransform().translate(
-                    lw_half + 0.5, lw_half - 0.5 + ph).scale(pw - 1, -ph + 1)
-            #t = et * QTransform().translate(0, ph - 1).scale(pw - 1, -ph + 1)
+                    lw_half, lw_half - 1 + ph).scale(pw - 1, -ph + 1)
             pp.setTransform(t)
 
             pen = QPen(self._config['line_colour'])
@@ -1083,7 +1084,7 @@ class EnvelopeView(QWidget):
             pp.end()
 
         lw_half = lw * 0.5
-        painter.translate(lw_half - 0.5, lw_half - 0.5)
+        painter.translate(lw_half, lw_half)
         painter.drawImage(image_rect, self._curve_image)
 
         painter.restore()

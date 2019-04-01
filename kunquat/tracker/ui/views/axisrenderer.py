@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016-2017
+# Author: Tomi Jylhä-Ollila, Finland 2016-2019
 #
 # This file is part of Kunquat.
 #
@@ -76,12 +76,21 @@ class AbstractAxisRenderer():
         if (self._width <= 0) or (self._height <= 0):
             return
 
+        lw = self._config['line_width']
+        lw_half = lw * 0.5
+
         if not self._cache:
-            self._cache = QImage(self._width, self._height, QImage.Format_ARGB32)
+            img_width = self._width + math.ceil(lw)
+            img_height = self._height + math.ceil(lw)
+            self._cache = QImage(
+                    img_width, img_height, QImage.Format_ARGB32_Premultiplied)
             self._cache.fill(0)
             axis_painter = QPainter(self._cache)
+            axis_painter.translate(lw_half, lw_half)
+            axis_painter.setRenderHint(QPainter.Antialiasing)
             self._draw_axis(axis_painter)
-        painter.drawImage(QPoint(0, 0), self._cache)
+
+        painter.drawImage(QPoint(-lw_half, -lw_half), self._cache)
 
     def _fill_markers_interval(
             self,
@@ -239,15 +248,18 @@ class HorizontalAxisRenderer(AbstractAxisRenderer):
     def _draw_axis(self, painter):
         painter.save()
 
-        painter.setTransform(QTransform().translate(self._x_offset, 0))
+        painter.translate(self._x_offset, 0)
+
+        line_pen = QPen(self._config['line_colour'])
+        line_pen.setWidthF(self._config['line_width'])
 
         # Draw line along the axis
-        painter.setPen(self._config['line_colour'])
+        painter.setPen(line_pen)
         painter.drawLine(0, 0, self._axis_length - 1, 0)
 
         # Marker drawing callback
         def draw_marker(painter, px_centre, marker_width):
-            painter.setPen(self._config['line_colour'])
+            painter.setPen(line_pen)
             marker_width = max(marker_width, self._config['axis_x']['marker_min_width'])
             marker_start = marker_width
             painter.drawLine(px_centre, marker_start, px_centre, 1)
@@ -315,12 +327,15 @@ class VerticalAxisRenderer(AbstractAxisRenderer):
     def _draw_axis(self, painter):
         painter.save()
 
-        painter.setTransform(QTransform().translate(0, self._padding))
+        painter.translate(0, self._padding)
 
         axis_width = self._config['axis_y']['width']
 
+        line_pen = QPen(self._config['line_colour'])
+        line_pen.setWidthF(self._config['line_width'])
+
         # Draw line along the axis
-        painter.setPen(self._config['line_colour'])
+        painter.setPen(line_pen)
         painter.drawLine(axis_width - 1, 0, axis_width - 1, self._axis_length - 1)
 
         # Ruler location transform
@@ -329,7 +344,7 @@ class VerticalAxisRenderer(AbstractAxisRenderer):
 
         # Marker drawing callback
         def draw_marker(painter, px_centre, marker_width):
-            painter.setPen(self._config['line_colour'])
+            painter.setPen(line_pen)
             px_y = ruler_to_y(px_centre)
             marker_width = max(marker_width, self._config['axis_y']['marker_min_width'])
             marker_start = axis_width - marker_width - 1
