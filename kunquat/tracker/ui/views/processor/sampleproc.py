@@ -124,6 +124,7 @@ class RandomListMap(QWidget, ProcessorUpdater):
         'label_font'  : _FONT,
         'label_colour': QColor(0xcc, 0xcc, 0xcc),
         'line_colour' : QColor(0xcc, 0xcc, 0xcc),
+        'line_width'  : 1,
     }
 
     _STATE_IDLE = 'idle'
@@ -242,6 +243,7 @@ class RandomListMap(QWidget, ProcessorUpdater):
             'label_font'    : font,
             'label_colour'  : get_colour('sample_map_axis_label_colour'),
             'line_colour'   : get_colour('sample_map_axis_line_colour'),
+            'line_width'    : style_mgr.get_scaled_size(0.1),
         }
 
         self._set_configs(config, axis_config)
