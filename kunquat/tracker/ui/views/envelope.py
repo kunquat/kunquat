@@ -1098,7 +1098,9 @@ class EnvelopeView(QWidget):
 
         vt = self._get_transform_to_vis()
 
-        painter.setPen(self._config['focused_node_axis_colour'])
+        pen = QPen(self._config['focused_node_axis_colour'])
+        pen.setWidthF(self._config['focused_node_axis_width'])
+        painter.setPen(pen)
 
         node_point = vt.map(QPointF(*self._focused_node))
         node_x, node_y = int(round(node_point.x())), int(round(node_point.y()))
