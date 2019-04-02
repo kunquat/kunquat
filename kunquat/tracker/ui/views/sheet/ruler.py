@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2013-2018
+# Author: Tomi Jylhä-Ollila, Finland 2013-2019
 #
 # This file is part of Kunquat.
 #
@@ -61,7 +61,8 @@ class Ruler(QWidget, Updater):
         num_space = fm.tightBoundingRect('00.000')
         self._width = (num_space.width() +
                 self._config['line_len_long'] +
-                8)
+                self._config['num_padding_left'] +
+                self._config['num_padding_right'])
 
         self._cache.set_config(config)
         self._cache.set_width(self._width)
@@ -446,8 +447,9 @@ class RulerCache():
             text = str(numi) if num == numi else str(round(num, 3))
 
             # Draw
+            right_offset = cfg['line_len_long'] + cfg['num_padding_right']
             rect = QRectF(0, y - self._num_height,
-                    self._width - cfg['line_len_long'] - 2, self._num_height + 3)
+                    self._width - right_offset, self._num_height + 3)
             painter.drawText(rect, text, text_option)
 
         painter.setFont(self._config['font'])

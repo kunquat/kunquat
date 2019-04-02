@@ -36,6 +36,8 @@ DEFAULT_CONFIG = {
         'line_len_short'    : 2,
         'line_len_long'     : 4,
         'num_min_dist'      : 48,
+        'num_padding_left'  : 8,
+        'num_padding_right' : 2,
         'inactive_dim'      : 0.6,
     },
     'header': {
@@ -141,21 +143,24 @@ def get_config_with_custom_style(style_mgr):
             style_mgr.get_style_param('border_thin_width'))
 
     # Ruler
-    config['ruler']['font'] = get_scaled_font(style_mgr, 0.75)
-    config['ruler']['canvas_bg_colour'] = canvas_bg_colour
-    config['ruler']['bg_colour'] = _get_colour(
+    ruler = config['ruler']
+    ruler['font'] = get_scaled_font(style_mgr, 0.75)
+    ruler['canvas_bg_colour'] = canvas_bg_colour
+    ruler['bg_colour'] = _get_colour(
             style_mgr.get_style_param('sheet_ruler_bg_colour'))
-    config['ruler']['fg_colour'] = _get_colour(
+    ruler['fg_colour'] = _get_colour(
             style_mgr.get_style_param('sheet_ruler_fg_colour'))
-    config['ruler']['play_cursor_colour'] = _get_colour(
+    ruler['play_cursor_colour'] = _get_colour(
             style_mgr.get_style_param('sheet_playback_cursor_colour'))
-    config['ruler']['play_marker_colour'] = _get_colour(
+    ruler['play_marker_colour'] = _get_colour(
             style_mgr.get_style_param('sheet_ruler_playback_marker_colour'))
-    config['ruler']['disabled_colour'] = disabled_colour
-    config['ruler']['line_min_dist'] = style_mgr.get_scaled_size(0.3)
-    config['ruler']['line_len_short'] = style_mgr.get_scaled_size(0.3)
-    config['ruler']['line_len_long'] = style_mgr.get_scaled_size(0.6)
-    config['ruler']['num_min_dist'] = style_mgr.get_scaled_size(3.0)
+    ruler['disabled_colour'] = disabled_colour
+    ruler['line_min_dist'] = style_mgr.get_scaled_size(0.3)
+    ruler['line_len_short'] = style_mgr.get_scaled_size(0.3)
+    ruler['line_len_long'] = style_mgr.get_scaled_size(0.6)
+    ruler['num_min_dist'] = style_mgr.get_scaled_size(3.0)
+    ruler['num_padding_left'] = style_mgr.get_scaled_size(0.8)
+    ruler['num_padding_right'] = style_mgr.get_scaled_size(0.2)
 
     # Column headers
     header_font = get_scaled_font(style_mgr, 1, QFont.Bold)
