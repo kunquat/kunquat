@@ -321,7 +321,7 @@ class Ruler(QWidget, Updater):
 
 class RulerCache():
 
-    PIXMAP_HEIGHT = 128
+    PIXMAP_HEIGHT = 256
 
     def __init__(self):
         self._width = 0
@@ -406,6 +406,9 @@ class RulerCache():
             painter.drawLine(QPoint(0, 0), QPoint(self._width - 2, 0))
 
         # Ruler lines
+        line_width = cfg['line_width']
+        slice_margin_ts = utils.get_tstamp_from_px(line_width / 2, self._px_per_beat)
+
         start_ts = tstamp.Tstamp(0, tstamp.BEAT *
                 index * RulerCache.PIXMAP_HEIGHT // self._px_per_beat)
         stop_ts = tstamp.Tstamp(0, tstamp.BEAT *
@@ -419,12 +422,18 @@ class RulerCache():
                     QPoint(self._width - 1 - line_length, y),
                     QPoint(self._width - 1, y))
 
+        painter.save()
+        line_pen = QPen(self._get_final_colour(cfg['fg_colour']))
+        line_pen.setWidthF(line_width)
+        painter.setPen(line_pen)
+        painter.translate(0, -((line_width - 1) // 2))
         self._draw_markers(
                 painter,
-                start_ts,
-                stop_ts,
+                start_ts - slice_margin_ts,
+                stop_ts + slice_margin_ts,
                 cfg['line_min_dist'],
                 draw_ruler_line)
+        painter.restore()
 
         # Beat numbers
         num_extent = self._num_height // 2

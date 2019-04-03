@@ -35,6 +35,7 @@ DEFAULT_CONFIG = {
         'line_min_dist'     : 3,
         'line_len_short'    : 2,
         'line_len_long'     : 4,
+        'line_width'        : 1,
         'num_min_dist'      : 48,
         'num_padding_left'  : 8,
         'num_padding_right' : 2,
@@ -158,6 +159,7 @@ def get_config_with_custom_style(style_mgr):
     ruler['line_min_dist'] = style_mgr.get_scaled_size(0.3)
     ruler['line_len_short'] = style_mgr.get_scaled_size(0.3)
     ruler['line_len_long'] = style_mgr.get_scaled_size(0.6)
+    ruler['line_width'] = style_mgr.get_scaled_size(0.1)
     ruler['num_min_dist'] = style_mgr.get_scaled_size(3.0)
     ruler['num_padding_left'] = style_mgr.get_scaled_size(0.8)
     ruler['num_padding_right'] = style_mgr.get_scaled_size(0.2)
