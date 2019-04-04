@@ -627,30 +627,37 @@ class View(QWidget, Updater):
         if not -self._config['tr_height'] < y_offset < self.height():
             return
 
+        lw = self._config['line_width']
+        lw_half = lw * 0.5
+
         # Draw guide extension line
         if self._sheet_mgr.is_editing_enabled():
-            painter.setPen(self._config['edit_cursor']['guide_colour'])
+            pen = QPen(self._config['edit_cursor']['guide_colour'])
+            pen.setWidthF(lw)
+            painter.setPen(pen)
             visible_col_nums = range(
                 self._first_col,
                 min(COLUMNS_MAX, self._first_col + self._visible_cols))
             for col_num in visible_col_nums:
                 if col_num != selected_col:
                     col_x_offset = self._get_col_offset(col_num)
-                    tfm = QTransform().translate(col_x_offset, y_offset)
+                    tfm = QTransform().translate(col_x_offset + 0.5, y_offset + 0.5)
                     painter.setTransform(tfm)
                     painter.drawLine(
                             QPoint(border_width, 0),
                             QPoint(self._col_width - border_width - 1, 0))
 
         # Set up paint device for the actual cursor
-        tfm = QTransform().translate(x_offset + border_width, y_offset)
+        tfm = QTransform().translate(x_offset + border_width + 0.5, y_offset + 0.5)
         painter.setTransform(tfm)
 
         # Draw the horizontal line
         line_colour = self._config['edit_cursor']['view_line_colour']
         if self._sheet_mgr.is_editing_enabled():
             line_colour = self._config['edit_cursor']['edit_line_colour']
-        painter.setPen(line_colour)
+        pen = QPen(line_colour)
+        pen.setWidthF(lw)
+        painter.setPen(pen)
         painter.drawLine(
                 QPoint(0, 0),
                 QPoint(self._col_width - border_width * 2 - 1, 0))

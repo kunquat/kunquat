@@ -60,6 +60,7 @@ DEFAULT_CONFIG = {
     'border_width'      : 1, # px per side -> effective border width is double
     'font'              : QFont(QFont().defaultFamily(), 12),
     'disabled_colour'   : QColor(0x88, 0x88, 0x88, 0x7f),
+    'line_width'        : 1,
     'play_cursor_colour': QColor(0x66, 0xee, 0x66),
     'trigger': {
         'default_colour'   : QColor(0xcc, 0xdd, 0xee),
@@ -200,6 +201,7 @@ def get_config_with_custom_style(style_mgr):
     config['edit_cursor']['edit_line_colour'] = elc
     guide_colour = QColor(elc.red(), elc.green(), elc.blue(), 0x7f)
     config['edit_cursor']['guide_colour'] = guide_colour
+    config['line_width'] = style_mgr.get_scaled_size(0.1)
     config['play_cursor_colour'] = _get_colour(
             style_mgr.get_style_param('sheet_playback_cursor_colour'))
     config['edit_cursor']['min_snap_dist'] = style_mgr.get_scaled_size(10.0)
