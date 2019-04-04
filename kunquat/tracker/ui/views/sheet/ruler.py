@@ -277,8 +277,10 @@ class Ruler(QWidget, Updater):
 
             # Draw bottom border
             if rel_end_height <= self.height():
-                painter.setPen(self._get_final_colour(
+                pen = QPen(self._get_final_colour(
                     self._config['fg_colour'], pi != active_pattern_index))
+                pen.setWidthF(self._config['line_width'])
+                painter.setPen(pen)
                 painter.drawLine(
                         QPoint(0, rel_end_height - 1),
                         QPoint(self._width - 1, rel_end_height - 1))
@@ -395,18 +397,22 @@ class RulerCache():
 
         # Background
         painter.setBackground(self._get_final_colour(cfg['bg_colour']))
-        painter.eraseRect(QRect(0, 0, self._width - 1, RulerCache.PIXMAP_HEIGHT))
-        painter.setPen(self._get_final_colour(cfg['fg_colour']))
-        painter.drawLine(
-                QPoint(self._width - 1, 0),
-                QPoint(self._width - 1, RulerCache.PIXMAP_HEIGHT - 1))
+        painter.eraseRect(QRect(0, 0, self._width, RulerCache.PIXMAP_HEIGHT))
 
-        # Start border
-        if index == 0:
-            painter.drawLine(QPoint(0, 0), QPoint(self._width - 2, 0))
+        # Lines
+        painter.save()
+
+        line_width = cfg['line_width']
+        line_pen = QPen(self._get_final_colour(cfg['fg_colour']))
+        line_pen.setWidthF(line_width)
+        painter.setPen(line_pen)
+        painter.translate(0, -((line_width - 1) // 2))
+
+        painter.drawLine(
+                QPoint(self._width - line_width / 2, 0),
+                QPoint(self._width - line_width / 2, RulerCache.PIXMAP_HEIGHT - 1))
 
         # Ruler lines
-        line_width = cfg['line_width']
         slice_margin_ts = utils.get_tstamp_from_px(line_width / 2, self._px_per_beat)
 
         start_ts = tstamp.Tstamp(0, tstamp.BEAT *
@@ -415,27 +421,26 @@ class RulerCache():
                 (index + 1) * RulerCache.PIXMAP_HEIGHT // self._px_per_beat)
 
         def draw_ruler_line(painter, y, line_pos, lines_per_beat):
-            line_length = (cfg['line_len_long']
-                    if line_pos[1] == 0
-                    else cfg['line_len_short'])
+            if line_pos[1] == 0:
+                line_length = cfg['line_len_long'] if line_pos[0] != 0 else self._width
+            else:
+                line_length = cfg['line_len_short']
             painter.drawLine(
                     QPoint(self._width - 1 - line_length, y),
                     QPoint(self._width - 1, y))
 
-        painter.save()
-        line_pen = QPen(self._get_final_colour(cfg['fg_colour']))
-        line_pen.setWidthF(line_width)
-        painter.setPen(line_pen)
-        painter.translate(0, -((line_width - 1) // 2))
         self._draw_markers(
                 painter,
                 start_ts - slice_margin_ts,
                 stop_ts + slice_margin_ts,
                 cfg['line_min_dist'],
                 draw_ruler_line)
+
         painter.restore()
 
         # Beat numbers
+        painter.setPen(self._get_final_colour(cfg['fg_colour']))
+
         num_extent = self._num_height // 2
         start_ts = tstamp.Tstamp(0, tstamp.BEAT *
                 (index * RulerCache.PIXMAP_HEIGHT - num_extent) //
