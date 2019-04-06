@@ -728,7 +728,7 @@ class View(QWidget, Updater):
 
         painter.setClipRect(
                 QRect(QPoint(0, -lw_half),
-                    QPoint(vis_width - 1, self._config['tr_height'] + lw)))
+                    QSize(vis_width - 1, self._config['tr_height'] + lw)))
 
         # Hide underlying column contents
         painter.fillRect(
