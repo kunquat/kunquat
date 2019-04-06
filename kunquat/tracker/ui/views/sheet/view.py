@@ -634,6 +634,7 @@ class View(QWidget, Updater):
         if self._sheet_mgr.is_editing_enabled():
             pen = QPen(self._config['edit_cursor']['guide_colour'])
             pen.setWidthF(lw)
+            pen.setCapStyle(Qt.FlatCap)
             painter.setPen(pen)
             visible_col_nums = range(
                 self._first_col,
@@ -657,6 +658,7 @@ class View(QWidget, Updater):
             line_colour = self._config['edit_cursor']['edit_line_colour']
         pen = QPen(line_colour)
         pen.setWidthF(lw)
+        pen.setCapStyle(Qt.FlatCap)
         painter.setPen(pen)
         painter.drawLine(
                 QPoint(0, 0),
