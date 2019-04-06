@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2018
+# Author: Tomi Jylhä-Ollila, Finland 2014-2019
 #
 # This file is part of Kunquat.
 #
@@ -61,7 +61,8 @@ class TriggerRenderer():
             key = self._get_trigger_image_key()
             image = self._cache.get_trigger_image(key)
             assert image
-            painter.drawImage(0, 0, image)
+            lw_add = self._config['trigger']['line_width'] // 2
+            painter.drawImage(0, -lw_add, image)
         else:
             self._draw_trigger(painter, include_line, select)
 
@@ -87,12 +88,14 @@ class TriggerRenderer():
         if self._cache.get_trigger_image(key):
             return
 
+        lw_add = self._config['trigger']['line_width'] // 2
         image = QImage(
                 self._total_width,
-                self._config['tr_height'],
+                self._config['tr_height'] + lw_add,
                 QImage.Format_ARGB32_Premultiplied)
         image.fill(0)
         painter = QPainter(image)
+        painter.translate(0, lw_add)
         painter.setCompositionMode(QPainter.CompositionMode_Plus)
         self._draw_trigger(painter, include_line=True, select=False)
         painter.end()
@@ -144,6 +147,8 @@ class TriggerRenderer():
             evtype_bg_colour = self._get_final_colour(evtype_bg_colour)
         evtype_fg_colour = self._get_final_colour(evtype_fg_colour)
 
+        lw = self._config['trigger']['line_width']
+
         # Set colours
         painter.save()
         if select:
@@ -151,7 +156,7 @@ class TriggerRenderer():
         if evtype_bg_colour:
             height = self._config['tr_height']
             painter.fillRect(
-                    QRect(0, 0, self._total_width - 1, height - 1),
+                    QRect(0, 0, self._total_width - (lw // 2) - 1, height + lw - 1),
                     evtype_bg_colour)
         painter.setPen(evtype_fg_colour or self._config['bg_colour'])
 
@@ -167,7 +172,9 @@ class TriggerRenderer():
         # Draw line only if not obscured by cursor
         if include_line:
             painter.save()
-            painter.setPen(evtype_fg_colour)
+            pen = QPen(evtype_fg_colour)
+            pen.setWidthF(self._config['trigger']['line_width'])
+            painter.setPen(pen)
             painter.drawLine(QPoint(0, 0), QPoint(self._total_width - 2, 0))
             painter.restore()
 

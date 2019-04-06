@@ -628,10 +628,12 @@ class ColumnCache():
 
         # Trigger rows
         painter.save()
+        lw = self._config['trigger']['line_width']
+        lw_half = lw // 2
         for ts, images, next_ts in self._tr_cache.iter_rows(start_ts, stop_ts):
-            y_offset = ts_to_y_offset(ts)
+            y_offset = ts_to_y_offset(ts) - (lw - lw_half) + 1
 
-            tr_height = self._config['tr_height']
+            tr_height = self._config['tr_height'] + lw
             if next_ts != None:
                 next_y_offset = ts_to_y_offset(next_ts)
                 tr_height = min(max(1, next_y_offset - y_offset), tr_height)

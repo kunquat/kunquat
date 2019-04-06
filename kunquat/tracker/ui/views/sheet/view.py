@@ -628,7 +628,6 @@ class View(QWidget, Updater):
             return
 
         lw = self._config['line_width']
-        lw_half = lw * 0.5
 
         # Draw guide extension line
         if self._sheet_mgr.is_editing_enabled():
@@ -642,7 +641,7 @@ class View(QWidget, Updater):
             for col_num in visible_col_nums:
                 if col_num != selected_col:
                     col_x_offset = self._get_col_offset(col_num)
-                    tfm = QTransform().translate(col_x_offset + 0.5, y_offset + 0.5)
+                    tfm = QTransform().translate(col_x_offset, y_offset + 0.5)
                     painter.setTransform(tfm)
                     painter.drawLine(
                             QPoint(border_width, 0),
@@ -651,6 +650,21 @@ class View(QWidget, Updater):
         # Set up paint device for the actual cursor
         tfm = QTransform().translate(x_offset + border_width + 0.5, y_offset + 0.5)
         painter.setTransform(tfm)
+
+        # Get trigger row at cursor
+        column = self._sheet_mgr.get_column_at_location(location)
+
+        draw_hollow_cursor = False
+        try:
+            # Draw the trigger row
+            trigger_count = column.get_trigger_count_at_row(row_ts)
+            triggers = [column.get_trigger(row_ts, i)
+                    for i in range(trigger_count)]
+            self._draw_trigger_row_with_edit_cursor(
+                    painter, triggers, trigger_index)
+        except KeyError:
+            # No triggers, just draw a cursor
+            draw_hollow_cursor = True
 
         # Draw the horizontal line
         line_colour = self._config['edit_cursor']['view_line_colour']
@@ -664,19 +678,7 @@ class View(QWidget, Updater):
                 QPoint(0, 0),
                 QPoint(self._col_width - border_width * 2 - 1, 0))
 
-        # Get trigger row at cursor
-        column = self._sheet_mgr.get_column_at_location(location)
-
-        try:
-            # Draw the trigger row
-            trigger_count = column.get_trigger_count_at_row(row_ts)
-            triggers = [column.get_trigger(row_ts, i)
-                    for i in range(trigger_count)]
-            self._draw_trigger_row_with_edit_cursor(
-                    painter, triggers, trigger_index)
-
-        except KeyError:
-            # No triggers, just draw a cursor
+        if draw_hollow_cursor:
             if self._sheet_mgr.get_replace_mode():
                 self._draw_hollow_replace_cursor(
                         painter, self._config['trigger']['padding_x'], 0)
@@ -721,8 +723,12 @@ class View(QWidget, Updater):
         border_width = self._config['border_width']
         vis_width = self._col_width - border_width * 2
 
+        lw = self._config['trigger']['line_width']
+        lw_half = lw // 2
+
         painter.setClipRect(
-                QRect(QPoint(0, 0), QPoint(vis_width - 1, self._config['tr_height'])))
+                QRect(QPoint(0, -lw_half),
+                    QPoint(vis_width - 1, self._config['tr_height'] + lw)))
 
         # Hide underlying column contents
         painter.fillRect(
@@ -737,7 +743,7 @@ class View(QWidget, Updater):
         widths = [r.get_total_width() for r in rends]
         total_width = sum(widths)
 
-        trigger_tfm = painter.transform().translate(-self._trow_px_offset, 0)
+        trigger_tfm = painter.transform().translate(-self._trow_px_offset - 0.5, -(lw % 2))
         painter.setTransform(trigger_tfm)
 
         orig_trow_tfm = QTransform(trigger_tfm)
