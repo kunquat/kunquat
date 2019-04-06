@@ -694,10 +694,17 @@ class View(QWidget, Updater):
         rect.setBottom(self._config['tr_height'] - style_mgr.get_scaled_size(0.2))
         return rect
 
+    def _get_cursor_colour(self):
+        if self._sheet_mgr.is_editing_enabled():
+            return self._config['edit_cursor']['edit_line_colour']
+        return self._config['edit_cursor']['view_line_colour']
+
     def _draw_hollow_replace_cursor(self, painter, x_offset, y_offset):
         rect = self._get_hollow_replace_cursor_rect()
         rect.translate(x_offset, y_offset)
-        painter.setPen(self._config['trigger']['default_colour'])
+        pen = QPen(self._get_cursor_colour())
+        pen.setWidthF(self._config['line_width'])
+        painter.setPen(pen)
         painter.drawRect(rect)
 
     def _draw_insert_cursor(self, painter, x_offset, y_offset):
@@ -706,7 +713,7 @@ class View(QWidget, Updater):
         height = self._config['tr_height'] - style_mgr.get_scaled_size(0.15)
         rect = QRect(QPoint(0, 0), QPoint(width, height))
         rect.translate(x_offset, y_offset)
-        painter.fillRect(rect, self._config['trigger']['default_colour'])
+        painter.fillRect(rect, self._get_cursor_colour())
 
     def _draw_hollow_insert_cursor(self, painter, x_offset, y_offset):
         style_mgr = self._ui_model.get_style_manager()
@@ -714,7 +721,9 @@ class View(QWidget, Updater):
         height = self._config['tr_height'] - style_mgr.get_scaled_size(0.2)
         rect = QRect(QPoint(0, 0), QPoint(width, height))
         rect.translate(x_offset, y_offset)
-        painter.setPen(self._config['trigger']['default_colour'])
+        pen = QPen(self._get_cursor_colour())
+        pen.setWidthF(self._config['line_width'])
+        painter.setPen(pen)
         painter.drawRect(rect)
 
     def _draw_trigger_row_with_edit_cursor(self, painter, triggers, trigger_index):
