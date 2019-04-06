@@ -162,6 +162,11 @@ class Ruler(QWidget, Updater):
                                 self._px_per_beat) // tstamp.BEAT
                         self._playback_marker_offset = (
                                 location_from_start_px + start_px + self._px_offset)
+                        break
+                else:
+                    self._playback_marker_offset = None
+            else:
+                self._playback_marker_offset = None
 
         self.update()
 
@@ -294,14 +299,20 @@ class Ruler(QWidget, Updater):
                             self._width, self.height() - rel_end_height)
                         )
 
+        lw = self._config['line_width']
+
         if self._playback_marker_offset != None:
-            painter.setPen(self._config['play_marker_colour'])
-            offset = self._playback_marker_offset - self._px_offset
+            pen = QPen(self._config['play_marker_colour'])
+            pen.setWidthF(lw)
+            painter.setPen(pen)
+            offset = self._playback_marker_offset - self._px_offset + ((lw + 1) % 2)
             painter.drawLine(0, offset, self._width, offset)
 
         if self._playback_cursor_offset != None:
-            painter.setPen(self._config['play_cursor_colour'])
-            offset = self._playback_cursor_offset - self._px_offset
+            pen = QPen(self._config['play_cursor_colour'])
+            pen.setWidthF(lw)
+            painter.setPen(pen)
+            offset = self._playback_cursor_offset - self._px_offset + ((lw + 1) % 2)
             painter.drawLine(0, offset, self._width, offset)
 
         if not self.isEnabled():

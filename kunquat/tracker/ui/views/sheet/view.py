@@ -2077,14 +2077,16 @@ class View(QWidget, Updater):
 
         # Draw playback cursor
         if self._is_playback_cursor_visible:
-            painter.setPen(self._config['play_cursor_colour'])
+            pen = QPen(self._config['play_cursor_colour'])
+            pen.setWidthF(self._config['line_width'])
+            painter.setPen(pen)
             visible_col_nums = range(
                     self._first_col,
                     min(COLUMNS_MAX, self._first_col + self._visible_cols))
             for col_num in visible_col_nums:
                 col_x_offset = self._get_col_offset(col_num)
                 tfm = QTransform().translate(
-                        col_x_offset, self._playback_cursor_offset - self._px_offset)
+                        col_x_offset, self._playback_cursor_offset - self._px_offset + 0.5)
                 painter.setTransform(tfm)
                 painter.drawLine(QPoint(0, 0), QPoint(self._col_width - 2, 0))
 
