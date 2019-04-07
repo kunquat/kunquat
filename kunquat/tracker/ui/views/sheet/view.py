@@ -792,7 +792,7 @@ class View(QWidget, Updater):
             stop_x = start_x + sum(r.get_total_width() for r in rends[start:stop])
             rect = QRect(
                     QPoint(start_x, 0), QPoint(stop_x, self._config['tr_height'] - 1))
-            rect.adjust(0, 0, -border_width_half, -border_width_half)
+            rect.adjust(border_width, 0, -border_width_half, -border_width_half)
 
             painter.setTransform(orig_trow_tfm)
             pen = QPen(self._config['area_selection']['border_colour'])
