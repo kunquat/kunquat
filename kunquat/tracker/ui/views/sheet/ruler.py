@@ -284,11 +284,13 @@ class Ruler(QWidget, Updater):
             if rel_end_height <= self.height():
                 pen = QPen(self._get_final_colour(
                     self._config['fg_colour'], pi != active_pattern_index))
-                pen.setWidthF(self._config['line_width'])
+                lw = self._config['line_width']
+                lw_offset = lw % 2
+                pen.setWidthF(lw)
                 painter.setPen(pen)
                 painter.drawLine(
-                        QPoint(0, rel_end_height - 1),
-                        QPoint(self._width - 1, rel_end_height - 1))
+                        QPoint(0, rel_end_height - lw_offset),
+                        QPoint(self._width - 1, rel_end_height - lw_offset))
         else:
             # Fill trailing blank
             painter.setBackground(self._config['canvas_bg_colour'])
