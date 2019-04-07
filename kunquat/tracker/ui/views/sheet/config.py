@@ -35,7 +35,10 @@ DEFAULT_CONFIG = {
         'line_min_dist'     : 3,
         'line_len_short'    : 2,
         'line_len_long'     : 4,
+        'line_width'        : 1,
         'num_min_dist'      : 48,
+        'num_padding_left'  : 8,
+        'num_padding_right' : 2,
         'inactive_dim'      : 0.6,
     },
     'header': {
@@ -57,6 +60,7 @@ DEFAULT_CONFIG = {
     'border_width'      : 1, # px per side -> effective border width is double
     'font'              : QFont(QFont().defaultFamily(), 12),
     'disabled_colour'   : QColor(0x88, 0x88, 0x88, 0x7f),
+    'line_width'        : 1,
     'play_cursor_colour': QColor(0x66, 0xee, 0x66),
     'trigger': {
         'default_colour'   : QColor(0xcc, 0xdd, 0xee),
@@ -65,6 +69,7 @@ DEFAULT_CONFIG = {
         'note_off_colour'  : QColor(0xcc, 0x99, 0x66),
         'warning_bg_colour': QColor(0xee, 0x33, 0x11),
         'warning_fg_colour': QColor(0xff, 0xff, 0xcc),
+        'line_width'       : 1,
         'padding_x'        : 6,
         'padding_y'        : 3,
     },
@@ -141,21 +146,25 @@ def get_config_with_custom_style(style_mgr):
             style_mgr.get_style_param('border_thin_width'))
 
     # Ruler
-    config['ruler']['font'] = get_scaled_font(style_mgr, 0.75)
-    config['ruler']['canvas_bg_colour'] = canvas_bg_colour
-    config['ruler']['bg_colour'] = _get_colour(
+    ruler = config['ruler']
+    ruler['font'] = get_scaled_font(style_mgr, 0.75)
+    ruler['canvas_bg_colour'] = canvas_bg_colour
+    ruler['bg_colour'] = _get_colour(
             style_mgr.get_style_param('sheet_ruler_bg_colour'))
-    config['ruler']['fg_colour'] = _get_colour(
+    ruler['fg_colour'] = _get_colour(
             style_mgr.get_style_param('sheet_ruler_fg_colour'))
-    config['ruler']['play_cursor_colour'] = _get_colour(
+    ruler['play_cursor_colour'] = _get_colour(
             style_mgr.get_style_param('sheet_playback_cursor_colour'))
-    config['ruler']['play_marker_colour'] = _get_colour(
+    ruler['play_marker_colour'] = _get_colour(
             style_mgr.get_style_param('sheet_ruler_playback_marker_colour'))
-    config['ruler']['disabled_colour'] = disabled_colour
-    config['ruler']['line_min_dist'] = style_mgr.get_scaled_size(0.3)
-    config['ruler']['line_len_short'] = style_mgr.get_scaled_size(0.3)
-    config['ruler']['line_len_long'] = style_mgr.get_scaled_size(0.6)
-    config['ruler']['num_min_dist'] = style_mgr.get_scaled_size(3.0)
+    ruler['disabled_colour'] = disabled_colour
+    ruler['line_min_dist'] = style_mgr.get_scaled_size(0.3)
+    ruler['line_len_short'] = style_mgr.get_scaled_size(0.3)
+    ruler['line_len_long'] = style_mgr.get_scaled_size(0.6)
+    ruler['line_width'] = style_mgr.get_scaled_size(0.1)
+    ruler['num_min_dist'] = style_mgr.get_scaled_size(3.0)
+    ruler['num_padding_left'] = style_mgr.get_scaled_size(0.8)
+    ruler['num_padding_right'] = style_mgr.get_scaled_size(0.2)
 
     # Column headers
     header_font = get_scaled_font(style_mgr, 1, QFont.Bold)
@@ -171,20 +180,22 @@ def get_config_with_custom_style(style_mgr):
     config['header']['padding_x'] = style_mgr.get_scaled_size(0.2)
 
     # Triggers
-    config['trigger']['default_colour'] = _get_colour(
+    trigger = config['trigger']
+    trigger['default_colour'] = _get_colour(
             style_mgr.get_style_param('sheet_trigger_default_colour'))
-    config['trigger']['note_on_colour'] = _get_colour(
+    trigger['note_on_colour'] = _get_colour(
             style_mgr.get_style_param('sheet_trigger_note_on_colour'))
-    config['trigger']['hit_colour'] = _get_colour(
+    trigger['hit_colour'] = _get_colour(
             style_mgr.get_style_param('sheet_trigger_hit_colour'))
-    config['trigger']['note_off_colour'] = _get_colour(
+    trigger['note_off_colour'] = _get_colour(
             style_mgr.get_style_param('sheet_trigger_note_off_colour'))
-    config['trigger']['warning_bg_colour'] = _get_colour(
+    trigger['warning_bg_colour'] = _get_colour(
             style_mgr.get_style_param('sheet_trigger_warning_bg_colour'))
-    config['trigger']['warning_fg_colour'] = _get_colour(
+    trigger['warning_fg_colour'] = _get_colour(
             style_mgr.get_style_param('sheet_trigger_warning_fg_colour'))
-    config['trigger']['padding_x'] = style_mgr.get_scaled_size(0.5, 0)
-    config['trigger']['padding_y'] = style_mgr.get_scaled_size(0.3, 0)
+    trigger['line_width'] = style_mgr.get_scaled_size(0.1)
+    trigger['padding_x'] = style_mgr.get_scaled_size(0.5, 0)
+    trigger['padding_y'] = style_mgr.get_scaled_size(0.3, 0)
 
     # Cursor
     config['edit_cursor']['view_line_colour'] = _get_colour(
@@ -193,6 +204,7 @@ def get_config_with_custom_style(style_mgr):
     config['edit_cursor']['edit_line_colour'] = elc
     guide_colour = QColor(elc.red(), elc.green(), elc.blue(), 0x7f)
     config['edit_cursor']['guide_colour'] = guide_colour
+    config['line_width'] = style_mgr.get_scaled_size(0.1)
     config['play_cursor_colour'] = _get_colour(
             style_mgr.get_style_param('sheet_playback_cursor_colour'))
     config['edit_cursor']['min_snap_dist'] = style_mgr.get_scaled_size(10.0)

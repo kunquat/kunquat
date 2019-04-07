@@ -627,37 +627,34 @@ class View(QWidget, Updater):
         if not -self._config['tr_height'] < y_offset < self.height():
             return
 
+        lw = self._config['line_width']
+
         # Draw guide extension line
         if self._sheet_mgr.is_editing_enabled():
-            painter.setPen(self._config['edit_cursor']['guide_colour'])
+            pen = QPen(self._config['edit_cursor']['guide_colour'])
+            pen.setWidthF(lw)
+            pen.setCapStyle(Qt.FlatCap)
+            painter.setPen(pen)
             visible_col_nums = range(
                 self._first_col,
                 min(COLUMNS_MAX, self._first_col + self._visible_cols))
             for col_num in visible_col_nums:
                 if col_num != selected_col:
                     col_x_offset = self._get_col_offset(col_num)
-                    tfm = QTransform().translate(col_x_offset, y_offset)
+                    tfm = QTransform().translate(col_x_offset, y_offset + 0.5)
                     painter.setTransform(tfm)
                     painter.drawLine(
                             QPoint(border_width, 0),
                             QPoint(self._col_width - border_width - 1, 0))
 
         # Set up paint device for the actual cursor
-        tfm = QTransform().translate(x_offset + border_width, y_offset)
+        tfm = QTransform().translate(x_offset + border_width + 0.5, y_offset + 0.5)
         painter.setTransform(tfm)
-
-        # Draw the horizontal line
-        line_colour = self._config['edit_cursor']['view_line_colour']
-        if self._sheet_mgr.is_editing_enabled():
-            line_colour = self._config['edit_cursor']['edit_line_colour']
-        painter.setPen(line_colour)
-        painter.drawLine(
-                QPoint(0, 0),
-                QPoint(self._col_width - border_width * 2 - 1, 0))
 
         # Get trigger row at cursor
         column = self._sheet_mgr.get_column_at_location(location)
 
+        draw_hollow_cursor = False
         try:
             # Draw the trigger row
             trigger_count = column.get_trigger_count_at_row(row_ts)
@@ -665,9 +662,23 @@ class View(QWidget, Updater):
                     for i in range(trigger_count)]
             self._draw_trigger_row_with_edit_cursor(
                     painter, triggers, trigger_index)
-
         except KeyError:
             # No triggers, just draw a cursor
+            draw_hollow_cursor = True
+
+        # Draw the horizontal line
+        line_colour = self._config['edit_cursor']['view_line_colour']
+        if self._sheet_mgr.is_editing_enabled():
+            line_colour = self._config['edit_cursor']['edit_line_colour']
+        pen = QPen(line_colour)
+        pen.setWidthF(lw)
+        pen.setCapStyle(Qt.FlatCap)
+        painter.setPen(pen)
+        painter.drawLine(
+                QPoint(0, 0),
+                QPoint(self._col_width - border_width * 2 - 1, 0))
+
+        if draw_hollow_cursor:
             if self._sheet_mgr.get_replace_mode():
                 self._draw_hollow_replace_cursor(
                         painter, self._config['trigger']['padding_x'], 0)
@@ -683,10 +694,17 @@ class View(QWidget, Updater):
         rect.setBottom(self._config['tr_height'] - style_mgr.get_scaled_size(0.2))
         return rect
 
+    def _get_cursor_colour(self):
+        if self._sheet_mgr.is_editing_enabled():
+            return self._config['edit_cursor']['edit_line_colour']
+        return self._config['edit_cursor']['view_line_colour']
+
     def _draw_hollow_replace_cursor(self, painter, x_offset, y_offset):
         rect = self._get_hollow_replace_cursor_rect()
         rect.translate(x_offset, y_offset)
-        painter.setPen(self._config['trigger']['default_colour'])
+        pen = QPen(self._get_cursor_colour())
+        pen.setWidthF(self._config['line_width'])
+        painter.setPen(pen)
         painter.drawRect(rect)
 
     def _draw_insert_cursor(self, painter, x_offset, y_offset):
@@ -695,7 +713,7 @@ class View(QWidget, Updater):
         height = self._config['tr_height'] - style_mgr.get_scaled_size(0.15)
         rect = QRect(QPoint(0, 0), QPoint(width, height))
         rect.translate(x_offset, y_offset)
-        painter.fillRect(rect, self._config['trigger']['default_colour'])
+        painter.fillRect(rect, self._get_cursor_colour())
 
     def _draw_hollow_insert_cursor(self, painter, x_offset, y_offset):
         style_mgr = self._ui_model.get_style_manager()
@@ -703,7 +721,9 @@ class View(QWidget, Updater):
         height = self._config['tr_height'] - style_mgr.get_scaled_size(0.2)
         rect = QRect(QPoint(0, 0), QPoint(width, height))
         rect.translate(x_offset, y_offset)
-        painter.setPen(self._config['trigger']['default_colour'])
+        pen = QPen(self._get_cursor_colour())
+        pen.setWidthF(self._config['line_width'])
+        painter.setPen(pen)
         painter.drawRect(rect)
 
     def _draw_trigger_row_with_edit_cursor(self, painter, triggers, trigger_index):
@@ -712,8 +732,12 @@ class View(QWidget, Updater):
         border_width = self._config['border_width']
         vis_width = self._col_width - border_width * 2
 
+        lw = self._config['trigger']['line_width']
+        lw_half = lw // 2
+
         painter.setClipRect(
-                QRect(QPoint(0, 0), QPoint(vis_width - 1, self._config['tr_height'])))
+                QRect(QPoint(0, -lw_half),
+                    QSize(vis_width - 1, self._config['tr_height'] + lw)))
 
         # Hide underlying column contents
         painter.fillRect(
@@ -728,7 +752,7 @@ class View(QWidget, Updater):
         widths = [r.get_total_width() for r in rends]
         total_width = sum(widths)
 
-        trigger_tfm = painter.transform().translate(-self._trow_px_offset, 0)
+        trigger_tfm = painter.transform().translate(-self._trow_px_offset - 0.5, -(lw % 2))
         painter.setTransform(trigger_tfm)
 
         orig_trow_tfm = QTransform(trigger_tfm)
@@ -759,15 +783,21 @@ class View(QWidget, Updater):
         # Draw selected trigger row slice
         selection = self._ui_model.get_selection()
         if selection.has_trigger_row_slice():
+            border_width = self._config['line_width']
+            border_width_half = border_width // 2
+
             start = selection.get_area_top_left().get_trigger_index()
             stop = selection.get_area_bottom_right().get_trigger_index()
             start_x = sum(r.get_total_width() for r in rends[:start])
             stop_x = start_x + sum(r.get_total_width() for r in rends[start:stop])
             rect = QRect(
                     QPoint(start_x, 0), QPoint(stop_x, self._config['tr_height'] - 1))
+            rect.adjust(border_width, 0, -border_width_half, -border_width_half)
 
             painter.setTransform(orig_trow_tfm)
-            painter.setPen(self._config['area_selection']['border_colour'])
+            pen = QPen(self._config['area_selection']['border_colour'])
+            pen.setWidthF(border_width)
+            painter.setPen(pen)
             painter.setBrush(self._config['area_selection']['fill_colour'])
             painter.drawRect(rect)
 
@@ -793,19 +823,27 @@ class View(QWidget, Updater):
 
         border_width = self._config['border_width']
 
+        area_bw = self._config['line_width']
+        area_bw_half = area_bw // 2
+        offset_x_l = QPoint(max(0, area_bw_half), 0)
+        offset_x_r = QPoint(max(0, area_bw_half - ((area_bw + 1) % 2)), 0)
+        offset_y = QPoint(0, max(0, area_bw_half))
+
         area_col_start = max(first_area_col, draw_col_start)
         area_col_stop = min(last_area_col + 1, draw_col_stop)
         x_offset = self._get_col_offset(area_col_start)
-        painter.setTransform(QTransform().translate(x_offset, 0))
+        painter.setTransform(QTransform().translate(x_offset, 0.5))
         rect = QRect(
                 QPoint(border_width, start_y),
                 QPoint(self._col_width - border_width - 1, stop_y))
 
-        painter.setPen(self._config['area_selection']['border_colour'])
-        top_left = rect.topLeft()
-        top_right = rect.topRight()
-        bottom_left = rect.bottomLeft()
-        bottom_right = rect.bottomRight()
+        pen = QPen(self._config['area_selection']['border_colour'])
+        pen.setWidthF(area_bw)
+        painter.setPen(pen)
+        top_left = rect.topLeft() + offset_x_l
+        top_right = rect.topRight() - offset_x_r
+        bottom_left = rect.bottomLeft() + offset_x_l - offset_y
+        bottom_right = rect.bottomRight() - offset_x_r - offset_y
 
         for col_index in range(area_col_start, area_col_stop):
             painter.fillRect(rect, self._config['area_selection']['fill_colour'])
@@ -2053,14 +2091,16 @@ class View(QWidget, Updater):
 
         # Draw playback cursor
         if self._is_playback_cursor_visible:
-            painter.setPen(self._config['play_cursor_colour'])
+            pen = QPen(self._config['play_cursor_colour'])
+            pen.setWidthF(self._config['line_width'])
+            painter.setPen(pen)
             visible_col_nums = range(
                     self._first_col,
                     min(COLUMNS_MAX, self._first_col + self._visible_cols))
             for col_num in visible_col_nums:
                 col_x_offset = self._get_col_offset(col_num)
                 tfm = QTransform().translate(
-                        col_x_offset, self._playback_cursor_offset - self._px_offset)
+                        col_x_offset, self._playback_cursor_offset - self._px_offset + 0.5)
                 painter.setTransform(tfm)
                 painter.drawLine(QPoint(0, 0), QPoint(self._col_width - 2, 0))
 

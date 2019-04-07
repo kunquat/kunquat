@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2013-2018
+# Author: Tomi Jylhä-Ollila, Finland 2013-2019
 #
 # This file is part of Kunquat.
 #
@@ -61,7 +61,8 @@ class Ruler(QWidget, Updater):
         num_space = fm.tightBoundingRect('00.000')
         self._width = (num_space.width() +
                 self._config['line_len_long'] +
-                8)
+                self._config['num_padding_left'] +
+                self._config['num_padding_right'])
 
         self._cache.set_config(config)
         self._cache.set_width(self._width)
@@ -161,6 +162,11 @@ class Ruler(QWidget, Updater):
                                 self._px_per_beat) // tstamp.BEAT
                         self._playback_marker_offset = (
                                 location_from_start_px + start_px + self._px_offset)
+                        break
+                else:
+                    self._playback_marker_offset = None
+            else:
+                self._playback_marker_offset = None
 
         self.update()
 
@@ -276,11 +282,15 @@ class Ruler(QWidget, Updater):
 
             # Draw bottom border
             if rel_end_height <= self.height():
-                painter.setPen(self._get_final_colour(
+                pen = QPen(self._get_final_colour(
                     self._config['fg_colour'], pi != active_pattern_index))
+                lw = self._config['line_width']
+                lw_offset = lw % 2
+                pen.setWidthF(lw)
+                painter.setPen(pen)
                 painter.drawLine(
-                        QPoint(0, rel_end_height - 1),
-                        QPoint(self._width - 1, rel_end_height - 1))
+                        QPoint(0, rel_end_height - lw_offset),
+                        QPoint(self._width - 1, rel_end_height - lw_offset))
         else:
             # Fill trailing blank
             painter.setBackground(self._config['canvas_bg_colour'])
@@ -291,14 +301,20 @@ class Ruler(QWidget, Updater):
                             self._width, self.height() - rel_end_height)
                         )
 
+        lw = self._config['line_width']
+
         if self._playback_marker_offset != None:
-            painter.setPen(self._config['play_marker_colour'])
-            offset = self._playback_marker_offset - self._px_offset
+            pen = QPen(self._config['play_marker_colour'])
+            pen.setWidthF(lw)
+            painter.setPen(pen)
+            offset = self._playback_marker_offset - self._px_offset + ((lw + 1) % 2)
             painter.drawLine(0, offset, self._width, offset)
 
         if self._playback_cursor_offset != None:
-            painter.setPen(self._config['play_cursor_colour'])
-            offset = self._playback_cursor_offset - self._px_offset
+            pen = QPen(self._config['play_cursor_colour'])
+            pen.setWidthF(lw)
+            painter.setPen(pen)
+            offset = self._playback_cursor_offset - self._px_offset + ((lw + 1) % 2)
             painter.drawLine(0, offset, self._width, offset)
 
         if not self.isEnabled():
@@ -320,7 +336,7 @@ class Ruler(QWidget, Updater):
 
 class RulerCache():
 
-    PIXMAP_HEIGHT = 128
+    PIXMAP_HEIGHT = 256
 
     def __init__(self):
         self._width = 0
@@ -394,38 +410,50 @@ class RulerCache():
 
         # Background
         painter.setBackground(self._get_final_colour(cfg['bg_colour']))
-        painter.eraseRect(QRect(0, 0, self._width - 1, RulerCache.PIXMAP_HEIGHT))
-        painter.setPen(self._get_final_colour(cfg['fg_colour']))
-        painter.drawLine(
-                QPoint(self._width - 1, 0),
-                QPoint(self._width - 1, RulerCache.PIXMAP_HEIGHT - 1))
+        painter.eraseRect(QRect(0, 0, self._width, RulerCache.PIXMAP_HEIGHT))
 
-        # Start border
-        if index == 0:
-            painter.drawLine(QPoint(0, 0), QPoint(self._width - 2, 0))
+        # Lines
+        painter.save()
+
+        line_width = cfg['line_width']
+        line_pen = QPen(self._get_final_colour(cfg['fg_colour']))
+        line_pen.setWidthF(line_width)
+        painter.setPen(line_pen)
+        painter.translate(0, -((line_width - 1) // 2))
+
+        painter.drawLine(
+                QPoint(self._width - line_width / 2, 0),
+                QPoint(self._width - line_width / 2, RulerCache.PIXMAP_HEIGHT - 1))
 
         # Ruler lines
+        slice_margin_ts = utils.get_tstamp_from_px(line_width / 2, self._px_per_beat)
+
         start_ts = tstamp.Tstamp(0, tstamp.BEAT *
                 index * RulerCache.PIXMAP_HEIGHT // self._px_per_beat)
         stop_ts = tstamp.Tstamp(0, tstamp.BEAT *
                 (index + 1) * RulerCache.PIXMAP_HEIGHT // self._px_per_beat)
 
         def draw_ruler_line(painter, y, line_pos, lines_per_beat):
-            line_length = (cfg['line_len_long']
-                    if line_pos[1] == 0
-                    else cfg['line_len_short'])
+            if line_pos[1] == 0:
+                line_length = cfg['line_len_long'] if line_pos[0] != 0 else self._width
+            else:
+                line_length = cfg['line_len_short']
             painter.drawLine(
                     QPoint(self._width - 1 - line_length, y),
                     QPoint(self._width - 1, y))
 
         self._draw_markers(
                 painter,
-                start_ts,
-                stop_ts,
+                start_ts - slice_margin_ts,
+                stop_ts + slice_margin_ts,
                 cfg['line_min_dist'],
                 draw_ruler_line)
 
+        painter.restore()
+
         # Beat numbers
+        painter.setPen(self._get_final_colour(cfg['fg_colour']))
+
         num_extent = self._num_height // 2
         start_ts = tstamp.Tstamp(0, tstamp.BEAT *
                 (index * RulerCache.PIXMAP_HEIGHT - num_extent) //
@@ -446,8 +474,9 @@ class RulerCache():
             text = str(numi) if num == numi else str(round(num, 3))
 
             # Draw
+            right_offset = cfg['line_len_long'] + cfg['num_padding_right']
             rect = QRectF(0, y - self._num_height,
-                    self._width - cfg['line_len_long'] - 2, self._num_height + 3)
+                    self._width - right_offset, self._num_height + 3)
             painter.drawText(rect, text, text_option)
 
         painter.setFont(self._config['font'])
