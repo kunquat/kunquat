@@ -783,15 +783,21 @@ class View(QWidget, Updater):
         # Draw selected trigger row slice
         selection = self._ui_model.get_selection()
         if selection.has_trigger_row_slice():
+            border_width = self._config['line_width']
+            border_width_half = border_width // 2
+
             start = selection.get_area_top_left().get_trigger_index()
             stop = selection.get_area_bottom_right().get_trigger_index()
             start_x = sum(r.get_total_width() for r in rends[:start])
             stop_x = start_x + sum(r.get_total_width() for r in rends[start:stop])
             rect = QRect(
                     QPoint(start_x, 0), QPoint(stop_x, self._config['tr_height'] - 1))
+            rect.adjust(0, 0, -border_width_half, -border_width_half)
 
             painter.setTransform(orig_trow_tfm)
-            painter.setPen(self._config['area_selection']['border_colour'])
+            pen = QPen(self._config['area_selection']['border_colour'])
+            pen.setWidthF(border_width)
+            painter.setPen(pen)
             painter.setBrush(self._config['area_selection']['fill_colour'])
             painter.drawRect(rect)
 
@@ -817,19 +823,27 @@ class View(QWidget, Updater):
 
         border_width = self._config['border_width']
 
+        area_bw = self._config['line_width']
+        area_bw_half = area_bw // 2
+        offset_x_l = QPoint(max(0, area_bw_half), 0)
+        offset_x_r = QPoint(max(0, area_bw_half - ((area_bw + 1) % 2)), 0)
+        offset_y = QPoint(0, max(0, area_bw_half))
+
         area_col_start = max(first_area_col, draw_col_start)
         area_col_stop = min(last_area_col + 1, draw_col_stop)
         x_offset = self._get_col_offset(area_col_start)
-        painter.setTransform(QTransform().translate(x_offset, 0))
+        painter.setTransform(QTransform().translate(x_offset, 0.5))
         rect = QRect(
                 QPoint(border_width, start_y),
                 QPoint(self._col_width - border_width - 1, stop_y))
 
-        painter.setPen(self._config['area_selection']['border_colour'])
-        top_left = rect.topLeft()
-        top_right = rect.topRight()
-        bottom_left = rect.bottomLeft()
-        bottom_right = rect.bottomRight()
+        pen = QPen(self._config['area_selection']['border_colour'])
+        pen.setWidthF(area_bw)
+        painter.setPen(pen)
+        top_left = rect.topLeft() + offset_x_l
+        top_right = rect.topRight() - offset_x_r
+        bottom_left = rect.bottomLeft() + offset_x_l - offset_y
+        bottom_right = rect.bottomRight() - offset_x_r - offset_y
 
         for col_index in range(area_col_start, area_col_stop):
             painter.fillRect(rect, self._config['area_selection']['fill_colour'])
