@@ -19,6 +19,7 @@ class KqtComboBox(QComboBox):
     def __init__(self):
         super().__init__()
         self.setItemDelegate(QStyledItemDelegate())
+        self.view().setResizeMode(QListView.Adjust)
 
     def set_items(self, new_items):
         """Set items of the KqtComboBox, replacing existing ones.
