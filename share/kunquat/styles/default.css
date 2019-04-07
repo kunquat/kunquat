@@ -69,6 +69,9 @@ QComboBox QAbstractItemView
     border-bottom-color: <bg_colour_light>;
     border-radius: <border_thin_radius>;
     padding: 0;
+    background-color: <bg_colour>;
+    color: <fg_colour>;
+    outline: 0;
 }
 
 QToolTip
@@ -229,13 +232,6 @@ QComboBox::down-arrow
 {
     width: <combobox_arrow_size>;
     image: url(<icons_path>/arrow_down_tiny.png);
-}
-
-QComboBox QAbstractItemView
-{
-    background-color: <bg_colour>;
-    color: <fg_colour>;
-    outline: 0;
 }
 
 QComboBox QAbstractItemView::item
