@@ -535,6 +535,10 @@ class ThemeList(QListView, Updater):
         if theme_id:
             style_mgr = self._ui_model.get_style_manager()
             style_mgr.set_selected_theme_id(theme_id)
+
+            font_family, font_size = get_default_font_info(style_mgr)
+            update_ref_font_height((font_family, font_size), style_mgr)
+
             self._updater.signal_update('signal_theme_changed', 'signal_style_changed')
 
 
