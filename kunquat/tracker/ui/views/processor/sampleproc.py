@@ -600,6 +600,9 @@ class NoteMapEntry(QWidget, ProcessorUpdater):
     def _update_style(self):
         style_mgr = self._ui_model.get_style_manager()
 
+        self._pitch.update_style(style_mgr)
+        self._force.update_style(style_mgr)
+
         spacing = style_mgr.get_scaled_size_param('small_padding')
 
         self._params_layout.setSpacing(spacing)
@@ -816,6 +819,9 @@ class RandomEntryEditor(QWidget, ProcessorUpdater):
 
     def _update_style(self):
         style_mgr = self._ui_model.get_style_manager()
+
+        self._pitch_shift.update_style(style_mgr)
+        self._volume_shift.update_style(style_mgr)
 
         spacing = style_mgr.get_scaled_size_param('small_padding')
 
@@ -1127,6 +1133,8 @@ class HitMapEntry(QWidget, ProcessorUpdater):
 
     def _update_style(self):
         style_mgr = self._ui_model.get_style_manager()
+
+        self._force.update_style(style_mgr)
 
         spacing = style_mgr.get_scaled_size_param('small_padding')
         self._params_layout.setSpacing(spacing)
@@ -1676,6 +1684,8 @@ class SampleEditor(QWidget, ProcessorUpdater):
 
     def _update_style(self):
         style_mgr = self._ui_model.get_style_manager()
+
+        self._freq.update_style(style_mgr)
 
         spacing_x = style_mgr.get_scaled_size_param('large_padding')
         spacing_y = style_mgr.get_scaled_size_param('small_padding')

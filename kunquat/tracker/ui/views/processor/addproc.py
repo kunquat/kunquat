@@ -268,6 +268,7 @@ class TonePitchSpin(QWidget, ProcessorUpdater):
 
     def _update_style(self):
         style_mgr = self._ui_model.get_style_manager()
+        self._spin.update_style(style_mgr)
         self.layout().setSpacing(style_mgr.get_scaled_size_param('small_padding'))
 
     def _get_update_signal_type(self):

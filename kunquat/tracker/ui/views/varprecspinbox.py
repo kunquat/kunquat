@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2018
+# Author: Tomi Jylhä-Ollila, Finland 2018-2019
 #
 # This file is part of Kunquat.
 #
@@ -34,7 +34,7 @@ class VarPrecSpinBox(QAbstractSpinBox):
         self._min_value = 0
         self._max_value = 100 * 10**self._max_decimals
 
-        self._minimum_size = None
+        self._minimum_width = None
 
         line_edit = self.lineEdit()
         line_edit.setText(str(self._value))
@@ -288,8 +288,11 @@ class VarPrecSpinBox(QAbstractSpinBox):
 
         return (QValidator.Acceptable, in_str, pos)
 
+    def update_style(self, style_mgr):
+        self._minimum_width = None
+
     def minimumSizeHint(self):
-        if not self._minimum_size:
+        if not self._minimum_width:
             def get_longest_str(bound):
                 return '.' + str(bound)
             min_longest = get_longest_str(self._min_value)
@@ -302,10 +305,11 @@ class VarPrecSpinBox(QAbstractSpinBox):
 
             opt = QStyleOptionSpinBox()
             self.initStyleOption(opt)
-            self._minimum_size = self.style().sizeFromContents(
+            self._minimum_width = self.style().sizeFromContents(
                     QStyle.CT_SpinBox, opt, QSize(width, height), self).expandedTo(
-                            QApplication.globalStrut())
+                            QApplication.globalStrut()).width()
 
-        return self._minimum_size
+        height = super().minimumSizeHint().height()
+        return QSize(self._minimum_width, height)
 
 

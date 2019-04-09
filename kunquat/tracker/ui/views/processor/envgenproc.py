@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015-2018
+# Author: Tomi Jylhä-Ollila, Finland 2015-2019
 #
 # This file is part of Kunquat.
 #
@@ -177,6 +177,13 @@ class RangeEditor(QWidget, ProcessorUpdater):
 
     def _update_style(self):
         style_mgr = self._ui_model.get_style_manager()
+
+        spinboxes = (self._min_editor,
+                self._max_editor,
+                self._min_var_editor,
+                self._max_var_editor)
+        for vps in spinboxes:
+            vps.update_style(style_mgr)
 
         self._disableables.setSpacing(style_mgr.get_scaled_size_param('medium_padding'))
 
@@ -376,6 +383,8 @@ class TriggerImpulseBounds(QWidget, ProcessorUpdater):
 
     def _update_style(self):
         style_mgr = self._ui_model.get_style_manager()
+        self._start_value.update_style(style_mgr)
+        self._stop_value.update_style(style_mgr)
         self.layout().setSpacing(style_mgr.get_scaled_size_param('medium_padding'))
 
     def _update_all(self):

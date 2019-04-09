@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015-2018
+# Author: Tomi Jylhä-Ollila, Finland 2015-2019
 #
 # This file is part of Kunquat.
 #
@@ -72,8 +72,12 @@ class MaxDelay(VarPrecSpinBox, ProcessorUpdater):
 
     def _on_setup(self):
         self.register_action(self._get_update_signal_type(), self._update_value)
+        self.register_action('signal_style_changed', self._update_style)
         self._update_value()
         self.valueChanged.connect(self._value_changed)
+
+    def _update_style(self):
+        self.update_style(self._ui_model.get_style_manager())
 
     def _get_update_signal_type(self):
         return '_'.join(('signal_proc_delay', self._proc_id))
