@@ -214,12 +214,24 @@ class Authors(QTableView, Updater):
     def _on_setup(self):
         self.register_action('signal_authors', self._update_model)
         self.register_action('signal_style_changed', self._update_style)
-        self._update_style()
         self._update_model()
+        self._update_style()
+
+    def _resize(self):
+        self.resizeColumnsToContents()
+
+        row_height = self.rowHeight(0)
+        opt = QStyleOption()
+        opt.initFrom(self)
+        size = self.style().sizeFromContents(
+                QStyle.CT_LineEdit, opt, QSize(1, row_height), self).expandedTo(
+                        QApplication.globalStrut())
+        self.setFixedHeight(size.height())
 
     def _update_style(self):
         style_mgr = self._ui_model.get_style_manager()
         self.verticalHeader().setDefaultSectionSize(style_mgr.get_scaled_size(2))
+        self._resize()
 
     def _update_model(self):
         selected = None
@@ -240,16 +252,7 @@ class Authors(QTableView, Updater):
             selection_model.setCurrentIndex(
                     self._model.get_index(selected), QItemSelectionModel.SelectCurrent)
 
-        # Remove excess height
-        self.resizeColumnsToContents()
-
-        row_height = self.rowHeight(0)
-        opt = QStyleOption()
-        opt.initFrom(self)
-        size = self.style().sizeFromContents(
-                QStyle.CT_LineEdit, opt, QSize(1, row_height), self).expandedTo(
-                        QApplication.globalStrut())
-        self.setFixedHeight(size.height())
+        self._resize()
 
     def keyPressEvent(self, event):
         if self.state() != QAbstractItemView.EditingState:
