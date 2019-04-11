@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016-2018
+# Author: Tomi Jylhä-Ollila, Finland 2016-2019
 #
 # This file is part of Kunquat.
 #
@@ -109,6 +109,7 @@ class TempoEditor(VarPrecSpinBox, Updater):
     def _on_setup(self):
         self.register_action('signal_song', self._update_tempo)
         self.register_action('signal_order_list', self._update_tempo)
+        self.register_action('signal_style_changed', self._update_style)
 
         self.valueChanged.connect(self._change_tempo)
 
@@ -140,5 +141,8 @@ class TempoEditor(VarPrecSpinBox, Updater):
         song.set_initial_tempo(value)
 
         self._updater.signal_update('signal_song')
+
+    def _update_style(self):
+        self.update_style(self._ui_model.get_style_manager())
 
 

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016-2018
+# Author: Tomi Jylhä-Ollila, Finland 2016-2019
 #
 # This file is part of Kunquat.
 #
@@ -694,6 +694,7 @@ class CentrePitch(QWidget, Updater):
 
     def _update_style(self):
         style_mgr = self._ui_model.get_style_manager()
+        self._value.update_style(style_mgr)
         self.layout().setSpacing(style_mgr.get_scaled_size_param('medium_padding'))
 
     def _update_all(self):
@@ -1713,6 +1714,7 @@ class Note(QWidget, Updater):
 
     def _update_style(self):
         style_mgr = self._ui_model.get_style_manager()
+        self._cents.update_style(style_mgr)
         self._header.update_style(style_mgr)
         self._editor_layout.setSpacing(style_mgr.get_scaled_size_param('medium_padding'))
         self.layout().setSpacing(style_mgr.get_scaled_size_param('small_padding'))
@@ -2023,6 +2025,7 @@ class KeyEditor(QWidget, Updater):
 
     def _update_style(self):
         style_mgr = self._ui_model.get_style_manager()
+        self._cents.update_style(style_mgr)
         self._header.update_style(style_mgr)
         self._editor_layout.setSpacing(style_mgr.get_scaled_size_param('medium_padding'))
         self.layout().setSpacing(style_mgr.get_scaled_size_param('small_padding'))

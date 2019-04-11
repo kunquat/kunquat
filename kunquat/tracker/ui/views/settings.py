@@ -535,6 +535,10 @@ class ThemeList(QListView, Updater):
         if theme_id:
             style_mgr = self._ui_model.get_style_manager()
             style_mgr.set_selected_theme_id(theme_id)
+
+            font_family, font_size = get_default_font_info(style_mgr)
+            update_ref_font_height((font_family, font_size), style_mgr)
+
             self._updater.signal_update('signal_theme_changed', 'signal_style_changed')
 
 
@@ -1001,7 +1005,9 @@ class ColourButton(QPushButton):
         super().__init__()
         self._key = key
 
-        self.setFixedSize(QSize(48, 16))
+        self._width = 48
+        self._height = 2
+
         self.setAutoFillBackground(True)
 
         self.clicked.connect(self._clicked)
@@ -1014,12 +1020,15 @@ class ColourButton(QPushButton):
         self.setStyleSheet(style)
 
     def update_style(self, style_mgr):
-        width = style_mgr.get_scaled_size(4.6)
-        height = style_mgr.get_scaled_size(1.5)
-        self.setFixedSize(QSize(width, height))
+        self._width = style_mgr.get_scaled_size(4.5)
+        self._height = 2
+        self.setMinimumSize(QSize(self._width, self._height))
 
     def _clicked(self):
         self.colourSelected.emit(self._key)
+
+    def sizeHint(self):
+        return QSize(self._width, self._height)
 
 
 class ColourSelector(QWidget):
@@ -1696,8 +1705,7 @@ class Colours(QTreeView, Updater):
 
         self._colour_editor = ColourEditor()
 
-        header = self.header()
-        header.setStretchLastSection(False)
+        self.setUniformRowHeights(True)
         self.setHeaderHidden(True)
 
     def _on_setup(self):
@@ -1706,6 +1714,11 @@ class Colours(QTreeView, Updater):
         self._model = ColoursModel()
         self.add_to_updaters(self._model)
         self.setModel(self._model)
+
+        header = self.header()
+        header.setStretchLastSection(False)
+        header.setSectionResizeMode(0, QHeaderView.Stretch)
+        header.setSectionResizeMode(1, QHeaderView.Fixed)
 
         for index in self._model.get_colour_indices():
             node = index.internalPointer()
@@ -1716,9 +1729,6 @@ class Colours(QTreeView, Updater):
                 self.setIndexWidget(index, button)
 
         self.expandAll()
-
-        self.resizeColumnToContents(0)
-        self.setColumnWidth(1, 48)
 
         self._colour_editor.colourModified.connect(self._update_colour)
 
@@ -1738,6 +1748,8 @@ class Colours(QTreeView, Updater):
                 colour = style_mgr.get_style_param(key)
                 button.set_colour(colour)
                 button.update_style(style_mgr)
+
+        self.setColumnWidth(1, style_mgr.get_scaled_size(5.0))
 
     def _open_colour_editor(self, key):
         style_mgr = self._ui_model.get_style_manager()

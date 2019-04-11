@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016-2018
+# Author: Tomi Jylhä-Ollila, Finland 2016-2019
 #
 # This file is part of Kunquat.
 #
@@ -77,6 +77,9 @@ class RangeMapProc(QWidget, ProcessorUpdater):
 
     def _update_style(self):
         style_mgr = self._ui_model.get_style_manager()
+
+        for vps in (self._from_min, self._from_max, self._min_to, self._max_to):
+            vps.update_style(style_mgr)
 
         self._map_layout.setHorizontalSpacing(
                 style_mgr.get_scaled_size_param('large_padding'))

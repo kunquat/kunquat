@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016-2018
+# Author: Tomi Jylhä-Ollila, Finland 2016-2019
 #
 # This file is part of Kunquat.
 #
@@ -509,6 +509,7 @@ class HarmonicLevelEditor(QWidget, ProcessorUpdater):
 
     def _update_style(self):
         style_mgr = self._ui_model.get_style_manager()
+        self._pitch_factor.update_style(style_mgr)
         self.layout().setContentsMargins(
                 style_mgr.get_scaled_size_param('medium_padding'), 0, 0, 0)
         self.layout().setSpacing(style_mgr.get_scaled_size_param('small_padding'))

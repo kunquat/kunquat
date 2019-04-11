@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016-2018
+# Author: Tomi Jylhä-Ollila, Finland 2016-2019
 #
 # This file is part of Kunquat.
 #
@@ -99,6 +99,8 @@ class InitStateEditor(QWidget, ProcessorUpdater):
 
     def _update_style(self):
         style_mgr = self._ui_model.get_style_manager()
+        for vps in (self._init_val, self._osc_speed, self._osc_depth):
+            vps.update_style(style_mgr)
         self.layout().setSpacing(style_mgr.get_scaled_size_param('large_padding'))
 
     def _update_state(self):

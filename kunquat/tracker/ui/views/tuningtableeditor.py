@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016-2018
+# Author: Tomi Jylhä-Ollila, Finland 2016-2019
 #
 # This file is part of Kunquat.
 #
@@ -95,6 +95,8 @@ class TuningTableEditor(QWidget, Updater):
 
     def _update_style(self):
         style_mgr = self._ui_model.get_style_manager()
+        self._ref_pitch.update_style(style_mgr)
+        self._pitch_offset.update_style(style_mgr)
         spacing_x = style_mgr.get_scaled_size_param('medium_padding')
         spacing_y = style_mgr.get_scaled_size_param('small_padding')
         self._global_settings_layout.setHorizontalSpacing(spacing_x)

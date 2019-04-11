@@ -776,6 +776,9 @@ class GeneralEditor(QWidget, Updater):
 
     def _update_style(self):
         self._update_config()
+        style_mgr = self._ui_model.get_style_manager()
+        for vps in (self._length, self._spacing_value, self._offset):
+            vps.update_style(style_mgr)
         self.update()
 
     def _update_config(self):

@@ -939,6 +939,7 @@ class LengthEditor(QWidget, Updater):
 
     def _update_style(self):
         style_mgr = self._ui_model.get_style_manager()
+        self._spinbox.update_style(style_mgr)
         margin_x = style_mgr.get_scaled_size_param('medium_padding')
         self.layout().setContentsMargins(margin_x, 0, margin_x, 0)
         self.layout().setSpacing(style_mgr.get_scaled_size_param('medium_padding'))
