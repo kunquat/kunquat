@@ -43,10 +43,6 @@ class Control():
         manifest = {} if existence else None
         return { key: manifest }
 
-    def set_existence(self, existence):
-        transaction = self.get_edit_set_existence(existence)
-        self._store.put(transaction)
-
     def get_existence(self):
         key = '{}/p_manifest.json'.format(self._control_id)
         return (type(self._store.get(key)) == dict)
