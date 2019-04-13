@@ -43,10 +43,6 @@ class Control():
         manifest = {} if existence else None
         return { key: manifest }
 
-    def set_existence(self, existence):
-        transaction = self.get_edit_set_existence(existence)
-        self._store.put(transaction)
-
     def get_existence(self):
         key = '{}/p_manifest.json'.format(self._control_id)
         return (type(self._store.get(key)) == dict)
@@ -78,10 +74,6 @@ class Control():
         controls[control_num] = au_num
 
         return { cmap_key: list(controls.items()) }
-
-    def connect_to_au(self, au_id):
-        transaction = self.get_edit_connect_to_au(au_id)
-        self._store.put(transaction)
 
     def get_active_notes(self):
         notes = self._session.get_active_notes_by_control_id(self._control_id)

@@ -37,7 +37,8 @@ class Module():
         self._store = None
         self._controller = None
         self._ui_model = None
-        self._audio_units = {}
+
+        self._control_ids = None
 
     def set_controller(self, controller):
         self._updater = controller.get_updater()
@@ -130,14 +131,23 @@ class Module():
     def set_random_seed_auto_update(self, enabled):
         self._store['i_random_seed_auto_update.json'] = enabled
 
-    def get_control_ids(self):
+    def flush_control_id_cache(self):
+        self._control_ids = {}
+
+    def _check_update_control_id_cache(self):
+        if self._control_ids:
+            return
+
         key = 'p_control_map.json'
         input_map = self._store.get(key, get_default_value(key))
-        control_ids = set()
-        for (control_number, _) in input_map:
-            control_id = 'control_{0:02x}'.format(control_number)
-            control_ids.add(control_id)
-        return control_ids
+        self._control_ids = set()
+        for control_number, _ in input_map:
+            control_id = 'control_{:02x}'.format(control_number)
+            self._control_ids.add(control_id)
+
+    def get_control_ids(self):
+        self._check_update_control_id_cache()
+        return self._control_ids
 
     def get_free_control_id(self):
         all_control_ids = set('control_{:02x}'.format(i) for i in range(CONTROLS_MAX))
@@ -163,12 +173,6 @@ class Module():
         control.set_controller(self._controller)
         control.set_ui_model(self._ui_model)
         return control
-
-    def add_control(self, control_id):
-        control = Control(control_id)
-        control.set_controller(self._controller)
-        control.set_ui_model(self._ui_model)
-        control.set_existence(True)
 
     def get_load_error_info(self):
         return self._session.get_module_load_error_info()
@@ -207,10 +211,6 @@ class Module():
     def get_audio_units(self, validate=True):
         au_ids = self.get_au_ids()
         all_audio_units = [self.get_audio_unit(i) for i in au_ids]
-        #all_auidio_units = self._audio_units.values()
-        #if validate:
-        #    valid = [i for i in all_audio_units if i.get_existence()]
-        #    return [] #valid
         return all_audio_units
 
     def _get_edit_try_connect_au_to_master(self, au_id):
@@ -241,6 +241,8 @@ class Module():
         transaction.update(control.get_edit_connect_to_au(au_id))
         transaction.update(self._get_edit_try_connect_au_to_master(au_id))
 
+        self._control_ids = None
+
         self._store.put(transaction)
 
     def add_effect(self, au_id, control_id):
@@ -255,6 +257,8 @@ class Module():
         transaction = au.get_edit_create_new_effect()
         transaction.update(control.get_edit_create_new())
         transaction.update(control.get_edit_connect_to_au(au_id))
+
+        self._control_ids = None
 
         self._store.put(transaction)
 
@@ -334,6 +338,7 @@ class Module():
             if cur_au_id != au_id:
                 new_map.append(pair)
         transaction.update({ cmap_key: new_map })
+        self._control_ids = None
 
         self._store.put(transaction)
 

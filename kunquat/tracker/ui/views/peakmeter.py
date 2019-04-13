@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2013-2018
+# Author: Tomi Jylhä-Ollila, Finland 2013-2019
 #
 # This file is part of Kunquat.
 #
@@ -156,25 +156,32 @@ class PeakMeter(QWidget, Updater):
         levels = self._stat_mgr.get_audio_levels()
         cur_time = time.time()
 
+        is_update_needed = False
+
         for ch, level in enumerate(levels):
-            if level > 0:
-                self._levels_dB[ch] = math.log(level, 2) * 6
-            else:
-                self._levels_dB[ch] = float('-inf')
+            level_dB = (math.log(level, 2) * 6) if (level > 0) else float('-inf')
+            if self._levels_dB[ch] != level_dB:
+                is_update_needed = True
+                self._levels_dB[ch] = level_dB
 
             # Update hold
             hold = self._holds[ch]
             lifetime = cur_time - hold[1]
             if hold[0] < self._levels_dB[ch] or \
                     lifetime > self._config['hold_time']:
+                is_update_needed = True
                 hold[0] = self._levels_dB[ch]
                 hold[1] = cur_time
 
         max_levels = self._stat_mgr.get_max_audio_levels()
-        self._max_levels_dB = [
+        max_levels_dB = [
                 (math.log(s, 2) * 6 if s > 0 else float('-inf')) for s in max_levels]
+        if self._max_levels_dB != max_levels_dB:
+            is_update_needed = True
+            self._max_levels_dB = max_levels_dB
 
-        self.update()
+        if is_update_needed:
+            self.update()
 
     def paintEvent(self, ev):
         painter = QPainter(self)
