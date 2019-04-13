@@ -38,7 +38,10 @@
 
 
 #define MIN_CUTOFF_RATIO 0.00003
-#define MAX_CUTOFF_RATIO 0.4999
+#define MAX_CUTOFF_RATIO 0.49
+
+
+#define ENABLE_FILTER_SSE (KQT_SSE && KQT_SSE2 && KQT_SSE4_1)
 
 
 void Filter_get_port_groups(
@@ -119,7 +122,7 @@ static float get_cutoff_ratio(double cutoff_param, int32_t audio_rate)
 }
 
 
-#if KQT_SSE && KQT_SSE2 && KQT_SSE4_1
+#if ENABLE_FILTER_SSE
 
 static __m128 get_cutoff_fast_f4(__m128 rel_freq)
 {
@@ -180,7 +183,7 @@ static void Filter_state_impl_apply_input_buffers(
             const float* cutoff_buf = Work_buffer_get_contents(cutoff_wb, 0);
 
             // Get cutoff values from input
-#if KQT_SSE && KQT_SSE2 && KQT_SSE4_1
+#if ENABLE_FILTER_SSE
             const __m128 inv_audio_rate = _mm_set_ps1((float)(1.0 / audio_rate));
             for (int32_t i = 0; i < fast_cutoff_stop; i += 4)
             {
