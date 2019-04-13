@@ -79,10 +79,6 @@ class Control():
 
         return { cmap_key: list(controls.items()) }
 
-    def connect_to_au(self, au_id):
-        transaction = self.get_edit_connect_to_au(au_id)
-        self._store.put(transaction)
-
     def get_active_notes(self):
         notes = self._session.get_active_notes_by_control_id(self._control_id)
         return notes
