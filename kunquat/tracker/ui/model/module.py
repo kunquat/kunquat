@@ -131,6 +131,9 @@ class Module():
     def set_random_seed_auto_update(self, enabled):
         self._store['i_random_seed_auto_update.json'] = enabled
 
+    def flush_control_id_cache(self):
+        self._control_ids = {}
+
     def _check_update_control_id_cache(self):
         if self._control_ids:
             return
@@ -170,12 +173,6 @@ class Module():
         control.set_controller(self._controller)
         control.set_ui_model(self._ui_model)
         return control
-
-    def add_control(self, control_id):
-        control = Control(control_id)
-        control.set_controller(self._controller)
-        control.set_ui_model(self._ui_model)
-        control.set_existence(True)
 
     def get_load_error_info(self):
         return self._session.get_module_load_error_info()

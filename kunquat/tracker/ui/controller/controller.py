@@ -377,6 +377,8 @@ class Controller():
         # Send data
         self._store.put(transaction, transaction_notifier=notifier)
 
+        self._ui_model.get_module().flush_control_id_cache()
+
         self._updater.signal_update('signal_controls')
 
     def _reset_runtime_env(self):
