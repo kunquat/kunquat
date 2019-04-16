@@ -881,7 +881,7 @@ class Session():
         self._aus[au_id].test_expressions[index] = expr_name
 
     def get_au_test_expression(self, au_id, index):
-        return self._aus[au_id].test_expressions.get(index, '')
+        return self._aus[au_id].test_expressions.get(index, None)
 
     def set_au_test_params_enabled(self, au_id, enabled):
         self._aus[au_id].test_params_enabled = enabled
