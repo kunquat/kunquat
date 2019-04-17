@@ -128,7 +128,7 @@ class ConnectionCable():
             painter.end()
 
     def copy_cable(self, painter):
-        lwo_amount = ((self._width - 1) / 2)
+        lwo_amount = self._width / 2
         lwo = QPointF(lwo_amount, lwo_amount)
         painter.drawImage(
                 -self._texture_translation + self._start_point_abs - lwo, self._image)
