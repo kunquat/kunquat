@@ -531,7 +531,7 @@ class Controller():
             force = au.get_test_force() - module.get_force_shift()
             expressions = []
             for i in range(2):
-                expr_name = au.get_test_expression(i)
+                expr_name = au.get_test_expression(i) or ''
                 expressions.append(expr_name)
         else:
             channel_defaults = self._ui_model.get_module().get_channel_defaults()

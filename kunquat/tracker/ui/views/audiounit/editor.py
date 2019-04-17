@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2018
+# Author: Tomi Jylhä-Ollila, Finland 2014-2019
 #
 # This file is part of Kunquat.
 #
@@ -167,8 +167,17 @@ class TestExpression(KqtComboBox, AudioUnitUpdater):
             # Apply instrument default as the initial note expression
             module = self._ui_model.get_module()
             au = module.get_audio_unit(self._au_id)
-            note_expr = au.get_default_note_expression()
-            au.set_test_expression(self._index, note_expr)
+            if (au.get_test_expression(self._index) == None and
+                    au.get_test_expression(1 - self._index) == None):
+                note_expr = au.get_default_note_expression()
+                if note_expr:
+                    au.set_test_expression(self._index, note_expr)
+                else:
+                    expressions = au.get_expression_names()
+                    if expressions:
+                        # Pick some expression by default
+                        # to avoid unpleasant surprise when testing the instrument
+                        au.set_test_expression(self._index, min(expressions))
 
         self._update_expression_list()
 
