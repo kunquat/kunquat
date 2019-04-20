@@ -35,7 +35,7 @@ class EnvgenProc(QWidget, ProcessorUpdater):
         self._updater = None
 
         self._global_adjust = GlobalAdjustSlider()
-        self._linear_force = QCheckBox('Linear force')
+        self._linear_force = QCheckBox('Use dB output')
         self._range = RangeEditor()
         self._triggers = Triggers()
         self._time_env = EgenTimeEnv()
