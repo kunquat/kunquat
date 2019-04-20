@@ -36,6 +36,7 @@ class Ruler(QWidget, Updater):
         self._playback_cursor_offset = None
 
         self._playback_marker_offset = None
+        self._playback_marker_start_height_index = None
 
         self._pinsts = []
 
@@ -139,6 +140,7 @@ class Ruler(QWidget, Updater):
         playback_mgr = self._ui_model.get_playback_manager()
 
         self._playback_marker_offset = None
+        self._playback_marker_start_height_index = None
 
         marker = playback_mgr.get_playback_marker()
         if marker:
@@ -154,19 +156,14 @@ class Ruler(QWidget, Updater):
                 pass
 
             if cur_pinst != None:
-                for pinst, start_height in zip(self._pinsts, self._start_heights):
+                for i, (pinst, start_height) in enumerate(
+                        zip(self._pinsts, self._start_heights)):
                     if cur_pinst == pinst:
-                        start_px = start_height - self._px_offset
-                        location_from_start_px = (
+                        self._playback_marker_start_height_index = i
+                        self._playback_marker_offset = (
                                 (row_ts.beats * tstamp.BEAT + row_ts.rem) *
                                 self._px_per_beat) // tstamp.BEAT
-                        self._playback_marker_offset = (
-                                location_from_start_px + start_px + self._px_offset)
                         break
-                else:
-                    self._playback_marker_offset = None
-            else:
-                self._playback_marker_offset = None
 
         self.update()
 
@@ -304,11 +301,14 @@ class Ruler(QWidget, Updater):
         lw = self._config['line_width']
 
         if self._playback_marker_offset != None:
-            pen = QPen(self._config['play_marker_colour'])
-            pen.setWidthF(lw)
-            painter.setPen(pen)
-            offset = self._playback_marker_offset - self._px_offset + ((lw + 1) % 2)
-            painter.drawLine(0, offset, self._width, offset)
+            if self._playback_marker_start_height_index < len(self._start_heights):
+                pen = QPen(self._config['play_marker_colour'])
+                pen.setWidthF(lw)
+                painter.setPen(pen)
+                start_px = self._start_heights[self._playback_marker_start_height_index]
+                rel_start_px = start_px - self._px_offset
+                offset = self._playback_marker_offset + rel_start_px + ((lw + 1) % 2)
+                painter.drawLine(0, offset, self._width, offset)
 
         if self._playback_cursor_offset != None:
             pen = QPen(self._config['play_cursor_colour'])
