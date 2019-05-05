@@ -92,21 +92,13 @@ static void del_Padsynth_sample_map(Padsynth_sample_map* sm);
 
 
 static Padsynth_sample_map* new_Padsynth_sample_map(
-        int sample_count,
-        int32_t sample_length,
-        double min_pitch,
-        double max_pitch,
-        double centre_pitch)
+        int sample_count, int32_t sample_length)
 {
     rassert(sample_count > 0);
     rassert(sample_count <= 128);
     rassert(sample_length >= PADSYNTH_MIN_SAMPLE_LENGTH);
     rassert(sample_length <= PADSYNTH_MAX_SAMPLE_LENGTH);
     rassert(is_p2(sample_length));
-    rassert(isfinite(min_pitch));
-    rassert(isfinite(max_pitch));
-    rassert(min_pitch <= max_pitch);
-    rassert(isfinite(centre_pitch));
 
     Padsynth_sample_map* sm = memory_alloc_item(Padsynth_sample_map);
     if (sm == NULL)
@@ -114,9 +106,9 @@ static Padsynth_sample_map* new_Padsynth_sample_map(
 
     sm->sample_count = sample_count;
     sm->sample_length = sample_length;
-    sm->min_pitch = min_pitch;
-    sm->max_pitch = max_pitch;
-    sm->centre_pitch = centre_pitch;
+    sm->min_pitch = NAN;
+    sm->max_pitch = NAN;
+    sm->centre_pitch = NAN;
     sm->map = NULL;
 
     sm->map = new_AAtree(
@@ -153,11 +145,7 @@ static Padsynth_sample_map* new_Padsynth_sample_map(
             return NULL;
         }
 
-        if (sample_count > 1)
-            entry->centre_pitch =
-                lerp(min_pitch, max_pitch, i / (double)(sample_count - 1));
-        else
-            entry->centre_pitch = (min_pitch + max_pitch) * 0.5;
+        entry->centre_pitch = NAN;
 
         entry->sample = sample;
 
@@ -193,11 +181,36 @@ static void Padsynth_sample_map_set_pitch_range(
     rassert(isfinite(max_pitch));
     rassert(min_pitch <= max_pitch);
 
-    if (sm->min_pitch == min_pitch && sm->max_pitch == max_pitch)
-        return;
-
     sm->min_pitch = min_pitch;
     sm->max_pitch = max_pitch;
+
+    return;
+}
+
+
+static double round_to_period(double cents, int32_t sample_length)
+{
+    rassert(isfinite(cents));
+    rassert(sample_length > 0);
+
+    const double entry_Hz = cents_to_Hz(cents);
+    const double cycle_length = PADSYNTH_DEFAULT_AUDIO_RATE / entry_Hz;
+    const double cycle_count = sample_length / cycle_length;
+    const double rounded_cycle_count = round(cycle_count);
+    const double rounded_cycle_length = sample_length / rounded_cycle_count;
+    const double rounded_entry_Hz = PADSYNTH_DEFAULT_AUDIO_RATE / rounded_cycle_length;
+    const double rounded_entry_cents = log2(rounded_entry_Hz / 440) * 1200.0;
+
+    return rounded_entry_cents;
+}
+
+
+static void Padsynth_sample_map_update_sample_pitches(Padsynth_sample_map* sm)
+{
+    rassert(sm != NULL);
+    rassert(isfinite(sm->min_pitch));
+    rassert(isfinite(sm->max_pitch));
+    rassert(isfinite(sm->centre_pitch));
 
     AAiter* iter = AAiter_init(AAITER_AUTO, sm->map);
 
@@ -206,7 +219,8 @@ static void Padsynth_sample_map_set_pitch_range(
     if (sm->sample_count == 1)
     {
         rassert(entry != NULL);
-        entry->centre_pitch = (min_pitch + max_pitch) * 0.5;
+        const double unrounded_pitch = (sm->min_pitch + sm->max_pitch) * 0.5;
+        entry->centre_pitch = round_to_period(unrounded_pitch, sm->sample_length);
 
         entry = AAiter_get_next(iter);
     }
@@ -215,8 +229,9 @@ static void Padsynth_sample_map_set_pitch_range(
         for (int i = 0; i < sm->sample_count; ++i)
         {
             rassert(entry != NULL);
-            entry->centre_pitch =
-                lerp(min_pitch, max_pitch, i / (double)(sm->sample_count - 1));
+            const double unrounded_pitch =
+                lerp(sm->min_pitch, sm->max_pitch, i / (double)(sm->sample_count - 1));
+            entry->centre_pitch = round_to_period(unrounded_pitch, sm->sample_length);
 
             entry = AAiter_get_next(iter);
         }
@@ -642,12 +657,8 @@ static bool apply_padsynth(
             padsynth->sample_map->sample_length != sample_length ||
             padsynth->sample_map->sample_count != sample_count)
     {
-        Padsynth_sample_map* new_sm = new_Padsynth_sample_map(
-                sample_count,
-                sample_length,
-                min_pitch,
-                max_pitch,
-                centre_pitch);
+        Padsynth_sample_map* new_sm =
+            new_Padsynth_sample_map(sample_count, sample_length);
         if (new_sm == NULL)
         {
             for (int i = 0; i < cb_data_count; ++i)
@@ -658,11 +669,10 @@ static bool apply_padsynth(
         del_Padsynth_sample_map(padsynth->sample_map);
         padsynth->sample_map = new_sm;
     }
-    else
-    {
-        Padsynth_sample_map_set_centre_pitch(padsynth->sample_map, centre_pitch);
-        Padsynth_sample_map_set_pitch_range(padsynth->sample_map, min_pitch, max_pitch);
-    }
+
+    Padsynth_sample_map_set_centre_pitch(padsynth->sample_map, centre_pitch);
+    Padsynth_sample_map_set_pitch_range(padsynth->sample_map, min_pitch, max_pitch);
+    Padsynth_sample_map_update_sample_pitches(padsynth->sample_map);
 
     // Build samples
     if (params != NULL)
