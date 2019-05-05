@@ -362,6 +362,14 @@ class PadsynthParams(ProcParams):
                     fi = waveform[i * 2]
                     amplitude = math.sqrt(fr * fr + fi * fi)
                     hl.append([i * freq_mult, amplitude * amp_mult])
+
+            # Clean up spurious harmonics from computational inaccuracies
+            max_amp = max(a for i, a in hl)
+            if max_amp > 0:
+                min_amp = max_amp / 65536
+                hl = [[i, a] for i, a in hl if a >= min_amp]
+            else:
+                hl = [[1, 0]]
         else:
             hl = []
             for freq_mult, level in self._get_harmonic_levels_data():
