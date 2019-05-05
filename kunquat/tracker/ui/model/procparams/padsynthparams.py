@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016-2018
+# Author: Tomi Jylhä-Ollila, Finland 2016-2019
 #
 # This file is part of Kunquat.
 #
@@ -236,7 +236,7 @@ class PadsynthParams(ProcParams):
     _DEFAULT_AUDIO_RATE = 48000
 
     _DEFAULT_BANDWIDTH_BASE = 1
-    _DEFAULT_BANDWIDTH_SCALE = 1
+    _DEFAULT_BANDWIDTH_SCALE = 0
 
     _DEFAULT_RESONANCE_ENV = {
             'nodes': [[0, 1], [_DEFAULT_AUDIO_RATE // 2, 1]], 'smooth': False }

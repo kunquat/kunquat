@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2019
  *
  * This file is part of Kunquat.
  *
@@ -174,9 +174,9 @@ static bool read_param(Streader* sr, const char* key, void* userdata)
         if (!Streader_read_float(sr, &scale))
             return false;
 
-        if (scale < 1)
+        if (scale < 0)
         {
-            Streader_set_error(sr, "PADsynth bandwidth scale must be at least 1");
+            Streader_set_error(sr, "PADsynth bandwidth scale must not be negative");
             return false;
         }
 

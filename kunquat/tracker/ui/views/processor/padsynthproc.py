@@ -371,7 +371,7 @@ class BandwidthBaseEditor(PadsynthParamSlider):
 class BandwidthScaleEditor(PadsynthParamSlider):
 
     def __init__(self):
-        super().__init__(2, 1.0, 10.0)
+        super().__init__(2, 0.0, 10.0)
 
     def _get_update_signal_type(self):
         return 'signal_padsynth_{}'.format(self._proc_id)
