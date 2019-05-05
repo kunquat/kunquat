@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2019
  *
  * This file is part of Kunquat.
  *
@@ -31,8 +31,8 @@
 
 #define PADSYNTH_DEFAULT_AUDIO_RATE 48000
 
-#define PADSYNTH_DEFAULT_BANDWIDTH_BASE 1
-#define PADSYNTH_DEFAULT_BANDWIDTH_SCALE 1
+#define PADSYNTH_DEFAULT_BANDWIDTH_BASE 0.01
+#define PADSYNTH_DEFAULT_BANDWIDTH_SCALE 0
 
 
 typedef struct Padsynth_harmonic
