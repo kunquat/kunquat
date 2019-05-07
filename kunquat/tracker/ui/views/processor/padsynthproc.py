@@ -30,6 +30,12 @@ from .procsimpleenv import ProcessorSimpleEnvelope
 from .waveformeditor import WaveformEditor
 
 
+def _update_layout(style_mgr, layout):
+    margin = style_mgr.get_scaled_size_param('medium_padding')
+    layout.setContentsMargins(margin, margin, margin, margin)
+    layout.setSpacing(style_mgr.get_scaled_size_param('medium_padding'))
+
+
 class PadsynthProc(QWidget, ProcessorUpdater):
 
     @staticmethod
@@ -39,33 +45,20 @@ class PadsynthProc(QWidget, ProcessorUpdater):
     def __init__(self):
         super().__init__()
 
-        self._playback_params = PlaybackParams()
-        self._apply_button = ApplyButton()
-        self._sample_config = SampleConfigEditor()
-        self._bandwidth = BandwidthEditor()
-        self._harmonics_base = HarmonicsBaseEditor()
-        self._harmonic_levels = HarmonicLevels()
-        self._res_env = ResonanceEnvelope()
+        playback_params = PlaybackParams()
+        apply_button = ApplyButton()
+        sample_config = SampleConfigEditor()
+        tabs = PadsynthTabs()
 
-        self.add_to_updaters(
-                self._playback_params,
-                self._apply_button,
-                self._sample_config,
-                self._bandwidth,
-                self._harmonics_base,
-                self._harmonic_levels,
-                self._res_env)
+        self.add_to_updaters(playback_params, apply_button, sample_config, tabs)
 
         v = QVBoxLayout()
         v.setContentsMargins(4, 4, 4, 4)
         v.setSpacing(4)
-        v.addWidget(self._playback_params)
-        v.addWidget(self._apply_button)
-        v.addWidget(self._sample_config)
-        v.addWidget(self._bandwidth)
-        v.addWidget(self._harmonics_base)
-        v.addWidget(self._harmonic_levels)
-        v.addWidget(self._res_env)
+        v.addWidget(playback_params)
+        v.addWidget(apply_button)
+        v.addWidget(sample_config)
+        v.addWidget(tabs)
         self.setLayout(v)
 
     def _on_setup(self):
@@ -73,11 +66,91 @@ class PadsynthProc(QWidget, ProcessorUpdater):
         self._update_style()
 
     def _update_style(self):
-        style_mgr = self._ui_model.get_style_manager()
+        _update_layout(self._ui_model.get_style_manager(), self.layout())
 
-        margin = style_mgr.get_scaled_size_param('medium_padding')
-        self.layout().setContentsMargins(margin, margin, margin, margin)
-        self.layout().setSpacing(style_mgr.get_scaled_size_param('medium_padding'))
+
+class PadsynthTabs(QTabWidget, ProcessorUpdater):
+
+    def __init__(self):
+        super().__init__()
+
+        harmonics = Harmonics()
+        phases = Phases()
+        resonance = Resonance()
+
+        self.add_to_updaters(harmonics, phases, resonance)
+
+        self.addTab(harmonics, 'Harmonics')
+        #self.addTab(phases, 'Phases')
+        self.addTab(resonance, 'Resonance')
+
+
+class Harmonics(QWidget, ProcessorUpdater):
+
+    def __init__(self):
+        super().__init__()
+
+        bandwidth = BandwidthEditor()
+        harmonics_base = HarmonicsBaseEditor()
+        harmonic_levels = HarmonicLevels()
+
+        self.add_to_updaters(bandwidth, harmonics_base, harmonic_levels)
+
+        v = QVBoxLayout()
+        v.setContentsMargins(0, 0, 0, 0)
+        v.setSpacing(0)
+        v.addWidget(bandwidth)
+        v.addWidget(harmonics_base)
+        v.addWidget(harmonic_levels)
+        self.setLayout(v)
+
+    def _on_setup(self):
+        self.register_action('signal_style_changed', self._update_style)
+        self._update_style()
+
+    def _update_style(self):
+        _update_layout(self._ui_model.get_style_manager(), self.layout())
+
+
+class Phases(QWidget, ProcessorUpdater):
+
+    def __init__(self):
+        super().__init__()
+
+        v = QVBoxLayout()
+        v.setContentsMargins(0, 0, 0, 0)
+        v.setSpacing(0)
+        self.setLayout(v)
+
+    def _on_setup(self):
+        self.register_action('signal_style_changed', self._update_style)
+        self._update_style()
+
+    def _update_style(self):
+        _update_layout(self._ui_model.get_style_manager(), self.layout())
+
+
+class Resonance(QWidget, ProcessorUpdater):
+
+    def __init__(self):
+        super().__init__()
+
+        res_env = ResonanceEnvelope()
+
+        self.add_to_updaters(res_env)
+
+        v = QVBoxLayout()
+        v.setContentsMargins(0, 0, 0, 0)
+        v.setSpacing(0)
+        v.addWidget(res_env)
+        self.setLayout(v)
+
+    def _on_setup(self):
+        self.register_action('signal_style_changed', self._update_style)
+        self._update_style()
+
+    def _update_style(self):
+        _update_layout(self._ui_model.get_style_manager(), self.layout())
 
 
 class PlaybackParams(QWidget, ProcessorUpdater):
