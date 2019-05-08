@@ -81,7 +81,7 @@ class PadsynthTabs(QTabWidget, ProcessorUpdater):
         self.add_to_updaters(harmonics, phases, resonance)
 
         self.addTab(harmonics, 'Harmonics')
-        #self.addTab(phases, 'Phases')
+        self.addTab(phases, 'Phases')
         self.addTab(resonance, 'Resonance')
 
 
@@ -117,17 +117,56 @@ class Phases(QWidget, ProcessorUpdater):
     def __init__(self):
         super().__init__()
 
+        self._use_button = QCheckBox('Use harmonics phase information')
+
+        self._editors_layout = QVBoxLayout()
+        self._editors_layout.setContentsMargins(0, 0, 0, 0)
+        self._editors_layout.setSpacing(0)
+        self._editors_layout.addStretch(1)
+
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(0)
+        v.addWidget(self._use_button)
+        v.addLayout(self._editors_layout)
         self.setLayout(v)
 
     def _on_setup(self):
         self.register_action('signal_style_changed', self._update_style)
+        self.register_action(self._get_update_signal_type(), self._update_use_phase)
+
+        self._use_button.stateChanged.connect(self._change_use_phase)
+
         self._update_style()
+        self._update_use_phase()
+
+    def _get_update_signal_type(self):
+        return 'signal_padsynth_{}'.format(self._proc_id)
 
     def _update_style(self):
-        _update_layout(self._ui_model.get_style_manager(), self.layout())
+        style_mgr = self._ui_model.get_style_manager()
+        _update_layout(style_mgr, self.layout())
+        self._editors_layout.setSpacing(
+                style_mgr.get_scaled_size_param('medium_padding'))
+
+    def _get_params(self):
+        return utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
+
+    def _update_use_phase(self):
+        params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
+        use = params.get_use_phase_data()
+
+        old_block = self._use_button.blockSignals(True)
+        self._use_button.setCheckState(Qt.Checked if use else Qt.Unchecked)
+        self._use_button.blockSignals(old_block)
+
+        self._editors_layout.setEnabled(use)
+
+    def _change_use_phase(self, state):
+        use = (state == Qt.Checked)
+        params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
+        params.set_use_phase_data(use)
+        self._updater.signal_update(self._get_update_signal_type())
 
 
 class Resonance(QWidget, ProcessorUpdater):
