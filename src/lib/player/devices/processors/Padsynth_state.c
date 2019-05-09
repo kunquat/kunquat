@@ -281,7 +281,30 @@ void Padsynth_vstate_init(Voice_state* vstate, const Proc_state* proc_state)
 
     Padsynth_vstate* ps_vstate = (Padsynth_vstate*)vstate;
     ps_vstate->init_pitch = NAN;
-    ps_vstate->pos = Random_get_index(vstate->rand_p, sample_length);
+
+    ps_vstate->pos = round(ps->start_pos * sample_length);
+    ps_vstate->pos = round(sample_length * ps->start_pos);
+
+    if (ps->is_start_pos_var_enabled)
+    {
+        if (ps->start_pos_var == 1.0)
+        {
+            // Preserve backwards compatibility
+            ps_vstate->pos = Random_get_index(vstate->rand_p, sample_length);
+        }
+        else
+        {
+            const double shift_norm =
+                (Random_get_float_lb(vstate->rand_p) - 0.5) * ps->start_pos_var;
+            ps_vstate->pos += (shift_norm * sample_length) + sample_length;
+        }
+    }
+
+    if (ps_vstate->pos >= sample_length)
+        ps_vstate->pos = fmod(ps_vstate->pos, sample_length);
+
+    rassert(ps_vstate->pos >= 0);
+    rassert(ps_vstate->pos < sample_length);
 
     return;
 }

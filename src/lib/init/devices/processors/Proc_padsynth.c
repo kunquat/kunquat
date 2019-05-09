@@ -38,6 +38,9 @@
 static Set_padsynth_params_func Proc_padsynth_set_params;
 static Set_bool_func            Proc_padsynth_set_ramp_attack;
 static Set_bool_func            Proc_padsynth_set_stereo;
+static Set_float_func           Proc_padsynth_set_start_pos;
+static Set_bool_func            Proc_padsynth_set_start_pos_var_enabled;
+static Set_float_func           Proc_padsynth_set_start_pos_var;
 
 static bool apply_padsynth(
         Proc_padsynth* padsynth,
@@ -293,6 +296,10 @@ Device_impl* new_Proc_padsynth(void)
     padsynth->is_ramp_attack_enabled = true;
     padsynth->is_stereo_enabled = false;
 
+    padsynth->start_pos = 0.0;
+    padsynth->is_start_pos_var_enabled = true;
+    padsynth->start_pos_var = 1.0;
+
     if (!Device_impl_init(&padsynth->parent, del_Proc_padsynth))
     {
         del_Device_impl(&padsynth->parent);
@@ -309,7 +316,18 @@ Device_impl* new_Proc_padsynth(void)
             REGISTER_SET_FIXED_STATE(
                 padsynth, bool, ramp_attack, "p_b_ramp_attack.json", true) &&
             REGISTER_SET_FIXED_STATE(
-                padsynth, bool, stereo, "p_b_stereo.json", false)))
+                padsynth, bool, stereo, "p_b_stereo.json", false) &&
+            REGISTER_SET_FIXED_STATE(
+                padsynth, float, start_pos, "p_f_start_pos.json", 0.0) &&
+            REGISTER_SET_FIXED_STATE(
+                padsynth,
+                bool,
+                start_pos_var_enabled,
+                "p_b_start_pos_var_enabled.json",
+                true) &&
+            REGISTER_SET_FIXED_STATE(
+                padsynth, float, start_pos_var, "p_f_start_pos_var.json", 1.0)
+        ))
     {
         del_Device_impl(&padsynth->parent);
         return NULL;
@@ -363,6 +381,49 @@ static bool Proc_padsynth_set_stereo(
 
     Proc_padsynth* padsynth = (Proc_padsynth*)dimpl;
     padsynth->is_stereo_enabled = enabled;
+
+    return true;
+}
+
+
+static bool Proc_padsynth_set_start_pos_var_enabled(
+        Device_impl* dimpl, const Key_indices indices, bool enabled)
+{
+    rassert(dimpl != NULL);
+    rassert(indices != NULL);
+
+    Proc_padsynth* padsynth = (Proc_padsynth*)dimpl;
+    padsynth->is_start_pos_var_enabled = enabled;
+
+    return true;
+}
+
+
+static bool Proc_padsynth_set_start_pos_var(
+        Device_impl* dimpl, const Key_indices indices, double var)
+{
+    rassert(dimpl != NULL);
+    rassert(indices != NULL);
+
+    const double applied_var = ((0 <= var) && (var <= 1.0)) ? var : 0.0;
+
+    Proc_padsynth* padsynth = (Proc_padsynth*)dimpl;
+    padsynth->start_pos_var = applied_var;
+
+    return true;
+}
+
+
+static bool Proc_padsynth_set_start_pos(
+        Device_impl* dimpl, const Key_indices indices, double pos)
+{
+    rassert(dimpl != NULL);
+    rassert(indices != NULL);
+
+    const double applied_pos = ((0 <= pos) && (pos <= 1.0)) ? pos : 0.0;
+
+    Proc_padsynth* padsynth = (Proc_padsynth*)dimpl;
+    padsynth->start_pos = applied_pos;
 
     return true;
 }
