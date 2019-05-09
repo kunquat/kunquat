@@ -145,7 +145,7 @@ static Padsynth_sample_map* new_Padsynth_sample_map(
             return NULL;
         }
 
-        entry->centre_pitch = NAN;
+        entry->centre_pitch = (double)i; // placeholder to get unique keys :-P
 
         entry->sample = sample;
 
@@ -387,6 +387,13 @@ static double get_profile_bound(double bandwidth_i)
 }
 
 
+static double get_phase_spread(double freq_i, double bandwidth_i)
+{
+    const double x = freq_i / bandwidth_i;
+    return 1.0 - exp(-x * x);
+}
+
+
 typedef struct Callback_data
 {
     Padsynth_sample_entry* entry;
@@ -488,6 +495,8 @@ static void make_padsynth_sample(Error* error, void* user_data)
         freq_phase[i] = 0;
     }
 
+    const bool use_phase_data = (params != NULL) ? params->use_phase_data : false;
+
     if (params != NULL)
     {
         const int32_t audio_rate = params->audio_rate;
@@ -496,7 +505,16 @@ static void make_padsynth_sample(Error* error, void* user_data)
 
         const double freq = cents_to_Hz(cb_data->entry->centre_pitch);
 
+        const double ps_bw_base = params->phase_spread_bandwidth_base;
+        const double ps_bw_scale = params->phase_spread_bandwidth_scale;
+        const double phase_var_at_h = params->phase_var_at_harmonic;
+        const double phase_var_off_h = params->phase_var_off_harmonic;
+
         const int32_t nyquist = params->audio_rate / 2;
+
+        char phase_context_str[16] = "";
+        snprintf(phase_context_str, 16, "PADphase%hd", (short)cb_data->context_index);
+        Random* phase_random = Random_init(RANDOM_AUTO, phase_context_str);
 
         for (int64_t h = 0; h < Vector_size(params->harmonics); ++h)
         {
@@ -527,11 +545,62 @@ static void make_padsynth_sample(Error* error, void* user_data)
 
             buf_start = max(0, buf_start);
             buf_stop = min(buf_stop, buf_length);
-            for (int32_t i = buf_start; i < buf_stop; ++i)
+
+            if (use_phase_data)
             {
-                const double harmonic_profile =
-                    profile((i / (double)sample_length) - freq_i, bandwidth_i);
-                freq_amp[i] += harmonic_profile * harmonic->amplitude;
+                // Phase spread
+                const double ps_bandwidth_Hz =
+                    (exp2(ps_bw_base / 1200.0) - 1.0) *
+                    freq *
+                    pow(harmonic->freq_mul, ps_bw_scale);
+                const double ps_bandwidth_i = ps_bandwidth_Hz / (2.0 * audio_rate);
+
+                Random_set_seed(phase_random, Random_get_uint64(random));
+
+                for (int32_t i = buf_start; i < buf_stop; ++i)
+                {
+                    // Add amplitude and phase of the harmonic
+                    const double orig_amp = freq_amp[i];
+                    const double orig_phase = freq_phase[i];
+                    const double orig_real = orig_amp * cos(orig_phase);
+                    const double orig_imag = orig_amp * sin(orig_phase);
+
+                    const double harmonic_profile =
+                        profile((i / (double)sample_length) - freq_i, bandwidth_i);
+
+                    const double add_amp = harmonic_profile * harmonic->amplitude;
+                    const double add_real = add_amp * cos(harmonic->phase);
+                    const double add_imag = add_amp * sin(harmonic->phase);
+
+                    const double new_real = orig_real + add_real;
+                    const double new_imag = orig_imag + add_imag;
+                    const double new_amp =
+                        sqrt((new_real * new_real) + (new_imag * new_imag));
+                    double new_phase = atan2(new_imag, new_real);
+                    if (new_phase < 0)
+                        new_phase += PI2;
+
+                    // Add phase variation
+                    const double phase_spread_norm = get_phase_spread(
+                            (i / (double)sample_length) - freq_i, ps_bandwidth_i);
+                    const double phase_spread =
+                        lerp(phase_var_at_h, phase_var_off_h, phase_spread_norm);
+                    new_phase += Random_get_float_lb(phase_random) * PI2 * phase_spread;
+                    if (new_phase >= PI2)
+                        new_phase = fmod(new_phase, PI2);
+
+                    freq_amp[i] = new_amp;
+                    freq_phase[i] = new_phase;
+                }
+            }
+            else
+            {
+                for (int32_t i = buf_start; i < buf_stop; ++i)
+                {
+                    const double harmonic_profile =
+                        profile((i / (double)sample_length) - freq_i, bandwidth_i);
+                    freq_amp[i] += harmonic_profile * harmonic->amplitude;
+                }
             }
         }
 
@@ -566,8 +635,9 @@ static void make_padsynth_sample(Error* error, void* user_data)
         }
     }
 
-    // Add randomised phases
+    if (!use_phase_data)
     {
+        // Add randomised phases
         for (int32_t i = 0; i < buf_length; ++i)
             freq_phase[i] = Random_get_float_lb(random) * PI2;
     }
@@ -632,6 +702,8 @@ static bool apply_padsynth(
     }
 
     // Use only one sample with very small pitch ranges
+    // TODO: Make sure we don't use more samples than we can differentiate
+    //       with rounded pitches
     if (fabs(min_pitch - max_pitch) < 1)
         sample_count = 1;
 

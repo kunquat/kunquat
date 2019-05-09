@@ -34,11 +34,17 @@
 #define PADSYNTH_DEFAULT_BANDWIDTH_BASE 0.01
 #define PADSYNTH_DEFAULT_BANDWIDTH_SCALE 0
 
+#define PADSYNTH_DEFAULT_PHASE_VAR_AT_HARMONIC 0.0
+#define PADSYNTH_DEFAULT_PHASE_VAR_OFF_HARMONIC 1.0
+#define PADSYNTH_DEFAULT_PHASE_SPREAD_BW_BASE 0.01
+#define PADSYNTH_DEFAULT_PHASE_SPREAD_BW_SCALE 0
+
 
 typedef struct Padsynth_harmonic
 {
     double freq_mul;
     double amplitude;
+    double phase;
 } Padsynth_harmonic;
 
 
@@ -50,10 +56,16 @@ typedef struct Padsynth_params
     double min_pitch;
     double max_pitch;
     double centre_pitch;
+    bool use_phase_data;
 
     double bandwidth_base;
     double bandwidth_scale;
     Vector* harmonics;
+
+    double phase_var_at_harmonic;
+    double phase_var_off_harmonic;
+    double phase_spread_bandwidth_base;
+    double phase_spread_bandwidth_scale;
 
     bool is_res_env_enabled;
     Envelope* res_env;
