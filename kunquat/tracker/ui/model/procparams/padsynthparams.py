@@ -531,6 +531,24 @@ class PadsynthParams(ProcParams):
     def set_stereo_enabled(self, enabled):
         self._set_value('p_b_stereo.json', enabled)
 
+    def get_start_pos(self):
+        return self._get_value('p_f_start_pos.json', 0.0)
+
+    def set_start_pos(self, start_pos):
+        self._set_value('p_f_start_pos.json', start_pos)
+
+    def get_start_pos_var_enabled(self):
+        return self._get_value('p_b_start_pos_var_enabled.json', True)
+
+    def set_start_pos_var_enabled(self, enabled):
+        self._set_value('p_b_start_pos_var_enabled.json', enabled)
+
+    def get_start_pos_var(self):
+        return self._get_value('p_f_start_pos_var.json', 1.0)
+
+    def set_start_pos_var(self, start_pos_var):
+        self._set_value('p_f_start_pos_var.json', start_pos_var)
+
 
 class HarmonicLevels():
 

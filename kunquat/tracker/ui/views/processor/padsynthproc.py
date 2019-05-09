@@ -338,14 +338,23 @@ class PlaybackParams(QWidget, ProcessorUpdater):
         super().__init__()
         self._ramp_attack = QCheckBox('Ramp attack')
         self._stereo = QCheckBox('Stereo')
+        self._start_pos = StartPositionEditor()
 
-        h = QHBoxLayout()
-        h.setContentsMargins(0, 0, 0, 0)
-        h.setSpacing(4)
-        h.addWidget(self._ramp_attack)
-        h.addWidget(self._stereo)
-        h.addStretch(1)
-        self.setLayout(h)
+        self.add_to_updaters(self._start_pos)
+
+        self._simple_layout = QHBoxLayout()
+        self._simple_layout.setContentsMargins(0, 0, 0, 0)
+        self._simple_layout.setSpacing(4)
+        self._simple_layout.addWidget(self._ramp_attack)
+        self._simple_layout.addWidget(self._stereo)
+        self._simple_layout.addStretch(1)
+
+        v = QVBoxLayout()
+        v.setContentsMargins(0, 0, 0, 0)
+        v.setSpacing(0)
+        v.addLayout(self._simple_layout)
+        v.addWidget(self._start_pos)
+        self.setLayout(v)
 
     def _on_setup(self):
         self.register_action('signal_au', self._update_all)
@@ -363,6 +372,7 @@ class PlaybackParams(QWidget, ProcessorUpdater):
 
     def _update_style(self):
         style_mgr = self._ui_model.get_style_manager()
+        self._simple_layout.setSpacing(style_mgr.get_scaled_size_param('large_padding'))
         self.layout().setSpacing(style_mgr.get_scaled_size_param('medium_padding'))
 
     def _update_all(self):
@@ -388,6 +398,95 @@ class PlaybackParams(QWidget, ProcessorUpdater):
         enabled = (state == Qt.Checked)
         params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
         params.set_stereo_enabled(enabled)
+        self._updater.signal_update(self._get_update_signal_type())
+
+
+class StartPositionEditor(QWidget, ProcessorUpdater):
+
+    def __init__(self):
+        super().__init__()
+
+        self._start_pos = StartPosition()
+        self._enable_start_pos_var = QCheckBox('Enable start position variation:')
+        self._start_pos_var = StartPosVariation()
+
+        self.add_to_updaters(self._start_pos, self._start_pos_var)
+
+        h = QHBoxLayout()
+        h.setContentsMargins(0, 0, 0, 0)
+        h.setSpacing(0)
+        h.addWidget(self._start_pos)
+        h.addWidget(self._enable_start_pos_var)
+        h.addWidget(self._start_pos_var)
+        self.setLayout(h)
+
+    def _get_update_signal_type(self):
+        return 'signal_padsynth_rt_{}'.format(self._proc_id)
+
+    def _on_setup(self):
+        self.register_action('signal_style_changed', self._update_style)
+        self.register_action(self._get_update_signal_type(), self._update_var_enabled)
+
+        self._enable_start_pos_var.stateChanged.connect(self._on_var_enabled_changed)
+
+        self._update_style()
+        self._update_var_enabled()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+        self.layout().setSpacing(style_mgr.get_scaled_size_param('large_padding'))
+
+    def _get_params(self):
+        return utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
+
+    def _update_var_enabled(self):
+        is_var_enabled = self._get_params().get_start_pos_var_enabled()
+
+        old_block = self._enable_start_pos_var.blockSignals(True)
+        self._enable_start_pos_var.setCheckState(
+                Qt.Checked if is_var_enabled else Qt.Unchecked)
+        self._enable_start_pos_var.blockSignals(old_block)
+
+        self._start_pos_var.setEnabled(is_var_enabled)
+
+    def _on_var_enabled_changed(self, state):
+        enabled = (state == Qt.Checked)
+        self._get_params().set_start_pos_var_enabled(enabled)
+        self._updater.signal_update(self._get_update_signal_type())
+
+
+class PadsynthRtParamSlider(ProcNumSlider):
+
+    def _get_update_signal_type(self):
+        return 'signal_padsynth_rt_{}'.format(self._proc_id)
+
+    def _get_params(self):
+        return utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
+
+
+class StartPosition(PadsynthRtParamSlider):
+
+    def __init__(self):
+        super().__init__(2, 0.0, 1.0, title='Start position:')
+
+    def _update_value(self):
+        self.set_number(self._get_params().get_start_pos())
+
+    def _value_changed(self, start_pos):
+        self._get_params().set_start_pos(start_pos)
+        self._updater.signal_update(self._get_update_signal_type())
+
+
+class StartPosVariation(PadsynthRtParamSlider):
+
+    def __init__(self):
+        super().__init__(2, 0.0, 1.0)
+
+    def _update_value(self):
+        self.set_number(self._get_params().get_start_pos_var())
+
+    def _value_changed(self, start_pos_var):
+        self._get_params().set_start_pos_var(start_pos_var)
         self._updater.signal_update(self._get_update_signal_type())
 
 
