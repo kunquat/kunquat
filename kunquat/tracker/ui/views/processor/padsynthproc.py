@@ -118,17 +118,16 @@ class Phases(QWidget, ProcessorUpdater):
         super().__init__()
 
         self._use_button = QCheckBox('Use harmonics phase information')
+        self._phase_variation = PhaseVariation()
 
-        self._editors_layout = QVBoxLayout()
-        self._editors_layout.setContentsMargins(0, 0, 0, 0)
-        self._editors_layout.setSpacing(0)
-        self._editors_layout.addStretch(1)
+        self.add_to_updaters(self._phase_variation)
 
         v = QVBoxLayout()
         v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(0)
         v.addWidget(self._use_button)
-        v.addLayout(self._editors_layout)
+        v.addWidget(self._phase_variation)
+        v.addStretch(1)
         self.setLayout(v)
 
     def _on_setup(self):
@@ -144,10 +143,7 @@ class Phases(QWidget, ProcessorUpdater):
         return 'signal_padsynth_{}'.format(self._proc_id)
 
     def _update_style(self):
-        style_mgr = self._ui_model.get_style_manager()
-        _update_layout(style_mgr, self.layout())
-        self._editors_layout.setSpacing(
-                style_mgr.get_scaled_size_param('medium_padding'))
+        _update_layout(self._ui_model.get_style_manager(), self.layout())
 
     def _get_params(self):
         return utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
@@ -160,12 +156,156 @@ class Phases(QWidget, ProcessorUpdater):
         self._use_button.setCheckState(Qt.Checked if use else Qt.Unchecked)
         self._use_button.blockSignals(old_block)
 
-        self._editors_layout.setEnabled(use)
+        self._phase_variation.setEnabled(use)
 
     def _change_use_phase(self, state):
         use = (state == Qt.Checked)
         params = utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
         params.set_use_phase_data(use)
+        self._updater.signal_update(self._get_update_signal_type())
+
+
+class PhaseVariation(QWidget, ProcessorUpdater):
+
+    def __init__(self):
+        super().__init__()
+
+        var_at_harmonic = PhaseVarAtHarmonic()
+        var_off_harmonic = PhaseVarOffHarmonic()
+        phase_spread_bw_base = PhaseSpreadBwBaseEditor()
+        phase_spread_bw_scale = PhaseSpreadBwScaleEditor()
+
+        self.add_to_updaters(
+                var_at_harmonic,
+                var_off_harmonic,
+                phase_spread_bw_base,
+                phase_spread_bw_scale)
+
+        self._var_grid_layout = QGridLayout()
+        self._var_grid_layout.setContentsMargins(0, 0, 0, 0)
+        self._var_grid_layout.setHorizontalSpacing(0)
+        self._var_grid_layout.setVerticalSpacing(0)
+        self._var_grid_layout.addWidget(QLabel('At harmonic:'), 0, 0)
+        self._var_grid_layout.addWidget(var_at_harmonic, 0, 1)
+        self._var_grid_layout.addWidget(QLabel('Off harmonic:'), 1, 0)
+        self._var_grid_layout.addWidget(var_off_harmonic, 1, 1)
+
+        self._var_layout = QVBoxLayout()
+        self._var_layout.setContentsMargins(0, 0, 0, 0)
+        self._var_layout.setSpacing(0)
+        self._var_layout.addWidget(HeaderLine('Phase variation'))
+        self._var_layout.addLayout(self._var_grid_layout)
+
+        self._spread_grid_layout = QGridLayout()
+        self._spread_grid_layout.setContentsMargins(0, 0, 0, 0)
+        self._spread_grid_layout.setHorizontalSpacing(0)
+        self._spread_grid_layout.setVerticalSpacing(0)
+        self._spread_grid_layout.addWidget(QLabel('Bandwidth base:'), 0, 0)
+        self._spread_grid_layout.addWidget(phase_spread_bw_base, 0, 1)
+        self._spread_grid_layout.addWidget(QLabel('Bandwidth scale:'), 1, 0)
+        self._spread_grid_layout.addWidget(phase_spread_bw_scale, 1, 1)
+
+        self._spread_layout = QVBoxLayout()
+        self._spread_layout.setContentsMargins(0, 0, 0, 0)
+        self._spread_layout.setSpacing(0)
+        self._spread_layout.addWidget(HeaderLine('Phase spread'))
+        self._spread_layout.addLayout(self._spread_grid_layout)
+
+        self._div_layout = QHBoxLayout()
+        self._div_layout.setContentsMargins(0, 0, 0, 0)
+        self._div_layout.setSpacing(0)
+        self._div_layout.addLayout(self._var_layout)
+        self._div_layout.addLayout(self._spread_layout)
+
+        v = QVBoxLayout()
+        v.setContentsMargins(0, 0, 0, 0)
+        v.setSpacing(0)
+        v.addLayout(self._div_layout)
+        v.addStretch(1)
+        self.setLayout(v)
+
+    def _on_setup(self):
+        self.register_action('signal_style_changed', self._update_style)
+        self._update_style()
+
+    def _update_style(self):
+        style_mgr = self._ui_model.get_style_manager()
+
+        _update_layout(style_mgr, self.layout())
+
+        large_spacing = style_mgr.get_scaled_size_param('large_padding')
+        medium_spacing = style_mgr.get_scaled_size_param('medium_padding')
+        small_spacing = style_mgr.get_scaled_size_param('small_padding')
+
+        self._div_layout.setSpacing(large_spacing)
+
+        self._var_layout.setSpacing(medium_spacing)
+        self._var_grid_layout.setHorizontalSpacing(large_spacing)
+        self._var_grid_layout.setVerticalSpacing(small_spacing)
+
+        self._spread_layout.setSpacing(medium_spacing)
+        self._spread_grid_layout.setHorizontalSpacing(large_spacing)
+        self._spread_grid_layout.setVerticalSpacing(small_spacing)
+
+
+class PadsynthParamSlider(ProcNumSlider):
+
+    def _get_update_signal_type(self):
+        return 'signal_padsynth_{}'.format(self._proc_id)
+
+    def _get_params(self):
+        return utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
+
+
+class PhaseVarAtHarmonic(PadsynthParamSlider):
+
+    def __init__(self):
+        super().__init__(3, 0.0, 1.0)
+
+    def _update_value(self):
+        self.set_number(self._get_params().get_phase_var_at_harmonic())
+
+    def _value_changed(self, norm):
+        self._get_params().set_phase_var_at_harmonic(norm)
+        self._updater.signal_update(self._get_update_signal_type())
+
+
+class PhaseVarOffHarmonic(PadsynthParamSlider):
+
+    def __init__(self):
+        super().__init__(3, 0.0, 1.0)
+
+    def _update_value(self):
+        self.set_number(self._get_params().get_phase_var_off_harmonic())
+
+    def _value_changed(self, norm):
+        self._get_params().set_phase_var_off_harmonic(norm)
+        self._updater.signal_update(self._get_update_signal_type())
+
+
+class PhaseSpreadBwBaseEditor(PadsynthParamSlider):
+
+    def __init__(self):
+        super().__init__(2, 0.01, 1200.0, width_txt='1200.00')
+
+    def _update_value(self):
+        self.set_number(self._get_params().get_phase_spread_bw_base())
+
+    def _value_changed(self, cents):
+        self._get_params().set_phase_spread_bw_base(cents)
+        self._updater.signal_update(self._get_update_signal_type())
+
+
+class PhaseSpreadBwScaleEditor(PadsynthParamSlider):
+
+    def __init__(self):
+        super().__init__(2, 0.0, 10.0, width_txt='1200.00')
+
+    def _update_value(self):
+        self.set_number(self._get_params().get_phase_spread_bw_scale())
+
+    def _value_changed(self, scale):
+        self._get_params().set_phase_spread_bw_scale(scale)
         self._updater.signal_update(self._get_update_signal_type())
 
 
@@ -299,15 +439,6 @@ class ApplyButton(QPushButton, ProcessorUpdater):
         task_executor = self._ui_model.get_task_executor()
         task = params.get_task_apply_config(on_complete)
         task_executor(task)
-
-
-class PadsynthParamSlider(ProcNumSlider):
-
-    def _get_update_signal_type(self):
-        return 'signal_padsynth_{}'.format(self._proc_id)
-
-    def _get_params(self):
-        return utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
 
 
 class SampleConfigEditor(QWidget, ProcessorUpdater):
@@ -470,7 +601,7 @@ class BandwidthEditor(QWidget, ProcessorUpdater):
 class BandwidthBaseEditor(PadsynthParamSlider):
 
     def __init__(self):
-        super().__init__(2, 0.01, 1200.0)
+        super().__init__(2, 0.01, 1200.0, width_txt='1200.00')
 
     def _update_value(self):
         self.set_number(self._get_params().get_bandwidth_base())
@@ -483,7 +614,7 @@ class BandwidthBaseEditor(PadsynthParamSlider):
 class BandwidthScaleEditor(PadsynthParamSlider):
 
     def __init__(self):
-        super().__init__(2, 0.0, 10.0)
+        super().__init__(2, 0.0, 10.0, width_txt='1200.00')
 
     def _get_update_signal_type(self):
         return 'signal_padsynth_{}'.format(self._proc_id)

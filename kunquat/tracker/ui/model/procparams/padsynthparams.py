@@ -238,6 +238,11 @@ class PadsynthParams(ProcParams):
     _DEFAULT_BANDWIDTH_BASE = 0.01
     _DEFAULT_BANDWIDTH_SCALE = 0
 
+    _DEFAULT_PHASE_VAR_AT_HARMONIC = 0
+    _DEFAULT_PHASE_VAR_OFF_HARMONIC = 1
+    _DEFAULT_PHASE_SPREAD_BW_BASE = 0.01
+    _DEFAULT_PHASE_SPREAD_BW_SCALE = 0
+
     _DEFAULT_RESONANCE_ENV = {
             'nodes': [[0, 1], [_DEFAULT_AUDIO_RATE // 2, 1]], 'smooth': False }
 
@@ -259,16 +264,21 @@ class PadsynthParams(ProcParams):
 
     def _get_applied_params(self):
         ret = {
-            'sample_length'  : self._DEFAULT_SAMPLE_LENGTH,
-            'audio_rate'     : self._DEFAULT_AUDIO_RATE,
-            'sample_count'   : 1,
-            'pitch_range'    : [0, 0],
-            'centre_pitch'   : 0,
-            'bandwidth_base' : self._DEFAULT_BANDWIDTH_BASE,
-            'bandwidth_scale': self._DEFAULT_BANDWIDTH_SCALE,
-            'harmonics'      : [[1, 1]],
-            'res_env_enabled': False,
-            'res_env'        : self._DEFAULT_RESONANCE_ENV,
+            'sample_length'                : self._DEFAULT_SAMPLE_LENGTH,
+            'audio_rate'                   : self._DEFAULT_AUDIO_RATE,
+            'sample_count'                 : 1,
+            'pitch_range'                  : [0, 0],
+            'centre_pitch'                 : 0,
+            'bandwidth_base'               : self._DEFAULT_BANDWIDTH_BASE,
+            'bandwidth_scale'              : self._DEFAULT_BANDWIDTH_SCALE,
+            'harmonics'                    : [[1, 1]],
+            'use_phase_data'               : False,
+            'phase_var_at_harmonic'        : self._DEFAULT_PHASE_VAR_AT_HARMONIC,
+            'phase_var_off_harmonic'       : self._DEFAULT_PHASE_VAR_OFF_HARMONIC,
+            'phase_spread_bandwidth_base'  : self._DEFAULT_PHASE_SPREAD_BW_BASE,
+            'phase_spread_bandwidth_scale' : self._DEFAULT_PHASE_SPREAD_BW_SCALE,
+            'res_env_enabled'              : False,
+            'res_env'                      : self._DEFAULT_RESONANCE_ENV,
         }
         stored = self._get_value('p_ps_params.json', {})
         ret.update(stored)
@@ -361,20 +371,28 @@ class PadsynthParams(ProcParams):
                     fr = waveform[i * 2 - 1]
                     fi = waveform[i * 2]
                     amplitude = math.sqrt(fr * fr + fi * fi)
-                    hl.append([i * freq_mult, amplitude * amp_mult])
+                    hl.append([i * freq_mult, amplitude * amp_mult, (fr, fi)])
 
             # Clean up spurious harmonics from computational inaccuracies
-            max_amp = max(a for i, a in hl)
+            max_amp = max(a for i, a, p in hl)
             if max_amp > 0:
                 min_amp = max_amp / 65536
-                hl = [[i, a] for i, a in hl if a >= min_amp]
+                hl = [[i, a, p] for (i, a, p) in hl if a >= min_amp]
             else:
-                hl = [[1, 0]]
+                hl = [[1, 0, (0, 0)]]
+
+            # Calculate phases
+            for h in hl:
+                fr, fi = h[2]
+                angle = math.atan2(fi, fr)
+                if angle < 0:
+                    angle += math.pi * 2
+                h[2] = angle
         else:
             hl = []
             for freq_mult, level in self._get_harmonic_levels_data():
                 amp_mult = 2**(level / 6)
-                hl.append([freq_mult, amp_mult])
+                hl.append([freq_mult, amp_mult, 0])
 
         self._set_value('i_harmonics.json', hl)
 
@@ -412,6 +430,40 @@ class PadsynthParams(ProcParams):
         self._set_value('i_bandwidth_scale.json', scale)
         self._update_harmonics()
 
+    def get_use_phase_data(self):
+        return self._get_value('i_use_phase_data.json', False)
+
+    def set_use_phase_data(self, use):
+        self._set_value('i_use_phase_data.json', use)
+
+    def get_phase_var_at_harmonic(self):
+        return self._get_value(
+                'i_phase_var_at_harmonic.json', self._DEFAULT_PHASE_VAR_AT_HARMONIC)
+
+    def set_phase_var_at_harmonic(self, phase_var):
+        self._set_value('i_phase_var_at_harmonic.json', phase_var)
+
+    def get_phase_var_off_harmonic(self):
+        return self._get_value(
+                'i_phase_var_off_harmonic.json', self._DEFAULT_PHASE_VAR_OFF_HARMONIC)
+
+    def set_phase_var_off_harmonic(self, phase_var):
+        self._set_value('i_phase_var_off_harmonic.json', phase_var)
+
+    def get_phase_spread_bw_base(self):
+        return self._get_value(
+                'i_phase_spread_bw_base.json', self._DEFAULT_PHASE_SPREAD_BW_BASE)
+
+    def set_phase_spread_bw_base(self, cents):
+        self._set_value('i_phase_spread_bw_base.json', cents)
+
+    def get_phase_spread_bw_scale(self):
+        return self._get_value(
+                'i_phase_spread_bw_scale.json', self._DEFAULT_PHASE_SPREAD_BW_SCALE)
+
+    def set_phase_spread_bw_scale(self, scale):
+        self._set_value('i_phase_spread_bw_scale.json', scale)
+
     def get_resonance_envelope_enabled(self):
         return self._get_value('i_res_env_enabled.json', False)
 
@@ -426,16 +478,21 @@ class PadsynthParams(ProcParams):
 
     def _get_config_params(self):
         return {
-            'sample_length'  : self.get_sample_length(),
-            'audio_rate'     : self.get_audio_rate(),
-            'sample_count'   : self.get_sample_count(),
-            'pitch_range'    : self.get_sample_pitch_range(),
-            'centre_pitch'   : self.get_sample_centre_pitch(),
-            'bandwidth_base' : self.get_bandwidth_base(),
-            'bandwidth_scale': self.get_bandwidth_scale(),
-            'harmonics'      : self._get_harmonics_data(),
-            'res_env_enabled': self.get_resonance_envelope_enabled(),
-            'res_env'        : self.get_resonance_envelope(),
+            'sample_length'                : self.get_sample_length(),
+            'audio_rate'                   : self.get_audio_rate(),
+            'sample_count'                 : self.get_sample_count(),
+            'pitch_range'                  : self.get_sample_pitch_range(),
+            'centre_pitch'                 : self.get_sample_centre_pitch(),
+            'bandwidth_base'               : self.get_bandwidth_base(),
+            'bandwidth_scale'              : self.get_bandwidth_scale(),
+            'harmonics'                    : self._get_harmonics_data(),
+            'use_phase_data'               : self.get_use_phase_data(),
+            'phase_var_at_harmonic'        : self.get_phase_var_at_harmonic(),
+            'phase_var_off_harmonic'       : self.get_phase_var_off_harmonic(),
+            'phase_spread_bandwidth_base'  : self.get_phase_spread_bw_base(),
+            'phase_spread_bandwidth_scale' : self.get_phase_spread_bw_scale(),
+            'res_env_enabled'              : self.get_resonance_envelope_enabled(),
+            'res_env'                      : self.get_resonance_envelope(),
         }
 
     def is_config_applied(self):
