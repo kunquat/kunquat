@@ -543,6 +543,12 @@ class PadsynthParams(ProcParams):
     def set_start_pos_var_enabled(self, enabled):
         self._set_value('p_b_start_pos_var_enabled.json', enabled)
 
+    def get_round_start_pos_var(self):
+        return self._get_value('p_b_round_start_pos_var_to_period.json', False)
+
+    def set_round_start_pos_var(self, enabled):
+        self._set_value('p_b_round_start_pos_var_to_period.json', enabled)
+
     def get_start_pos_var(self):
         return self._get_value('p_f_start_pos_var.json', 1.0)
 

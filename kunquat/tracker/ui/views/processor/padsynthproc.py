@@ -409,6 +409,7 @@ class StartPositionEditor(QWidget, ProcessorUpdater):
         self._start_pos = StartPosition()
         self._enable_start_pos_var = QCheckBox('Enable start position variation:')
         self._start_pos_var = StartPosVariation()
+        self._round_start_pos_var = QCheckBox('Retain phase')
 
         self.add_to_updaters(self._start_pos, self._start_pos_var)
 
@@ -418,6 +419,7 @@ class StartPositionEditor(QWidget, ProcessorUpdater):
         h.addWidget(self._start_pos)
         h.addWidget(self._enable_start_pos_var)
         h.addWidget(self._start_pos_var)
+        h.addWidget(self._round_start_pos_var)
         self.setLayout(h)
 
     def _get_update_signal_type(self):
@@ -425,12 +427,13 @@ class StartPositionEditor(QWidget, ProcessorUpdater):
 
     def _on_setup(self):
         self.register_action('signal_style_changed', self._update_style)
-        self.register_action(self._get_update_signal_type(), self._update_var_enabled)
+        self.register_action(self._get_update_signal_type(), self._update_toggles)
 
         self._enable_start_pos_var.stateChanged.connect(self._on_var_enabled_changed)
+        self._round_start_pos_var.stateChanged.connect(self._on_round_var_changed)
 
         self._update_style()
-        self._update_var_enabled()
+        self._update_toggles()
 
     def _update_style(self):
         style_mgr = self._ui_model.get_style_manager()
@@ -439,7 +442,7 @@ class StartPositionEditor(QWidget, ProcessorUpdater):
     def _get_params(self):
         return utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
 
-    def _update_var_enabled(self):
+    def _update_toggles(self):
         is_var_enabled = self._get_params().get_start_pos_var_enabled()
 
         old_block = self._enable_start_pos_var.blockSignals(True)
@@ -447,11 +450,24 @@ class StartPositionEditor(QWidget, ProcessorUpdater):
                 Qt.Checked if is_var_enabled else Qt.Unchecked)
         self._enable_start_pos_var.blockSignals(old_block)
 
+        round_start_pos_var = self._get_params().get_round_start_pos_var()
+
+        old_block = self._round_start_pos_var.blockSignals(True)
+        self._round_start_pos_var.setCheckState(
+                Qt.Checked if round_start_pos_var else Qt.Unchecked)
+        self._round_start_pos_var.blockSignals(old_block)
+
         self._start_pos_var.setEnabled(is_var_enabled)
+        self._round_start_pos_var.setEnabled(is_var_enabled)
 
     def _on_var_enabled_changed(self, state):
         enabled = (state == Qt.Checked)
         self._get_params().set_start_pos_var_enabled(enabled)
+        self._updater.signal_update(self._get_update_signal_type())
+
+    def _on_round_var_changed(self, state):
+        enabled = (state == Qt.Checked)
+        self._get_params().set_round_start_pos_var(enabled)
         self._updater.signal_update(self._get_update_signal_type())
 
 
@@ -467,7 +483,7 @@ class PadsynthRtParamSlider(ProcNumSlider):
 class StartPosition(PadsynthRtParamSlider):
 
     def __init__(self):
-        super().__init__(2, 0.0, 1.0, title='Start position:')
+        super().__init__(6, 0.0, 1.0, title='Start position:')
 
     def _update_value(self):
         self.set_number(self._get_params().get_start_pos())
@@ -480,7 +496,7 @@ class StartPosition(PadsynthRtParamSlider):
 class StartPosVariation(PadsynthRtParamSlider):
 
     def __init__(self):
-        super().__init__(2, 0.0, 1.0)
+        super().__init__(6, 0.0, 1.0)
 
     def _update_value(self):
         self.set_number(self._get_params().get_start_pos_var())
