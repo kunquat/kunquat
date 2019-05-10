@@ -52,6 +52,7 @@ typedef struct Proc_padsynth
 
     double start_pos;
     bool is_start_pos_var_enabled;
+    bool round_start_pos_var_to_period;
     double start_pos_var;
 } Proc_padsynth;
 

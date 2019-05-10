@@ -40,6 +40,7 @@ static Set_bool_func            Proc_padsynth_set_ramp_attack;
 static Set_bool_func            Proc_padsynth_set_stereo;
 static Set_float_func           Proc_padsynth_set_start_pos;
 static Set_bool_func            Proc_padsynth_set_start_pos_var_enabled;
+static Set_bool_func            Proc_padsynth_set_round_start_pos_var_to_period;
 static Set_float_func           Proc_padsynth_set_start_pos_var;
 
 static bool apply_padsynth(
@@ -298,6 +299,7 @@ Device_impl* new_Proc_padsynth(void)
 
     padsynth->start_pos = 0.0;
     padsynth->is_start_pos_var_enabled = true;
+    padsynth->round_start_pos_var_to_period = false;
     padsynth->start_pos_var = 1.0;
 
     if (!Device_impl_init(&padsynth->parent, del_Proc_padsynth))
@@ -325,6 +327,12 @@ Device_impl* new_Proc_padsynth(void)
                 start_pos_var_enabled,
                 "p_b_start_pos_var_enabled.json",
                 true) &&
+            REGISTER_SET_FIXED_STATE(
+                padsynth,
+                bool,
+                round_start_pos_var_to_period,
+                "p_b_round_start_pos_var_to_period.json",
+                false) &&
             REGISTER_SET_FIXED_STATE(
                 padsynth, float, start_pos_var, "p_f_start_pos_var.json", 1.0)
         ))
@@ -394,6 +402,19 @@ static bool Proc_padsynth_set_start_pos_var_enabled(
 
     Proc_padsynth* padsynth = (Proc_padsynth*)dimpl;
     padsynth->is_start_pos_var_enabled = enabled;
+
+    return true;
+}
+
+
+static bool Proc_padsynth_set_round_start_pos_var_to_period(
+        Device_impl* dimpl, const Key_indices indices, bool enabled)
+{
+    rassert(dimpl != NULL);
+    rassert(indices != NULL);
+
+    Proc_padsynth* padsynth = (Proc_padsynth*)dimpl;
+    padsynth->round_start_pos_var_to_period = enabled;
 
     return true;
 }
