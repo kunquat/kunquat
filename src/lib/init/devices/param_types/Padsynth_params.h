@@ -75,11 +75,12 @@ typedef struct Padsynth_params
 /**
  * Create new PADsynth parameters.
  *
- * \param sr   The Streader of the JSON input -- must not be \c NULL.
+ * \param sr        The Streader of the JSON input -- must not be \c NULL.
+ * \param version   The format version -- must be \c 0 or \c 1.
  *
  * \return   The new PADsynth parameters if successful, otherwise \c NULL.
  */
-Padsynth_params* new_Padsynth_params(Streader* sr);
+Padsynth_params* new_Padsynth_params(Streader* sr, int version);
 
 
 /**

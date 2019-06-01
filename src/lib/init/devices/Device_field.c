@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2019
  *
  * This file is part of Kunquat.
  *
@@ -182,13 +182,13 @@ const char* Device_field_get_key(const Device_field* field)
 }
 
 
-static bool Device_field_verify_version_zero(
-        const Device_field* field, int version, Streader* sr)
+static bool Device_field_verify_version(
+        const Device_field* field, int version, int last_version, Streader* sr)
 {
     rassert(field != NULL);
     rassert(sr != NULL);
 
-    if (version != 0)
+    if ((version < 0) || (version > last_version))
     {
         Streader_set_error(
                 sr,
@@ -222,7 +222,7 @@ bool Device_field_change(
     {
         case DEVICE_FIELD_BOOL:
         {
-            Device_field_verify_version_zero(field, version, sr);
+            Device_field_verify_version(field, version, 0, sr);
 
             if (data != NULL)
                 Streader_read_bool(sr, &field->data.bool_type);
@@ -231,7 +231,7 @@ bool Device_field_change(
 
         case DEVICE_FIELD_INT:
         {
-            Device_field_verify_version_zero(field, version, sr);
+            Device_field_verify_version(field, version, 0, sr);
 
             if (data != NULL)
                 Streader_read_int(sr, &field->data.int_type);
@@ -240,7 +240,7 @@ bool Device_field_change(
 
         case DEVICE_FIELD_FLOAT:
         {
-            Device_field_verify_version_zero(field, version, sr);
+            Device_field_verify_version(field, version, 0, sr);
 
             if (data != NULL)
                 Streader_read_float(sr, &field->data.float_type);
@@ -249,7 +249,7 @@ bool Device_field_change(
 
         case DEVICE_FIELD_TSTAMP:
         {
-            Device_field_verify_version_zero(field, version, sr);
+            Device_field_verify_version(field, version, 0, sr);
 
             if (data != NULL)
                 Streader_read_tstamp(sr, &field->data.Tstamp_type);
@@ -258,7 +258,7 @@ bool Device_field_change(
 
         case DEVICE_FIELD_ENVELOPE:
         {
-            Device_field_verify_version_zero(field, version, sr);
+            Device_field_verify_version(field, version, 0, sr);
 
             Envelope* env = NULL;
             if (data != NULL)
@@ -335,7 +335,7 @@ bool Device_field_change(
 
         case DEVICE_FIELD_SAMPLE_PARAMS:
         {
-            Device_field_verify_version_zero(field, version, sr);
+            Device_field_verify_version(field, version, 0, sr);
 
             if (!Sample_params_parse(&field->data.Sample_params_type, sr))
                 return false;
@@ -344,7 +344,7 @@ bool Device_field_change(
 
         case DEVICE_FIELD_NOTE_MAP:
         {
-            Device_field_verify_version_zero(field, version, sr);
+            Device_field_verify_version(field, version, 0, sr);
 
             Note_map* map = new_Note_map_from_string(sr);
             if (map == NULL)
@@ -357,7 +357,7 @@ bool Device_field_change(
 
         case DEVICE_FIELD_HIT_MAP:
         {
-            Device_field_verify_version_zero(field, version, sr);
+            Device_field_verify_version(field, version, 0, sr);
 
             Hit_map* map = new_Hit_map_from_string(sr);
             if (map == NULL)
@@ -370,7 +370,7 @@ bool Device_field_change(
 
         case DEVICE_FIELD_NUM_LIST:
         {
-            Device_field_verify_version_zero(field, version, sr);
+            Device_field_verify_version(field, version, 0, sr);
 
             Num_list* nl = new_Num_list_from_string(sr);
             if (Streader_is_error_set(sr))
@@ -383,9 +383,9 @@ bool Device_field_change(
 
         case DEVICE_FIELD_PADSYNTH_PARAMS:
         {
-            Device_field_verify_version_zero(field, version, sr);
+            Device_field_verify_version(field, version, 1, sr);
 
-            Padsynth_params* pp = new_Padsynth_params(sr);
+            Padsynth_params* pp = new_Padsynth_params(sr, version);
             if (pp == NULL)
                 return false;
 

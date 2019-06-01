@@ -336,9 +336,11 @@ static bool read_param(Streader* sr, const char* key, void* userdata)
 }
 
 
-Padsynth_params* new_Padsynth_params(Streader* sr)
+Padsynth_params* new_Padsynth_params(Streader* sr, int version)
 {
     rassert(sr != NULL);
+    rassert(version >= 0);
+    rassert(version <= 1);
 
     if (Streader_is_error_set(sr))
         return NULL;
