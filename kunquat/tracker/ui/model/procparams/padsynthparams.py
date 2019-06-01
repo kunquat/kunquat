@@ -13,6 +13,7 @@
 
 import math
 from copy import deepcopy
+from kunquat.tracker.ui.controller.dataconverters import ConversionInfo, Converter
 
 from kunquat.extras.sndfile import SndFileRMem, SndFileWMem
 
@@ -227,6 +228,18 @@ def rfft(data):
     drftf1(n, data, [0.0] * n, wsave, ifac)
 
 
+class PadsynthParamsConverterFrom0(Converter):
+
+    def __init__(self):
+        super().__init__()
+
+    def convert_key(self, orig_key):
+        return orig_key
+
+    def convert_data(self, orig_data):
+        return orig_data
+
+
 class PadsynthParams(ProcParams):
 
     _MIN_SAMPLE_LENGTH = 16384
@@ -258,6 +271,14 @@ class PadsynthParams(ProcParams):
             'out_00': 'audio L',
             'out_01': 'audio R',
         }
+
+    @staticmethod
+    def register_conversion_infos(data_converters):
+        padsynth_params_conv = PadsynthParamsConverterFrom0()
+        info = ConversionInfo([padsynth_params_conv])
+        info.set_key_pattern(
+                '(au_[0-9a-f]{2}/){1,2}proc_[0-9a-f]{2}/(c|i)/p_ps_[_a-z]*\.json')
+        data_converters.add_conversion_info(info)
 
     def __init__(self, proc_id, controller):
         super().__init__(proc_id, controller)
