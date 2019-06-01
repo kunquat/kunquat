@@ -110,7 +110,7 @@ class Connections():
     def register_conversion_infos(data_converters):
         conns_layout_conv = ConnectionsLayoutConverterFrom0()
         info = ConversionInfo([conns_layout_conv])
-        info.set_key_pattern('(au_[0-9a-f]{2}/){0,2}i_connections_layout.json')
+        info.set_key_pattern('(au_[0-9a-f]{2}/){0,2}i_connections_layout\.json')
         data_converters.add_conversion_info(info)
 
     def __init__(self):
