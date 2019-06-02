@@ -117,7 +117,9 @@ int32_t Padsynth_vstate_render_voice(
             proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_PITCH, NULL);
     Work_buffer* pitches_wb = freqs_wb;
 
-    if (isnan(ps_vstate->init_pitch))
+    const bool needs_init = isnan(ps_vstate->init_pitch);
+
+    if (needs_init)
         ps_vstate->init_pitch =
             ((pitches_wb != NULL) && Work_buffer_is_valid(pitches_wb, 0))
             ? Work_buffer_get_contents(pitches_wb, 0)[0] : 0;
@@ -161,6 +163,43 @@ int32_t Padsynth_vstate_render_voice(
     {
         vstate->active = false;
         return 0;
+    }
+
+    if (needs_init)
+    {
+        // Set initial playback start position
+        const int32_t sample_length =
+            Padsynth_sample_map_get_sample_length(ps->sample_map);
+        ps_vstate->pos = ps->start_pos * sample_length;
+
+        if (ps->is_start_pos_var_enabled)
+        {
+            if ((ps->start_pos_var == 1.0) && !ps->round_start_pos_var_to_period)
+            {
+                // Preserve backwards compatibility
+                ps_vstate->pos = Random_get_index(vstate->rand_p, sample_length);
+            }
+            else
+            {
+                const double shift_norm =
+                    (Random_get_float_lb(vstate->rand_p) - 0.5) * ps->start_pos_var;
+                double shift = shift_norm * sample_length;
+                if (ps->round_start_pos_var_to_period)
+                {
+                    const double entry_Hz = cents_to_Hz(entry->centre_pitch);
+                    const double cycle_length = PADSYNTH_DEFAULT_AUDIO_RATE / entry_Hz;
+                    shift = round(shift / cycle_length) * cycle_length;
+                }
+
+                ps_vstate->pos += shift + sample_length;
+            }
+        }
+
+        if (ps_vstate->pos >= sample_length)
+            ps_vstate->pos = fmod(ps_vstate->pos, sample_length);
+
+        rassert(ps_vstate->pos >= 0);
+        rassert(ps_vstate->pos < sample_length);
     }
 
     // Render audio
@@ -276,12 +315,8 @@ void Padsynth_vstate_init(Voice_state* vstate, const Proc_state* proc_state)
     rassert(vstate != NULL);
     rassert(proc_state != NULL);
 
-    const Proc_padsynth* ps = (const Proc_padsynth*)proc_state->parent.device->dimpl;
-    const int32_t sample_length = Padsynth_sample_map_get_sample_length(ps->sample_map);
-
     Padsynth_vstate* ps_vstate = (Padsynth_vstate*)vstate;
     ps_vstate->init_pitch = NAN;
-    ps_vstate->pos = Random_get_index(vstate->rand_p, sample_length);
 
     return;
 }

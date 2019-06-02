@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2019
  *
  * This file is part of Kunquat.
  *
@@ -49,6 +49,11 @@ typedef struct Proc_padsynth
     Padsynth_sample_map* sample_map;
     bool is_ramp_attack_enabled;
     bool is_stereo_enabled;
+
+    double start_pos;
+    bool is_start_pos_var_enabled;
+    bool round_start_pos_var_to_period;
+    double start_pos_var;
 } Proc_padsynth;
 
 

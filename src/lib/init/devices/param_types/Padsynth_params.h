@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2019
  *
  * This file is part of Kunquat.
  *
@@ -31,14 +31,20 @@
 
 #define PADSYNTH_DEFAULT_AUDIO_RATE 48000
 
-#define PADSYNTH_DEFAULT_BANDWIDTH_BASE 1
-#define PADSYNTH_DEFAULT_BANDWIDTH_SCALE 1
+#define PADSYNTH_DEFAULT_BANDWIDTH_BASE 0.01
+#define PADSYNTH_DEFAULT_BANDWIDTH_SCALE 0
+
+#define PADSYNTH_DEFAULT_PHASE_VAR_AT_HARMONIC 0.0
+#define PADSYNTH_DEFAULT_PHASE_VAR_OFF_HARMONIC 1.0
+#define PADSYNTH_DEFAULT_PHASE_SPREAD_BW_BASE 0.01
+#define PADSYNTH_DEFAULT_PHASE_SPREAD_BW_SCALE 0
 
 
 typedef struct Padsynth_harmonic
 {
     double freq_mul;
     double amplitude;
+    double phase;
 } Padsynth_harmonic;
 
 
@@ -50,10 +56,16 @@ typedef struct Padsynth_params
     double min_pitch;
     double max_pitch;
     double centre_pitch;
+    bool use_phase_data;
 
     double bandwidth_base;
     double bandwidth_scale;
     Vector* harmonics;
+
+    double phase_var_at_harmonic;
+    double phase_var_off_harmonic;
+    double phase_spread_bandwidth_base;
+    double phase_spread_bandwidth_scale;
 
     bool is_res_env_enabled;
     Envelope* res_env;
@@ -63,11 +75,12 @@ typedef struct Padsynth_params
 /**
  * Create new PADsynth parameters.
  *
- * \param sr   The Streader of the JSON input -- must not be \c NULL.
+ * \param sr        The Streader of the JSON input -- must not be \c NULL.
+ * \param version   The format version -- must be \c 0 or \c 1.
  *
  * \return   The new PADsynth parameters if successful, otherwise \c NULL.
  */
-Padsynth_params* new_Padsynth_params(Streader* sr);
+Padsynth_params* new_Padsynth_params(Streader* sr, int version);
 
 
 /**

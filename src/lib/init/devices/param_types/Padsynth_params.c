@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2019
  *
  * This file is part of Kunquat.
  *
@@ -33,8 +33,8 @@ static bool read_harmonic(Streader* sr, int32_t index, void* userdata)
     Vector* harmonics = userdata;
 
     Padsynth_harmonic* info =
-        &(Padsynth_harmonic){ .freq_mul = NAN, .amplitude = NAN };
-    if (!Streader_readf(sr, "[%f,%f]", &info->freq_mul, &info->amplitude))
+        &(Padsynth_harmonic){ .freq_mul = NAN, .amplitude = NAN, .phase = NAN };
+    if (!Streader_readf(sr, "[%f,%f", &info->freq_mul, &info->amplitude))
         return false;
 
     if (info->freq_mul <= 0)
@@ -48,6 +48,17 @@ static bool read_harmonic(Streader* sr, int32_t index, void* userdata)
     {
         Streader_set_error(sr, "PADsynth harmonic amplitude must be non-negative");
         return false;
+    }
+
+    if (Streader_match_char(sr, ']'))
+    {
+        info->phase = 0;
+    }
+    else
+    {
+        Streader_clear_error(sr);
+        if (!Streader_readf(sr, ",%f]", &info->phase))
+            return false;
     }
 
     if (!Vector_append(harmonics, info))
@@ -174,9 +185,9 @@ static bool read_param(Streader* sr, const char* key, void* userdata)
         if (!Streader_read_float(sr, &scale))
             return false;
 
-        if (scale < 1)
+        if (scale < 0)
         {
-            Streader_set_error(sr, "PADsynth bandwidth scale must be at least 1");
+            Streader_set_error(sr, "PADsynth bandwidth scale must not be negative");
             return false;
         }
 
@@ -192,6 +203,73 @@ static bool read_param(Streader* sr, const char* key, void* userdata)
             Streader_set_error(sr, "List of PADsynth harmonics is empty");
             return false;
         }
+    }
+    else if (string_eq(key, "use_phase_data"))
+    {
+        if (!Streader_read_bool(sr, &pp->use_phase_data))
+            return false;
+    }
+    else if (string_eq(key, "phase_var_at_harmonic"))
+    {
+        double var = NAN;
+        if (!Streader_read_float(sr, &var))
+            return false;
+
+        if ((var < 0) || (var > 1))
+        {
+            Streader_set_error(
+                    sr,
+                    "PADsynth phase variation at harmonic must be within range [0, 1]");
+            return false;
+        }
+
+        pp->phase_var_at_harmonic = var;
+    }
+    else if (string_eq(key, "phase_var_off_harmonic"))
+    {
+        double var = NAN;
+        if (!Streader_read_float(sr, &var))
+            return false;
+
+        if ((var < 0) || (var > 1))
+        {
+            Streader_set_error(
+                    sr,
+                    "PADsynth phase variation off harmonic must be within range [0, 1]");
+            return false;
+        }
+
+        pp->phase_var_off_harmonic = var;
+    }
+    else if (string_eq(key, "phase_spread_bandwidth_base"))
+    {
+        double base = NAN;
+        if (!Streader_read_float(sr, &base))
+            return false;
+
+        if (base <= 0)
+        {
+            Streader_set_error(
+                    sr, "PADsynth phase spread bandwidth base must be positive");
+            return false;
+        }
+
+        pp->phase_spread_bandwidth_base = base;
+    }
+    else if (string_eq(key, "phase_spread_bandwidth_scale"))
+    {
+        double scale = NAN;
+        if (!Streader_read_float(sr, &scale))
+            return false;
+
+        if (scale < 0)
+        {
+            Streader_set_error(
+                    sr, "PADsynth phase spread bandwidth scale must not be negative");
+            return false;
+        }
+
+        pp->phase_spread_bandwidth_scale = scale;
     }
     else if (string_eq(key, "res_env_enabled"))
     {
@@ -258,9 +336,11 @@ static bool read_param(Streader* sr, const char* key, void* userdata)
 }
 
 
-Padsynth_params* new_Padsynth_params(Streader* sr)
+Padsynth_params* new_Padsynth_params(Streader* sr, int version)
 {
     rassert(sr != NULL);
+    rassert(version >= 0);
+    rassert(version <= 1);
 
     if (Streader_is_error_set(sr))
         return NULL;
@@ -295,9 +375,16 @@ Padsynth_params* new_Padsynth_params(Streader* sr)
     pp->bandwidth_base = PADSYNTH_DEFAULT_BANDWIDTH_BASE;
     pp->bandwidth_scale = PADSYNTH_DEFAULT_BANDWIDTH_SCALE;
 
+    pp->use_phase_data = false;
+    pp->phase_var_at_harmonic = PADSYNTH_DEFAULT_PHASE_VAR_AT_HARMONIC;
+    pp->phase_var_off_harmonic = PADSYNTH_DEFAULT_PHASE_VAR_OFF_HARMONIC;
+    pp->phase_spread_bandwidth_base = PADSYNTH_DEFAULT_PHASE_SPREAD_BW_BASE;
+    pp->phase_spread_bandwidth_scale = PADSYNTH_DEFAULT_PHASE_SPREAD_BW_SCALE;
+
     if (!Streader_has_data(sr))
     {
-        Padsynth_harmonic* info = &(Padsynth_harmonic){ .freq_mul = 1, .amplitude = 1 };
+        Padsynth_harmonic* info =
+            &(Padsynth_harmonic){ .freq_mul = 1, .amplitude = 1, .phase = 0 };
         if (!Vector_append(pp->harmonics, info))
         {
             Streader_set_error(sr, "Could not allocate memory for PADsynth harmonics");

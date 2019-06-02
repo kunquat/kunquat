@@ -38,6 +38,10 @@
 static Set_padsynth_params_func Proc_padsynth_set_params;
 static Set_bool_func            Proc_padsynth_set_ramp_attack;
 static Set_bool_func            Proc_padsynth_set_stereo;
+static Set_float_func           Proc_padsynth_set_start_pos;
+static Set_bool_func            Proc_padsynth_set_start_pos_var_enabled;
+static Set_bool_func            Proc_padsynth_set_round_start_pos_var_to_period;
+static Set_float_func           Proc_padsynth_set_start_pos_var;
 
 static bool apply_padsynth(
         Proc_padsynth* padsynth,
@@ -92,21 +96,13 @@ static void del_Padsynth_sample_map(Padsynth_sample_map* sm);
 
 
 static Padsynth_sample_map* new_Padsynth_sample_map(
-        int sample_count,
-        int32_t sample_length,
-        double min_pitch,
-        double max_pitch,
-        double centre_pitch)
+        int sample_count, int32_t sample_length)
 {
     rassert(sample_count > 0);
     rassert(sample_count <= 128);
     rassert(sample_length >= PADSYNTH_MIN_SAMPLE_LENGTH);
     rassert(sample_length <= PADSYNTH_MAX_SAMPLE_LENGTH);
     rassert(is_p2(sample_length));
-    rassert(isfinite(min_pitch));
-    rassert(isfinite(max_pitch));
-    rassert(min_pitch <= max_pitch);
-    rassert(isfinite(centre_pitch));
 
     Padsynth_sample_map* sm = memory_alloc_item(Padsynth_sample_map);
     if (sm == NULL)
@@ -114,9 +110,9 @@ static Padsynth_sample_map* new_Padsynth_sample_map(
 
     sm->sample_count = sample_count;
     sm->sample_length = sample_length;
-    sm->min_pitch = min_pitch;
-    sm->max_pitch = max_pitch;
-    sm->centre_pitch = centre_pitch;
+    sm->min_pitch = NAN;
+    sm->max_pitch = NAN;
+    sm->centre_pitch = NAN;
     sm->map = NULL;
 
     sm->map = new_AAtree(
@@ -153,11 +149,7 @@ static Padsynth_sample_map* new_Padsynth_sample_map(
             return NULL;
         }
 
-        if (sample_count > 1)
-            entry->centre_pitch =
-                lerp(min_pitch, max_pitch, i / (double)(sample_count - 1));
-        else
-            entry->centre_pitch = (min_pitch + max_pitch) * 0.5;
+        entry->centre_pitch = (double)i; // placeholder to get unique keys :-P
 
         entry->sample = sample;
 
@@ -193,11 +185,36 @@ static void Padsynth_sample_map_set_pitch_range(
     rassert(isfinite(max_pitch));
     rassert(min_pitch <= max_pitch);
 
-    if (sm->min_pitch == min_pitch && sm->max_pitch == max_pitch)
-        return;
-
     sm->min_pitch = min_pitch;
     sm->max_pitch = max_pitch;
+
+    return;
+}
+
+
+static double round_to_period(double cents, int32_t sample_length)
+{
+    rassert(isfinite(cents));
+    rassert(sample_length > 0);
+
+    const double entry_Hz = cents_to_Hz(cents);
+    const double cycle_length = PADSYNTH_DEFAULT_AUDIO_RATE / entry_Hz;
+    const double cycle_count = sample_length / cycle_length;
+    const double rounded_cycle_count = round(cycle_count);
+    const double rounded_cycle_length = sample_length / rounded_cycle_count;
+    const double rounded_entry_Hz = PADSYNTH_DEFAULT_AUDIO_RATE / rounded_cycle_length;
+    const double rounded_entry_cents = log2(rounded_entry_Hz / 440) * 1200.0;
+
+    return rounded_entry_cents;
+}
+
+
+static void Padsynth_sample_map_update_sample_pitches(Padsynth_sample_map* sm)
+{
+    rassert(sm != NULL);
+    rassert(isfinite(sm->min_pitch));
+    rassert(isfinite(sm->max_pitch));
+    rassert(isfinite(sm->centre_pitch));
 
     AAiter* iter = AAiter_init(AAITER_AUTO, sm->map);
 
@@ -206,7 +223,8 @@ static void Padsynth_sample_map_set_pitch_range(
     if (sm->sample_count == 1)
     {
         rassert(entry != NULL);
-        entry->centre_pitch = (min_pitch + max_pitch) * 0.5;
+        const double unrounded_pitch = (sm->min_pitch + sm->max_pitch) * 0.5;
+        entry->centre_pitch = round_to_period(unrounded_pitch, sm->sample_length);
 
         entry = AAiter_get_next(iter);
     }
@@ -215,8 +233,9 @@ static void Padsynth_sample_map_set_pitch_range(
         for (int i = 0; i < sm->sample_count; ++i)
         {
             rassert(entry != NULL);
-            entry->centre_pitch =
-                lerp(min_pitch, max_pitch, i / (double)(sm->sample_count - 1));
+            const double unrounded_pitch =
+                lerp(sm->min_pitch, sm->max_pitch, i / (double)(sm->sample_count - 1));
+            entry->centre_pitch = round_to_period(unrounded_pitch, sm->sample_length);
 
             entry = AAiter_get_next(iter);
         }
@@ -278,6 +297,11 @@ Device_impl* new_Proc_padsynth(void)
     padsynth->is_ramp_attack_enabled = true;
     padsynth->is_stereo_enabled = false;
 
+    padsynth->start_pos = 0.0;
+    padsynth->is_start_pos_var_enabled = true;
+    padsynth->round_start_pos_var_to_period = false;
+    padsynth->start_pos_var = 1.0;
+
     if (!Device_impl_init(&padsynth->parent, del_Proc_padsynth))
     {
         del_Device_impl(&padsynth->parent);
@@ -294,7 +318,24 @@ Device_impl* new_Proc_padsynth(void)
             REGISTER_SET_FIXED_STATE(
                 padsynth, bool, ramp_attack, "p_b_ramp_attack.json", true) &&
             REGISTER_SET_FIXED_STATE(
-                padsynth, bool, stereo, "p_b_stereo.json", false)))
+                padsynth, bool, stereo, "p_b_stereo.json", false) &&
+            REGISTER_SET_FIXED_STATE(
+                padsynth, float, start_pos, "p_f_start_pos.json", 0.0) &&
+            REGISTER_SET_FIXED_STATE(
+                padsynth,
+                bool,
+                start_pos_var_enabled,
+                "p_b_start_pos_var_enabled.json",
+                true) &&
+            REGISTER_SET_FIXED_STATE(
+                padsynth,
+                bool,
+                round_start_pos_var_to_period,
+                "p_b_round_start_pos_var_to_period.json",
+                false) &&
+            REGISTER_SET_FIXED_STATE(
+                padsynth, float, start_pos_var, "p_f_start_pos_var.json", 1.0)
+        ))
     {
         del_Device_impl(&padsynth->parent);
         return NULL;
@@ -353,6 +394,62 @@ static bool Proc_padsynth_set_stereo(
 }
 
 
+static bool Proc_padsynth_set_start_pos_var_enabled(
+        Device_impl* dimpl, const Key_indices indices, bool enabled)
+{
+    rassert(dimpl != NULL);
+    rassert(indices != NULL);
+
+    Proc_padsynth* padsynth = (Proc_padsynth*)dimpl;
+    padsynth->is_start_pos_var_enabled = enabled;
+
+    return true;
+}
+
+
+static bool Proc_padsynth_set_round_start_pos_var_to_period(
+        Device_impl* dimpl, const Key_indices indices, bool enabled)
+{
+    rassert(dimpl != NULL);
+    rassert(indices != NULL);
+
+    Proc_padsynth* padsynth = (Proc_padsynth*)dimpl;
+    padsynth->round_start_pos_var_to_period = enabled;
+
+    return true;
+}
+
+
+static bool Proc_padsynth_set_start_pos_var(
+        Device_impl* dimpl, const Key_indices indices, double var)
+{
+    rassert(dimpl != NULL);
+    rassert(indices != NULL);
+
+    const double applied_var = ((0 <= var) && (var <= 1.0)) ? var : 0.0;
+
+    Proc_padsynth* padsynth = (Proc_padsynth*)dimpl;
+    padsynth->start_pos_var = applied_var;
+
+    return true;
+}
+
+
+static bool Proc_padsynth_set_start_pos(
+        Device_impl* dimpl, const Key_indices indices, double pos)
+{
+    rassert(dimpl != NULL);
+    rassert(indices != NULL);
+
+    const double applied_pos = ((0 <= pos) && (pos <= 1.0)) ? pos : 0.0;
+
+    Proc_padsynth* padsynth = (Proc_padsynth*)dimpl;
+    padsynth->start_pos = applied_pos;
+
+    return true;
+}
+
+
 static double profile(double freq_i, double bandwidth_i)
 {
     double x = freq_i / bandwidth_i;
@@ -369,6 +466,13 @@ static double get_profile_bound(double bandwidth_i)
     rassert(bandwidth_i > 0);
 
     return 5.2247 * bandwidth_i; // 5.2247 ~ sqrt(27.2972), see profile() above
+}
+
+
+static double get_phase_spread(double freq_i, double bandwidth_i)
+{
+    const double x = freq_i / bandwidth_i;
+    return 1.0 - exp(-x * x);
 }
 
 
@@ -473,6 +577,8 @@ static void make_padsynth_sample(Error* error, void* user_data)
         freq_phase[i] = 0;
     }
 
+    const bool use_phase_data = (params != NULL) ? params->use_phase_data : false;
+
     if (params != NULL)
     {
         const int32_t audio_rate = params->audio_rate;
@@ -481,7 +587,16 @@ static void make_padsynth_sample(Error* error, void* user_data)
 
         const double freq = cents_to_Hz(cb_data->entry->centre_pitch);
 
+        const double ps_bw_base = params->phase_spread_bandwidth_base;
+        const double ps_bw_scale = params->phase_spread_bandwidth_scale;
+        const double phase_var_at_h = params->phase_var_at_harmonic;
+        const double phase_var_off_h = params->phase_var_off_harmonic;
+
         const int32_t nyquist = params->audio_rate / 2;
+
+        char phase_context_str[16] = "";
+        snprintf(phase_context_str, 16, "PADphase%hd", (short)cb_data->context_index);
+        Random* phase_random = Random_init(RANDOM_AUTO, phase_context_str);
 
         for (int64_t h = 0; h < Vector_size(params->harmonics); ++h)
         {
@@ -512,11 +627,62 @@ static void make_padsynth_sample(Error* error, void* user_data)
 
             buf_start = max(0, buf_start);
             buf_stop = min(buf_stop, buf_length);
-            for (int32_t i = buf_start; i < buf_stop; ++i)
+
+            if (use_phase_data)
             {
-                const double harmonic_profile =
-                    profile((i / (double)sample_length) - freq_i, bandwidth_i);
-                freq_amp[i] += harmonic_profile * harmonic->amplitude;
+                // Phase spread
+                const double ps_bandwidth_Hz =
+                    (exp2(ps_bw_base / 1200.0) - 1.0) *
+                    freq *
+                    pow(harmonic->freq_mul, ps_bw_scale);
+                const double ps_bandwidth_i = ps_bandwidth_Hz / (2.0 * audio_rate);
+
+                Random_set_seed(phase_random, Random_get_uint64(random));
+
+                for (int32_t i = buf_start; i < buf_stop; ++i)
+                {
+                    // Add amplitude and phase of the harmonic
+                    const double orig_amp = freq_amp[i];
+                    const double orig_phase = freq_phase[i];
+                    const double orig_real = orig_amp * cos(orig_phase);
+                    const double orig_imag = orig_amp * sin(orig_phase);
+
+                    const double harmonic_profile =
+                        profile((i / (double)sample_length) - freq_i, bandwidth_i);
+
+                    const double add_amp = harmonic_profile * harmonic->amplitude;
+                    const double add_real = add_amp * cos(harmonic->phase);
+                    const double add_imag = add_amp * sin(harmonic->phase);
+
+                    const double new_real = orig_real + add_real;
+                    const double new_imag = orig_imag + add_imag;
+                    const double new_amp =
+                        sqrt((new_real * new_real) + (new_imag * new_imag));
+                    double new_phase = atan2(new_imag, new_real);
+                    if (new_phase < 0)
+                        new_phase += PI2;
+
+                    // Add phase variation
+                    const double phase_spread_norm = get_phase_spread(
+                            (i / (double)sample_length) - freq_i, ps_bandwidth_i);
+                    const double phase_spread =
+                        lerp(phase_var_at_h, phase_var_off_h, phase_spread_norm);
+                    new_phase += Random_get_float_lb(phase_random) * PI2 * phase_spread;
+                    if (new_phase >= PI2)
+                        new_phase = fmod(new_phase, PI2);
+
+                    freq_amp[i] = new_amp;
+                    freq_phase[i] = new_phase;
+                }
+            }
+            else
+            {
+                for (int32_t i = buf_start; i < buf_stop; ++i)
+                {
+                    const double harmonic_profile =
+                        profile((i / (double)sample_length) - freq_i, bandwidth_i);
+                    freq_amp[i] += harmonic_profile * harmonic->amplitude;
+                }
             }
         }
 
@@ -551,8 +717,9 @@ static void make_padsynth_sample(Error* error, void* user_data)
         }
     }
 
-    // Add randomised phases
+    if (!use_phase_data)
     {
+        // Add randomised phases
         for (int32_t i = 0; i < buf_length; ++i)
             freq_phase[i] = Random_get_float_lb(random) * PI2;
     }
@@ -617,6 +784,8 @@ static bool apply_padsynth(
     }
 
     // Use only one sample with very small pitch ranges
+    // TODO: Make sure we don't use more samples than we can differentiate
+    //       with rounded pitches
     if (fabs(min_pitch - max_pitch) < 1)
         sample_count = 1;
 
@@ -642,12 +811,8 @@ static bool apply_padsynth(
             padsynth->sample_map->sample_length != sample_length ||
             padsynth->sample_map->sample_count != sample_count)
     {
-        Padsynth_sample_map* new_sm = new_Padsynth_sample_map(
-                sample_count,
-                sample_length,
-                min_pitch,
-                max_pitch,
-                centre_pitch);
+        Padsynth_sample_map* new_sm =
+            new_Padsynth_sample_map(sample_count, sample_length);
         if (new_sm == NULL)
         {
             for (int i = 0; i < cb_data_count; ++i)
@@ -658,11 +823,10 @@ static bool apply_padsynth(
         del_Padsynth_sample_map(padsynth->sample_map);
         padsynth->sample_map = new_sm;
     }
-    else
-    {
-        Padsynth_sample_map_set_centre_pitch(padsynth->sample_map, centre_pitch);
-        Padsynth_sample_map_set_pitch_range(padsynth->sample_map, min_pitch, max_pitch);
-    }
+
+    Padsynth_sample_map_set_centre_pitch(padsynth->sample_map, centre_pitch);
+    Padsynth_sample_map_set_pitch_range(padsynth->sample_map, min_pitch, max_pitch);
+    Padsynth_sample_map_update_sample_pitches(padsynth->sample_map);
 
     // Build samples
     if (params != NULL)
