@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2019
  *
  * This file is part of Kunquat.
  *
@@ -280,7 +280,8 @@ bool parse_data(Handle* handle, const char* key, const void* data, long length)
                     return false;
                 }
 
-                if (version > keyp_to_func[i].version)
+                if (string_has_suffix(keyp_to_func[i].keyp, ".json") &&
+                       (version > keyp_to_func[i].version))
                 {
                     Streader_set_error(
                             params.sr,
