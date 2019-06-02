@@ -316,9 +316,9 @@ class Controller():
 
         # Add audio unit data to the transaction
         for (orig_key, ver_value) in contents.items():
-            key, value = self._data_converters.convert_key_and_data(orig_key, ver_value)
-            dest_key = '{}/{}'.format(au_id, key)
-            transaction[dest_key] = value
+            key_in_au = '{}/{}'.format(au_id, orig_key)
+            key, value = self._data_converters.convert_key_and_data(key_in_au, ver_value)
+            transaction[key] = value
 
         # Add audio unit control
         if ('/' not in au_id) and control_id:
