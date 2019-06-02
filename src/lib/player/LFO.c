@@ -378,7 +378,7 @@ double LFO_skip(LFO* lfo, int64_t steps)
         int64_t process_steps_left = steps;
         while (process_steps_left > 0)
         {
-            int32_t steps32 = (process_steps_left > (int64_t)INT32_MAX)
+            const int32_t steps32 = (process_steps_left > (int64_t)INT32_MAX)
                 ? INT32_MAX : (int32_t)process_steps_left;
 
             const double init_speed_progress = Slider_get_value(&lfo->speed_slider);
