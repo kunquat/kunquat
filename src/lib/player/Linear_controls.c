@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2019
  *
  * This file is part of Kunquat.
  *
@@ -23,6 +23,7 @@
 #include <math.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 
 
 void Linear_controls_init(Linear_controls* lc)
@@ -178,7 +179,7 @@ void Linear_controls_osc_speed_value(Linear_controls* lc, double speed)
 
     LFO_set_speed(&lc->lfo, speed);
 
-    if (lc->def_osc_depth > 0)
+    if ((lc->def_osc_depth > 0) && (lc->def_osc_depth != lc->lfo.target_depth))
         LFO_set_depth(&lc->lfo, lc->def_osc_depth);
 
     LFO_turn_on(&lc->lfo);
@@ -194,7 +195,7 @@ void Linear_controls_osc_depth_value(Linear_controls* lc, double depth)
 
     lc->def_osc_depth = depth;
 
-    if (lc->def_osc_speed > 0)
+    if ((lc->def_osc_speed > 0) && (lc->def_osc_speed != lc->lfo.target_speed))
         LFO_set_speed(&lc->lfo, lc->def_osc_speed);
 
     LFO_set_depth(&lc->lfo, depth);
@@ -347,9 +348,7 @@ void Linear_controls_copy(
     rassert(src != NULL);
     rassert(src != dest);
 
-    dest->value = src->value;
-    Slider_copy(&dest->slider, &src->slider);
-    LFO_copy(&dest->lfo, &src->lfo);
+    memcpy(dest, src, sizeof(Linear_controls));
 
     return;
 }

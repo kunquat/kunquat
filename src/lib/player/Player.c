@@ -1672,6 +1672,12 @@ static void Player_init_final(Player* player)
     Player_reset_channels(player);
 
     for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
+    {
+        Channel* ch = player->channels[i];
+        Channel_set_tempo(ch, player->master_params.tempo);
+    }
+
+    for (int i = 0; i < KQT_CHANNELS_MAX; ++i)
         Cgiter_reset(&player->cgiters[i], &player->master_params.cur_pos);
 
     return;

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2019
  *
  * This file is part of Kunquat.
  *
@@ -362,6 +362,7 @@ void Stream_vstate_init(Voice_state* vstate, const Proc_state* proc_state)
 
     Linear_controls_init(&svstate->controls);
     Linear_controls_set_audio_rate(&svstate->controls, proc_state->parent.audio_rate);
+    // FIXME: Find correct tempo; this leaks out!
     Linear_controls_set_tempo(&svstate->controls, 120);
     Linear_controls_set_value(&svstate->controls, stream->init_value);
     Linear_controls_set_osc_speed_init_value(

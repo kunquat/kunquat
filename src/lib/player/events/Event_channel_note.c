@@ -68,7 +68,7 @@ static void init_force_controls(Channel* ch, const Master_params* master_params)
 }
 
 
-static void init_streams(Channel* ch, const Audio_unit* au)
+static void init_streams(Channel* ch, const Audio_unit* au, double tempo)
 {
     const Au_streams* streams = Audio_unit_get_streams(au);
     if (streams != NULL)
@@ -94,6 +94,7 @@ static void init_streams(Channel* ch, const Audio_unit* au)
                 {
                     Linear_controls new_lc;
                     Linear_controls_copy(&new_lc, Stream_vstate_get_controls(vstate));
+                    Linear_controls_set_tempo(&new_lc, tempo); // FIXME: init tempo
                     Channel_stream_state_apply_overrides(
                             stream_state, stream_name, &new_lc);
 
@@ -262,7 +263,7 @@ bool Event_channel_note_on_process(
 
     Channel_reset_test_output(ch);
 
-    init_streams(ch, au);
+    init_streams(ch, au, master_params->tempo);
 
     return true;
 }
@@ -372,7 +373,7 @@ bool Event_channel_hit_process(
 
     Channel_reset_test_output(ch);
 
-    init_streams(ch, au);
+    init_streams(ch, au, master_params->tempo);
 
     return true;
 }
