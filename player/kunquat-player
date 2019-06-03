@@ -90,17 +90,12 @@ def print_meta(meta):
     fields = []
     values = []
 
-    try:
-        title = meta['m_title.json']
+    title = meta.get('m_title.json', None)
+    if title:
         fields.extend(['Title:'])
         values.extend([title])
-    except KeyError:
-        pass
 
-    try:
-        authors = meta['m_authors.json']
-    except KeyError:
-        authors = None
+    authors = meta.get('m_authors.json', None)
     if authors:
         s = 's' if len(authors) != 1 else ''
         fields.append('Author{}:'.format(s))
