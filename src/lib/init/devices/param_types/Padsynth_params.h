@@ -57,6 +57,7 @@ typedef struct Padsynth_params
     double max_pitch;
     double centre_pitch;
     bool use_phase_data;
+    bool round_to_period;
 
     double bandwidth_base;
     double bandwidth_scale;

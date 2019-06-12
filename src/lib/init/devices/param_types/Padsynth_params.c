@@ -371,6 +371,7 @@ Padsynth_params* new_Padsynth_params(Streader* sr, int version)
     pp->min_pitch = 0;
     pp->max_pitch = 0;
     pp->centre_pitch = 0;
+    pp->round_to_period = (version > 0);
 
     pp->bandwidth_base = PADSYNTH_DEFAULT_BANDWIDTH_BASE;
     pp->bandwidth_scale = PADSYNTH_DEFAULT_BANDWIDTH_SCALE;

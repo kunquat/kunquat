@@ -209,7 +209,8 @@ static double round_to_period(double cents, int32_t sample_length)
 }
 
 
-static void Padsynth_sample_map_update_sample_pitches(Padsynth_sample_map* sm)
+static void Padsynth_sample_map_update_sample_pitches(
+        Padsynth_sample_map* sm, bool enable_rounding)
 {
     rassert(sm != NULL);
     rassert(isfinite(sm->min_pitch));
@@ -224,7 +225,10 @@ static void Padsynth_sample_map_update_sample_pitches(Padsynth_sample_map* sm)
     {
         rassert(entry != NULL);
         const double unrounded_pitch = (sm->min_pitch + sm->max_pitch) * 0.5;
-        entry->centre_pitch = round_to_period(unrounded_pitch, sm->sample_length);
+        if (enable_rounding)
+            entry->centre_pitch = round_to_period(unrounded_pitch, sm->sample_length);
+        else
+            entry->centre_pitch = unrounded_pitch;
 
         entry = AAiter_get_next(iter);
     }
@@ -235,7 +239,10 @@ static void Padsynth_sample_map_update_sample_pitches(Padsynth_sample_map* sm)
             rassert(entry != NULL);
             const double unrounded_pitch =
                 lerp(sm->min_pitch, sm->max_pitch, i / (double)(sm->sample_count - 1));
-            entry->centre_pitch = round_to_period(unrounded_pitch, sm->sample_length);
+            if (enable_rounding)
+                entry->centre_pitch = round_to_period(unrounded_pitch, sm->sample_length);
+            else
+                entry->centre_pitch = unrounded_pitch;
 
             entry = AAiter_get_next(iter);
         }
@@ -826,7 +833,8 @@ static bool apply_padsynth(
 
     Padsynth_sample_map_set_centre_pitch(padsynth->sample_map, centre_pitch);
     Padsynth_sample_map_set_pitch_range(padsynth->sample_map, min_pitch, max_pitch);
-    Padsynth_sample_map_update_sample_pitches(padsynth->sample_map);
+    const bool enable_rounding = (params != NULL) ? params->round_to_period : true;
+    Padsynth_sample_map_update_sample_pitches(padsynth->sample_map, enable_rounding);
 
     // Build samples
     if (params != NULL)
