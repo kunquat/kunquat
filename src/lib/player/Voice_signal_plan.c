@@ -39,7 +39,6 @@ typedef int16_t Task_index;
 
 typedef struct Voice_signal_task_info
 {
-    Task_index task_index;
     uint32_t device_id;
     Vector* sender_tasks;
     Vector* buf_conns;
@@ -63,11 +62,10 @@ static void Voice_signal_task_info_deinit(Voice_signal_task_info* task_info)
 
 
 static bool Voice_signal_task_info_init(
-        Voice_signal_task_info* task_info, Task_index task_index, uint32_t device_id)
+        Voice_signal_task_info* task_info, uint32_t device_id)
 {
     rassert(task_info != NULL);
 
-    task_info->task_index = task_index;
     task_info->device_id = device_id;
     task_info->is_connected_to_mixed = false;
     task_info->is_processed = false;
@@ -366,8 +364,7 @@ static bool Voice_signal_plan_build_from_node(
         rassert(Vector_size(tasks) <= (int64_t)UINT16_MAX);
         cur_task_index = (Task_index)Vector_size(tasks);
 
-        if (!Voice_signal_task_info_init(
-                    &new_task_info, cur_task_index, node_device_id) ||
+        if (!Voice_signal_task_info_init(&new_task_info, node_device_id) ||
                 !Vector_append(tasks, &new_task_info))
         {
             Voice_signal_task_info_deinit(&new_task_info);
@@ -543,7 +540,8 @@ Voice_signal_plan* new_Voice_signal_plan(
         const Voice_signal_task_info* task_info = Vector_get_ref(plan->tasks[0], i);
         if (task_info->is_connected_to_mixed)
         {
-            if (!Vector_append(plan->roots, &task_info->task_index))
+            const Task_index task_index = (Task_index)i;
+            if (!Vector_append(plan->roots, &task_index))
             {
                 del_Voice_signal_plan(plan);
                 return NULL;
