@@ -31,48 +31,71 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include <stdio.h>
 #include <stdlib.h>
+
+
+typedef int16_t Task_index;
 
 
 typedef struct Voice_signal_task_info
 {
     uint32_t device_id;
-    Vector* conns;
-    bool is_connected_to_mixed;
+    Vector* sender_tasks;
+    Vector* buf_conns;
+    uint32_t is_connected_to_mixed : 1;
+    uint32_t is_processed : 1;
 } Voice_signal_task_info;
 
 
-static void del_Voice_signal_task_info(Voice_signal_task_info* task_info)
+static void Voice_signal_task_info_deinit(Voice_signal_task_info* task_info)
 {
-    if (task_info == NULL)
-        return;
+    rassert(task_info != NULL);
 
-    del_Vector(task_info->conns);
-    memory_free(task_info);
+    del_Vector(task_info->sender_tasks);
+    task_info->sender_tasks = NULL;
+
+    del_Vector(task_info->buf_conns);
+    task_info->buf_conns = NULL;
 
     return;
 }
 
 
-static Voice_signal_task_info* new_Voice_signal_task_info(uint32_t device_id)
+static bool Voice_signal_task_info_init(
+        Voice_signal_task_info* task_info, uint32_t device_id)
 {
-    Voice_signal_task_info* task_info = memory_alloc_item(Voice_signal_task_info);
-    if (task_info == NULL)
-        return NULL;
+    rassert(task_info != NULL);
 
     task_info->device_id = device_id;
-    task_info->conns = NULL;
     task_info->is_connected_to_mixed = false;
+    task_info->is_processed = false;
 
-    task_info->conns = new_Vector(sizeof(Work_buffer_conn_rules));
-    if (task_info->conns == NULL)
+    task_info->sender_tasks = new_Vector(sizeof(Task_index));
+    task_info->buf_conns = new_Vector(sizeof(Work_buffer_conn_rules));
+    if ((task_info->sender_tasks == NULL) || (task_info->buf_conns == NULL))
+        return false;
+
+    return true;
+}
+
+
+static bool Voice_signal_task_info_add_sender_task(
+        Voice_signal_task_info* task_info, Task_index sender_index)
+{
+    rassert(task_info != NULL);
+
+    Vector* senders = task_info->sender_tasks;
+
+    const uint16_t task_count = (uint16_t)Vector_size(senders);
+    for (uint16_t i = 0; i < task_count; ++i)
     {
-        del_Voice_signal_task_info(task_info);
-        return NULL;
+        Task_index cur_index = -1;
+        Vector_get(senders, i, &cur_index);
+        if (cur_index == sender_index)
+            return true;
     }
 
-    return task_info;
+    return Vector_append(task_info->sender_tasks, &sender_index);
 }
 
 
@@ -98,7 +121,7 @@ static bool Voice_signal_task_info_add_input(
             send_buf,
             send_sub_index);
 
-    return Vector_append(task_info->conns, rules);
+    return Vector_append(task_info->buf_conns, rules);
 }
 
 
@@ -106,18 +129,18 @@ static void Voice_signal_task_info_merge_connections(Voice_signal_task_info* tas
 {
     rassert(task_info != NULL);
 
-    int cur_size = (int)Vector_size(task_info->conns);
+    int cur_size = (int)Vector_size(task_info->buf_conns);
     for (int di = 0; di < cur_size - 1; ++di)
     {
-        Work_buffer_conn_rules* dest_rules = Vector_get_ref(task_info->conns, di);
+        Work_buffer_conn_rules* dest_rules = Vector_get_ref(task_info->buf_conns, di);
 
         for (int si = di + 1; si < cur_size; ++si)
         {
             const Work_buffer_conn_rules* src_rules =
-                Vector_get_ref(task_info->conns, si);
+                Vector_get_ref(task_info->buf_conns, si);
             if (Work_buffer_conn_rules_try_merge(dest_rules, dest_rules, src_rules))
             {
-                Vector_remove_at(task_info->conns, si);
+                Vector_remove_at(task_info->buf_conns, si);
                 --cur_size;
                 break;
             }
@@ -149,7 +172,8 @@ static void Voice_signal_task_info_invalidate_buffers(
 
 
 static int32_t Voice_signal_task_info_execute(
-        const Voice_signal_task_info* task_info,
+        Voice_signal_task_info* task_info,
+        Vector* tasks,
         Device_states* dstates,
         int thread_id,
         Voice_group* vgroup,
@@ -159,6 +183,7 @@ static int32_t Voice_signal_task_info_execute(
         bool* is_task_active)
 {
     rassert(task_info != NULL);
+    rassert(tasks != NULL);
     rassert(dstates != NULL);
     rassert(thread_id >= 0);
     rassert(thread_id < KQT_THREADS_MAX);
@@ -168,16 +193,43 @@ static int32_t Voice_signal_task_info_execute(
     rassert(tempo > 0);
     rassert(is_task_active != NULL);
 
-    // Mix signals to input buffers
-    for (int i = 0; i < Vector_size(task_info->conns); ++i)
+    if (task_info->is_processed)
+        return 0;
+
+    int32_t keep_alive_stop = 0;
+
+    // Execute dependencies
+    const int64_t sender_count = Vector_size(task_info->sender_tasks);
+    for (int64_t i = 0; i < sender_count; ++i)
     {
-        const Work_buffer_conn_rules* rules = Vector_get_ref(task_info->conns, i);
+        Task_index sender_index = -1;
+        Vector_get(task_info->sender_tasks, i, &sender_index);
+        Voice_signal_task_info* sender_task_info = Vector_get_ref(tasks, sender_index);
+
+        bool is_sender_active = false;
+        const int32_t sender_keep_alive_stop = Voice_signal_task_info_execute(
+                sender_task_info,
+                tasks,
+                dstates,
+                thread_id,
+                vgroup,
+                wbs,
+                frame_count,
+                tempo,
+                &is_sender_active);
+
+        keep_alive_stop = max(keep_alive_stop, sender_keep_alive_stop);
+    }
+
+    // Mix signals to input buffers
+    const int64_t conn_count = Vector_size(task_info->buf_conns);
+    for (int64_t i = 0; i < conn_count; ++i)
+    {
+        const Work_buffer_conn_rules* rules = Vector_get_ref(task_info->buf_conns, i);
         Work_buffer_conn_rules_mix(rules, frame_count);
     }
 
     bool active = false;
-
-    int keep_alive_stop = 0;
 
     // Process current processor state
     {
@@ -196,7 +248,7 @@ static int32_t Voice_signal_task_info_execute(
 
         if (call_render)
         {
-            keep_alive_stop = Voice_render(
+            const int32_t voice_keep_alive_stop = Voice_render(
                     voice,
                     task_info->device_id,
                     dstates,
@@ -205,11 +257,15 @@ static int32_t Voice_signal_task_info_execute(
                     frame_count,
                     tempo);
 
+            keep_alive_stop = max(keep_alive_stop, voice_keep_alive_stop);
+
             active = true;
         }
     }
 
     *is_task_active = active;
+
+    task_info->is_processed = true;
 
     return keep_alive_stop;
 }
@@ -244,8 +300,8 @@ static void Voice_signal_task_info_mix(
 
 struct Voice_signal_plan
 {
-    int task_count;
-    Etable* tasks[KQT_THREADS_MAX];
+    Vector* roots;
+    Vector* tasks[KQT_THREADS_MAX];
 };
 
 
@@ -253,7 +309,9 @@ static bool Voice_signal_plan_build_from_node(
         Voice_signal_plan* plan,
         Device_states* dstates,
         int thread_id,
-        const Device_node* node)
+        const Device_node* node,
+        bool is_parent_mixed,
+        Task_index* created_task_index)
 {
     rassert(plan != NULL);
     rassert(dstates != NULL);
@@ -269,9 +327,27 @@ static bool Voice_signal_plan_build_from_node(
     Device_thread_state* recv_ts =
         Device_states_get_thread_state(dstates, thread_id, node_device_id);
 
+    Vector* tasks = plan->tasks[thread_id];
+
     if (Device_thread_state_get_node_state(recv_ts) > DEVICE_NODE_STATE_NEW)
     {
         rassert(Device_thread_state_get_node_state(recv_ts) == DEVICE_NODE_STATE_VISITED);
+
+        // Update existing task info and report its index
+        const int64_t task_count = Vector_size(tasks);
+        for (int64_t i = 0; i < task_count; ++i)
+        {
+            Voice_signal_task_info* task_info = Vector_get_ref(tasks, i);
+            if (task_info->device_id == node_device_id)
+            {
+                if (is_parent_mixed)
+                    task_info->is_connected_to_mixed = true;
+
+                if (created_task_index != NULL)
+                    *created_task_index = (Task_index)i;
+            }
+        }
+
         return true;
     }
 
@@ -281,12 +357,22 @@ static bool Voice_signal_plan_build_from_node(
         (Device_node_get_type(node) == DEVICE_NODE_TYPE_PROCESSOR) &&
         !Device_get_mixed_signals(node_device);
 
-    Voice_signal_task_info* task_info = NULL;
+    Task_index cur_task_index = -1;
     if (use_voice_signals)
     {
-        task_info = new_Voice_signal_task_info(node_device_id);
-        if (task_info == NULL)
+        Voice_signal_task_info new_task_info;
+        rassert(Vector_size(tasks) <= (int64_t)UINT16_MAX);
+        cur_task_index = (Task_index)Vector_size(tasks);
+
+        if (!Voice_signal_task_info_init(&new_task_info, node_device_id) ||
+                !Vector_append(tasks, &new_task_info))
+        {
+            Voice_signal_task_info_deinit(&new_task_info);
             return false;
+        }
+
+        Voice_signal_task_info* task_info = Vector_get_ref(tasks, cur_task_index);
+        task_info->is_connected_to_mixed = is_parent_mixed;
     }
 
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
@@ -305,14 +391,23 @@ static bool Voice_signal_plan_build_from_node(
                 continue;
             }
 
+            Task_index sender_task_index = -1;
             if (!Voice_signal_plan_build_from_node(
                         plan,
                         dstates,
                         thread_id,
-                        edge->node))
-            {
-                del_Voice_signal_task_info(task_info);
+                        edge->node,
+                        !use_voice_signals,
+                        &sender_task_index))
                 return false;
+
+            const bool sender_is_voice_proc =
+                (Device_node_get_type(edge->node) == DEVICE_NODE_TYPE_PROCESSOR) &&
+                !Device_get_mixed_signals(send_device);
+            if (!sender_is_voice_proc && use_voice_signals)
+            {
+                edge = edge->next;
+                continue;
             }
 
             if (use_voice_signals)
@@ -320,6 +415,7 @@ static bool Voice_signal_plan_build_from_node(
                 // Find Work buffers
                 Device_thread_state* send_ts = Device_states_get_thread_state(
                         dstates, thread_id, Device_get_id(send_device));
+                rassert(send_ts != NULL);
 
                 int send_sub_index = 0;
                 const Work_buffer* send_buf = Device_thread_state_get_voice_buffer(
@@ -328,18 +424,21 @@ static bool Voice_signal_plan_build_from_node(
                 Work_buffer* recv_buf = Device_thread_state_get_voice_buffer(
                         recv_ts, DEVICE_PORT_TYPE_RECV, port, &recv_sub_index);
 
-                if ((send_buf != NULL) && (recv_buf != NULL))
+                if ((send_buf != NULL) && (recv_buf != NULL) && (sender_task_index >= 0))
                 {
+                    Voice_signal_task_info* task_info =
+                        Vector_get_ref(tasks, cur_task_index);
+                    if (!Voice_signal_task_info_add_sender_task(
+                                task_info, sender_task_index))
+                        return false;
+
                     if (!Voice_signal_task_info_add_input(
                                 task_info,
                                 recv_buf,
                                 recv_sub_index,
                                 send_buf,
                                 send_sub_index))
-                    {
-                        del_Voice_signal_task_info(task_info);
                         return false;
-                    }
                 }
             }
 
@@ -347,18 +446,8 @@ static bool Voice_signal_plan_build_from_node(
         }
     }
 
-    if (task_info != NULL)
-    {
-        rassert(Device_node_get_type(node) == DEVICE_NODE_TYPE_PROCESSOR);
-
-        if (!Etable_set(plan->tasks[thread_id], plan->task_count, task_info))
-        {
-            del_Voice_signal_task_info(task_info);
-            return false;
-        }
-
-        ++plan->task_count;
-    }
+    if ((cur_task_index >= 0) && (created_task_index != NULL))
+        *created_task_index = cur_task_index;
 
     Device_thread_state_set_node_state(recv_ts, DEVICE_NODE_STATE_VISITED);
 
@@ -366,110 +455,23 @@ static bool Voice_signal_plan_build_from_node(
 }
 
 
-static Voice_signal_task_info* Voice_signal_plan_find_task_info(
-        Voice_signal_plan* plan, int thread_id, uint32_t device_id)
+static void Voice_signal_plan_finalise(Voice_signal_plan* plan, int thread_id)
 {
     rassert(plan != NULL);
     rassert(thread_id >= 0);
     rassert(thread_id < KQT_THREADS_MAX);
 
-    Etable* tasks = plan->tasks[thread_id];
+    Vector* tasks = plan->tasks[thread_id];
     rassert(tasks != NULL);
 
-    for (int i = 0; i < plan->task_count; ++i)
+    for (int i = 0; i < Vector_size(tasks); ++i)
     {
-        Voice_signal_task_info* task_info = Etable_get(tasks, i);
-        if (task_info->device_id == device_id)
-            return task_info;
-    }
-
-    return NULL;
-}
-
-
-static void Voice_signal_plan_mark_connections_to_mixed(
-        Voice_signal_plan* plan,
-        Device_states* dstates,
-        int thread_id,
-        const Device_node* node,
-        bool is_parent_mixed)
-{
-    rassert(plan != NULL);
-    rassert(dstates != NULL);
-    rassert(thread_id >= 0);
-    rassert(thread_id < KQT_THREADS_MAX);
-    rassert(node != NULL);
-
-    const Device* node_device = Device_node_get_device(node);
-    if ((node_device == NULL) || !Device_is_existent(node_device))
-        return;
-
-    const uint32_t node_device_id = Device_get_id(node_device);
-    Device_thread_state* node_ts =
-        Device_states_get_thread_state(dstates, thread_id, node_device_id);
-
-    const bool is_current_mixed = Device_get_mixed_signals(node_device);
-
-    if ((Device_node_get_type(node) == DEVICE_NODE_TYPE_PROCESSOR) &&
-            !Device_get_mixed_signals(node_device))
-    {
-        rassert(is_parent_mixed);
-
-        if (Device_thread_state_get_node_state(node_ts) > DEVICE_NODE_STATE_NEW)
-        {
-            rassert(Device_thread_state_get_node_state(node_ts) ==
-                    DEVICE_NODE_STATE_VISITED);
-            return;
-        }
-
-        // TODO: find task info and set connected to mixed
-        Voice_signal_task_info* task_info =
-            Voice_signal_plan_find_task_info(plan, thread_id, node_device_id);
-        rassert(task_info != NULL);
-        task_info->is_connected_to_mixed = true;
-
-        return;
-    }
-
-    for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
-    {
-        const Connection* edge = Device_node_get_received(node, port);
-
-        while (edge != NULL)
-        {
-            const Device* send_device = Device_node_get_device(edge->node);
-            if ((send_device == NULL) || !Device_is_existent(send_device))
-            {
-                edge = edge->next;
-                continue;
-            }
-
-            Voice_signal_plan_mark_connections_to_mixed(
-                    plan, dstates, thread_id, edge->node, is_current_mixed);
-
-            edge = edge->next;
-        }
-    }
-}
-
-
-static bool Voice_signal_plan_finalise(Voice_signal_plan* plan, int thread_id)
-{
-    rassert(plan != NULL);
-    rassert(thread_id >= 0);
-    rassert(thread_id < KQT_THREADS_MAX);
-
-    Etable* tasks = plan->tasks[thread_id];
-    rassert(tasks != NULL);
-
-    for (int i = 0; i < plan->task_count; ++i)
-    {
-        Voice_signal_task_info* task_info = Etable_get(tasks, i);
+        Voice_signal_task_info* task_info = Vector_get_ref(tasks, i);
         rassert(task_info != NULL);
         Voice_signal_task_info_merge_connections(task_info);
     }
 
-    return true;
+    return;
 }
 
 
@@ -489,16 +491,12 @@ static bool Voice_signal_plan_build(
     rassert(master != NULL);
 
     Device_states_reset_node_states(dstates);
-    if (!Voice_signal_plan_build_from_node(plan, dstates, thread_id, master))
+    if (!Voice_signal_plan_build_from_node(plan, dstates, thread_id, master, true, NULL))
         return false;
 
-    const bool is_parent_mixed = true;
+    Voice_signal_plan_finalise(plan, thread_id);
 
-    Device_states_reset_node_states(dstates);
-    Voice_signal_plan_mark_connections_to_mixed(
-            plan, dstates, thread_id, master, is_parent_mixed);
-
-    return Voice_signal_plan_finalise(plan, thread_id);
+    return true;
 }
 
 
@@ -514,24 +512,40 @@ Voice_signal_plan* new_Voice_signal_plan(
     if (plan == NULL)
         return NULL;
 
-    plan->task_count = 0;
+    plan->roots = NULL;
     for (int i = 0; i < KQT_THREADS_MAX; ++i)
         plan->tasks[i] = NULL;
 
+    plan->roots = new_Vector(sizeof(Task_index));
+    if (plan->roots == NULL)
+    {
+        del_Voice_signal_plan(plan);
+        return NULL;
+    }
+
     for (int thread_id = 0; thread_id < thread_count; ++thread_id)
     {
-        Device_states_reset_node_states(dstates);
-
-        // FIXME: used as a counter by Voice_signal_plan_build; find a cleaner solution
-        plan->task_count = 0;
-
-        plan->tasks[thread_id] = new_Etable(
-                KQT_PROCESSORS_MAX, (void(*)(void*))del_Voice_signal_task_info);
+        plan->tasks[thread_id] = new_Vector(sizeof(Voice_signal_task_info));
         if ((plan->tasks[thread_id] == NULL) ||
                 !Voice_signal_plan_build(plan, dstates, thread_id, conns))
         {
             del_Voice_signal_plan(plan);
             return NULL;
+        }
+    }
+
+    const int64_t task_count = Vector_size(plan->tasks[0]);
+    for (int64_t i = 0; i < task_count; ++i)
+    {
+        const Voice_signal_task_info* task_info = Vector_get_ref(plan->tasks[0], i);
+        if (task_info->is_connected_to_mixed)
+        {
+            const Task_index task_index = (Task_index)i;
+            if (!Vector_append(plan->roots, &task_index))
+            {
+                del_Voice_signal_plan(plan);
+                return NULL;
+            }
         }
     }
 
@@ -567,25 +581,31 @@ int32_t Voice_signal_plan_execute(
 
     bool any_active_tasks_connected_to_mixed = false;
 
-    Etable* tasks = plan->tasks[thread_id];
+    Vector* tasks = plan->tasks[thread_id];
     rassert(tasks != NULL);
 
-    for (int i = 0; i < plan->task_count; ++i)
+    const int64_t task_count = Vector_size(tasks);
+    for (int64_t i = 0; i < task_count; ++i)
     {
-        const Voice_signal_task_info* task_info = Etable_get(tasks, i);
-        rassert(task_info != NULL);
+        Voice_signal_task_info* task_info = Vector_get_ref(tasks, i);
         Voice_signal_task_info_invalidate_buffers(
                 task_info, dstates, thread_id, frame_count);
+        task_info->is_processed = false;
     }
 
-    for (int i = 0; i < plan->task_count; ++i)
+    const int64_t root_count = Vector_size(plan->roots);
+    for (int64_t i = 0; i < root_count; ++i)
     {
-        const Voice_signal_task_info* task_info = Etable_get(tasks, i);
+        Task_index root_index = -1;
+        Vector_get(plan->roots, i, &root_index);
+
+        Voice_signal_task_info* task_info = Vector_get_ref(tasks, root_index);
 
         bool is_task_active = false;
 
         const int32_t task_keep_alive_stop = Voice_signal_task_info_execute(
                 task_info,
+                tasks,
                 dstates,
                 thread_id,
                 vgroup,
@@ -594,7 +614,7 @@ int32_t Voice_signal_plan_execute(
                 tempo,
                 &is_task_active);
 
-        if (task_info->is_connected_to_mixed && is_task_active)
+        if (is_task_active)
             any_active_tasks_connected_to_mixed = true;
 
         keep_alive_stop = max(keep_alive_stop, task_keep_alive_stop);
@@ -602,11 +622,15 @@ int32_t Voice_signal_plan_execute(
 
     if (enable_mixing)
     {
-        for (int i = 0; i < plan->task_count; ++i)
+        for (int64_t i = 0; i < root_count; ++i)
         {
-            const Voice_signal_task_info* task_info = Etable_get(tasks, i);
+            Task_index root_index = -1;
+            Vector_get(plan->roots, i, &root_index);
+
+            Voice_signal_task_info* task_info = Vector_get_ref(tasks, root_index);
             Voice_signal_task_info_mix(
-                    task_info, dstates,
+                    task_info,
+                    dstates,
                     thread_id,
                     keep_alive_stop,
                     frame_offset,
@@ -626,8 +650,19 @@ void del_Voice_signal_plan(Voice_signal_plan* plan)
     if (plan == NULL)
         return;
 
-    for (int i = 0; i < KQT_THREADS_MAX; ++i)
-        del_Etable(plan->tasks[i]);
+    for (int thread_id = 0; thread_id < KQT_THREADS_MAX; ++thread_id)
+    {
+        if (plan->tasks[thread_id] != NULL)
+        {
+            Vector* tasks = plan->tasks[thread_id];
+            for (int i = 0; i < Vector_size(tasks); ++i)
+                Voice_signal_task_info_deinit(Vector_get_ref(tasks, i));
+
+            del_Vector(plan->tasks[thread_id]);
+        }
+    }
+
+    del_Vector(plan->roots);
 
     memory_free(plan);
 
