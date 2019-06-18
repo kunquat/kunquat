@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2019
  *
  * This file is part of Kunquat.
  *
@@ -16,6 +16,7 @@
 
 #include <debug/assert.h>
 #include <init/devices/Proc_cons.h>
+#include <init/devices/Proc_type_init.h>
 #include <string/common.h>
 
 #include <stdbool.h>
@@ -26,14 +27,15 @@ typedef struct Proc_type_info
 {
     const char* type_name;
     Proc_cons* cons;
+    bool needs_vstate_if_connected_to_mixed;
 } Proc_type_info;
 
 
-static const Proc_type_info proc_type_infos[] =
+static Proc_type_info proc_type_infos[] =
 {
-#define PROC_TYPE(name) { #name, new_Proc_ ## name },
+#define PROC_TYPE(name) { #name, new_Proc_ ## name, false },
 #include <init/devices/Proc_types.h>
-    { NULL, NULL }
+    { NULL, NULL, false }
 };
 
 
@@ -57,6 +59,26 @@ Proc_cons* Proc_type_get_cons(Proc_type type)
     rassert(type < Proc_type_COUNT);
 
     return proc_type_infos[type].cons;
+}
+
+
+void Proc_type_set_needs_vstate_if_connected_to_mixed(Proc_type type)
+{
+    rassert(type >= 0);
+    rassert(type < Proc_type_COUNT);
+
+    proc_type_infos[type].needs_vstate_if_connected_to_mixed = true;
+
+    return;
+}
+
+
+bool Proc_type_needs_vstate_if_connected_to_mixed(Proc_type type)
+{
+    rassert(type >= 0);
+    rassert(type < Proc_type_COUNT);
+
+    return proc_type_infos[type].needs_vstate_if_connected_to_mixed;
 }
 
 

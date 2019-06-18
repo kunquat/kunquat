@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2019
  *
  * This file is part of Kunquat.
  *
@@ -17,6 +17,7 @@
 
 
 #include <decl.h>
+#include <init/devices/Proc_type.h>
 #include <player/devices/Device_state.h>
 #include <string/key_pattern.h>
 
@@ -33,6 +34,8 @@ typedef void Proc_state_fire_event_func(Device_state*, const char*, const Value*
 struct Proc_state
 {
     Device_state parent;
+
+    bool is_voice_connected_to_mixed;
 
     Device_state_destroy_func* destroy;
     Device_state_set_audio_rate_func* set_audio_rate;
@@ -69,6 +72,12 @@ bool Proc_state_init(
  * \param proc_state   The Processor state -- must not be \c NULL.
  */
 void Proc_state_clear_history(Proc_state* proc_state);
+
+
+/**
+ * Find out if the Processor state requires a Voice state in voice signal mode.
+ */
+bool Proc_state_needs_vstate(const Proc_state* proc_state);
 
 
 #endif // KQT_PROC_STATE_H

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2019
  *
  * This file is part of Kunquat.
  *
@@ -22,6 +22,7 @@
 #include <init/devices/Proc_type.h>
 #include <init/devices/Processor.h>
 #include <kunquat/limits.h>
+#include <mathnum/common.h>
 #include <mathnum/Tstamp.h>
 #include <player/Device_states.h>
 #include <player/devices/Device_thread_state.h>
@@ -138,9 +139,7 @@ int32_t Voice_state_render_voice(
     const Device_impl* dimpl = device->dimpl;
     rassert(dimpl != NULL);
 
-    const int32_t vstate_size = (dimpl->get_vstate_size != NULL)
-        ? dimpl->get_vstate_size() : (int32_t)sizeof(Voice_state);
-    rassert((vstate == NULL) == (vstate_size == 0));
+    rassert(implies(Proc_state_needs_vstate(proc_state), vstate != NULL));
 
     const Processor* proc = (const Processor*)device;
     if (!Processor_get_voice_signals(proc) || (dimpl->render_voice == NULL))
