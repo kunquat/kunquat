@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2019
  *
  * This file is part of Kunquat.
  *
@@ -179,7 +179,6 @@ int32_t Mult_vstate_render_voice(
         int32_t frame_count,
         double tempo)
 {
-    rassert(vstate == NULL);
     rassert(proc_state != NULL);
     rassert(proc_ts != NULL);
     rassert(au_state != NULL);
@@ -187,6 +186,8 @@ int32_t Mult_vstate_render_voice(
     rassert(frame_count > 0);
     rassert(isfinite(tempo));
     rassert(tempo > 0);
+
+    rassert(proc_state->is_voice_connected_to_mixed == (vstate != NULL));
 
     // Get inputs
     Work_buffer* in1_wb =
@@ -201,7 +202,12 @@ int32_t Mult_vstate_render_voice(
         (is_final_zero(in1_wb, 1) || is_final_zero(in2_wb, 1));
 
     if (is_out1_final_zero && is_out2_final_zero)
+    {
+        if (vstate != NULL)
+            vstate->active = false;
+
         return 0;
+    }
 
     // Get outputs
     Work_buffer* out_wb = Proc_get_voice_output_2ch(proc_ts, PORT_OUT_SIGNAL_L);
