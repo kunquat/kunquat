@@ -33,17 +33,12 @@
 
 
 static bool reserve_voice(
-        Channel* ch,
-        uint64_t group_id,
-        const Proc_state* proc_state,
-        bool is_external)
+        Channel* ch, uint64_t group_id, const Proc_state* proc_state, bool is_external)
 {
     rassert(ch != NULL);
     rassert(proc_state != NULL);
 
-    Voice_state_get_size_func* get_vstate_size =
-        proc_state->parent.device->dimpl->get_vstate_size;
-    if ((get_vstate_size != NULL) && (get_vstate_size() == 0))
+    if (!Proc_state_needs_vstate(proc_state))
         return false;
 
     Voice* voice = Voice_pool_get_voice(ch->pool, group_id);

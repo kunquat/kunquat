@@ -23,7 +23,9 @@
 #include <init/devices/Device_impl.h>
 #include <mathnum/common.h>
 #include <memory.h>
+#include <player/devices/Device_state.h>
 #include <player/devices/Device_thread_state.h>
+#include <player/devices/Proc_state.h>
 #include <player/Voice.h>
 #include <player/Voice_group.h>
 #include <player/Work_buffer.h>
@@ -240,7 +242,9 @@ static int32_t Voice_signal_task_info_execute(
         const Device_impl* dimpl = dstate->device->dimpl;
         rassert(dimpl != NULL);
 
-        if ((dimpl->get_vstate_size == NULL) || (dimpl->get_vstate_size() > 0))
+        const Proc_state* proc_state = (Proc_state*)dstate;
+
+        if (Proc_state_needs_vstate(proc_state))
         {
             voice = Voice_group_get_voice_by_proc(vgroup, task_info->device_id);
             call_render = (voice != NULL) && (voice->prio != VOICE_PRIO_INACTIVE);
@@ -547,6 +551,14 @@ Voice_signal_plan* new_Voice_signal_plan(
                 return NULL;
             }
         }
+    }
+
+    for (int64_t i = 0; i < task_count; ++i)
+    {
+        const Voice_signal_task_info* task_info = Vector_get_ref(plan->tasks[0], i);
+        Proc_state* proc_state =
+            (Proc_state*)Device_states_get_state(dstates, task_info->device_id);
+        proc_state->is_voice_connected_to_mixed = task_info->is_connected_to_mixed;
     }
 
     return plan;

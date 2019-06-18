@@ -225,9 +225,7 @@ bool Event_channel_note_on_process(
         const Proc_state* proc_state = (Proc_state*)Device_states_get_state(
                 dstates, Device_get_id((const Device*)proc));
 
-        Voice_state_get_size_func* get_vstate_size =
-            proc_state->parent.device->dimpl->get_vstate_size;
-        if ((get_vstate_size != NULL) && (get_vstate_size() == 0))
+        if (!Proc_state_needs_vstate(proc_state))
             continue;
 
         char context_str[16] = "";
@@ -337,9 +335,7 @@ bool Event_channel_hit_process(
         const Proc_state* proc_state = (Proc_state*)Device_states_get_state(
                 dstates, Device_get_id((const Device*)proc));
 
-        Voice_state_get_size_func* get_vstate_size =
-            proc_state->parent.device->dimpl->get_vstate_size;
-        if ((get_vstate_size != NULL) && (get_vstate_size() == 0))
+        if (!Proc_state_needs_vstate(proc_state))
             continue;
 
         char context_str[16] = "";

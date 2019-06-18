@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2019
  *
  * This file is part of Kunquat.
  *
@@ -58,6 +58,8 @@ bool Proc_state_init(
     rassert(device != NULL);
     rassert(audio_rate > 0);
     rassert(audio_buffer_size >= 0);
+
+    proc_state->is_voice_connected_to_mixed = false;
 
     proc_state->destroy = NULL;
     proc_state->set_audio_rate = NULL;
@@ -153,6 +155,24 @@ void Proc_state_clear_history(Proc_state* proc_state)
         proc_state->clear_history(proc_state);
 
     return;
+}
+
+
+bool Proc_state_needs_vstate(const Proc_state* proc_state)
+{
+    rassert(proc_state != NULL);
+
+    const Device_impl* dimpl = proc_state->parent.device->dimpl;
+
+    Voice_state_get_size_func* get_vstate_size = dimpl->get_vstate_size;
+    if ((get_vstate_size == NULL) || (get_vstate_size() > 0))
+        return true;
+
+    if (Proc_type_needs_vstate_if_connected_to_mixed(dimpl->proc_type) &&
+            proc_state->is_voice_connected_to_mixed)
+        return true;
+
+    return false;
 }
 
 

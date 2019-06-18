@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2019
  *
  * This file is part of Kunquat.
  *
@@ -17,6 +17,8 @@
 #include <debug/assert.h>
 #include <init/devices/Device_impl.h>
 #include <init/devices/Proc_cons.h>
+#include <init/devices/Proc_type.h>
+#include <init/devices/Proc_type_init.h>
 #include <init/devices/Processor.h>
 #include <memory.h>
 #include <player/devices/processors/Mult_state.h>
@@ -30,6 +32,8 @@ static void del_Proc_mult(Device_impl* dimpl);
 
 Device_impl* new_Proc_mult(void)
 {
+    Proc_type_set_needs_vstate_if_connected_to_mixed(Proc_type_mult);
+
     Proc_mult* mult = memory_alloc_item(Proc_mult);
     if (mult == NULL)
         return NULL;

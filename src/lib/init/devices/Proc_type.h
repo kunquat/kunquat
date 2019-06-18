@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2019
  *
  * This file is part of Kunquat.
  *
@@ -18,6 +18,7 @@
 
 #include <decl.h>
 
+#include <stdbool.h>
 #include <stdlib.h>
 
 
@@ -60,6 +61,16 @@ Proc_type Proc_type_get_from_string(const char* type_name);
  * \return   The Processor constructor.
  */
 Proc_cons* Proc_type_get_cons(Proc_type type);
+
+
+/**
+ * Find out if Processor type requires a Voices state if connected to mixed signal.
+ *
+ * \param type   The Processor type -- must be valid.
+ *
+ * \return   \c true if Voice state is needed, otherwise \c false.
+ */
+bool Proc_type_needs_vstate_if_connected_to_mixed(Proc_type type);
 
 
 #endif // KQT_PROC_TYPE_H
