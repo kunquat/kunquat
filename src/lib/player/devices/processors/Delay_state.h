@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2019
  *
  * This file is part of Kunquat.
  *
@@ -24,8 +24,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-
-Device_impl_get_port_groups_func Delay_get_port_groups;
 
 Device_state_create_func new_Delay_pstate;
 
