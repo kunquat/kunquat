@@ -143,12 +143,12 @@ void Work_buffer_mark_valid(Work_buffer* buffer, int sub_index);
 /**
  * Get the valid status of the Work buffer.
  *
- * \param buffer      The Work buffer -- must not be \c NULL.
+ * \param buffer      The Work buffer, or \c NULL.
  * \param sub_index   The index of the area to be checked -- must be >= \c 0 and
  *                    < \a Work_buffer_get_sub_count(\a buffer).
  *
- * \return   \c true if \a buffer at \a sub_index has valid contents, otherwise
- *           \c false.
+ * \return   \c true if \a buffer is not \c NULL and has valid contents at
+ *           \a sub_index, otherwise \c false.
  */
 bool Work_buffer_is_valid(const Work_buffer* buffer, int sub_index);
 

@@ -148,7 +148,9 @@ void Work_buffer_mark_valid(Work_buffer* buffer, int sub_index)
 
 bool Work_buffer_is_valid(const Work_buffer* buffer, int sub_index)
 {
-    rassert(buffer != NULL);
+    if (buffer == NULL)
+        return false;
+
     rassert(sub_index >= 0);
     rassert(sub_index < buffer->sub_count);
 
