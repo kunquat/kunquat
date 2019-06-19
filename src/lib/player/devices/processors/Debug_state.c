@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2019
  *
  * This file is part of Kunquat.
  *
@@ -22,26 +22,6 @@
 #include <mathnum/conversions.h>
 #include <player/devices/Device_thread_state.h>
 #include <player/devices/processors/Proc_state_utils.h>
-
-
-void Debug_get_port_groups(
-        const Device_impl* dimpl, Device_port_type port_type, Device_port_groups groups)
-{
-    rassert(dimpl != NULL);
-    rassert(groups != NULL);
-
-    switch (port_type)
-    {
-        case DEVICE_PORT_TYPE_RECV: Device_port_groups_init(groups, 0); break;
-
-        case DEVICE_PORT_TYPE_SEND: Device_port_groups_init(groups, 2, 0); break;
-
-        default:
-            rassert(false);
-    }
-
-    return;
-}
 
 
 int32_t Debug_vstate_render_voice(
@@ -71,18 +51,18 @@ int32_t Debug_vstate_render_voice(
             0);
 
     // Get output buffers for writing
-    float* out_buffer = NULL;
+    float* out_buffers[2] = { NULL };
+    for (int ch = 0; ch < 2; ++ch)
     {
         Work_buffer* out_wb = Device_thread_state_get_voice_buffer(
-                proc_ts, DEVICE_PORT_TYPE_SEND, 0, NULL);
+                proc_ts, DEVICE_PORT_TYPE_SEND, ch, NULL);
         if (out_wb != NULL)
         {
-            rassert(Work_buffer_get_sub_count(out_wb) == 2);
-            rassert(Work_buffer_get_stride(out_wb) == 2);
+            rassert(Work_buffer_get_sub_count(out_wb) == 1);
+            rassert(Work_buffer_get_stride(out_wb) == 1);
 
-            out_buffer = Work_buffer_get_contents_mut(out_wb, 0);
+            out_buffers[ch] = Work_buffer_get_contents_mut(out_wb, 0);
             Work_buffer_mark_valid(out_wb, 0);
-            Work_buffer_mark_valid(out_wb, 1);
         }
     }
 
@@ -96,11 +76,10 @@ int32_t Debug_vstate_render_voice(
         }
 
         const float val = 1.0;
-        if (out_buffer != NULL)
-        {
-            out_buffer[0] = val;
-            out_buffer[1] = val;
-        }
+        if (out_buffers[0] != NULL)
+            out_buffers[0][0] = val;
+        if (out_buffers[1] != NULL)
+            out_buffers[1][0] = val;
 
         // We want all single pulses to be included in test buffers,
         // even if another voice replaces us in the channel foreground
@@ -124,7 +103,7 @@ int32_t Debug_vstate_render_voice(
         const double freq = cents_to_Hz(
                 Cond_work_buffer_get_value(actual_pitches, i));
 
-        double vals[KQT_BUFFERS_MAX] = { 0 };
+        float vals[KQT_BUFFERS_MAX] = { 0 };
 
         if (vstate->rel_pos == 0)
         {
@@ -142,11 +121,10 @@ int32_t Debug_vstate_render_voice(
             vals[1] = -vals[1];
         }
 
-        if (out_buffer != NULL)
-        {
-            out_buffer[i * 2] = (float)vals[0];
-            out_buffer[i * 2 + 1] = (float)vals[1];
-        }
+        if (out_buffers[0] != NULL)
+            out_buffers[0][i] = vals[0];
+        if (out_buffers[1] != NULL)
+            out_buffers[1][i] = vals[1];
 
         vstate->rel_pos_rem += freq / audio_rate;
 
