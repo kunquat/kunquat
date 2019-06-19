@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2019
  *
  * This file is part of Kunquat.
  *
@@ -26,28 +26,6 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-
-
-void Add_get_port_groups(
-        const Device_impl* dimpl, Device_port_type port_type, Device_port_groups groups)
-{
-    rassert(dimpl != NULL);
-    rassert(groups != NULL);
-
-    // So far, the vast majority of use cases for this processor are using one channel,
-    // so it's probably more fruitful to optimise for multiple harmonics instead
-    switch (port_type)
-    {
-        case DEVICE_PORT_TYPE_RECV: Device_port_groups_init(groups, 0); break;
-
-        case DEVICE_PORT_TYPE_SEND: Device_port_groups_init(groups, 0); break;
-
-        default:
-            rassert(false);
-    }
-
-    return;
-}
 
 
 typedef struct Add_tone_state
