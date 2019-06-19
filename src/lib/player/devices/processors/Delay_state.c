@@ -145,7 +145,7 @@ static void Delay_pstate_render_mixed(
     {
         Work_buffer* in_wb = Device_thread_state_get_mixed_buffer(
                 proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_L + ch, NULL);
-        if (in_wb == NULL)
+        if (!Work_buffer_is_valid(in_wb, 0))
         {
             in_wb = Work_buffers_get_buffer_mut(wbs, DELAY_WB_FIXED_INPUT, 1);
             Work_buffer_clear(in_wb, 0, 0, frame_count);
