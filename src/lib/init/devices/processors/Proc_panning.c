@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2019
  *
  * This file is part of Kunquat.
  *
@@ -43,7 +43,6 @@ Device_impl* new_Proc_panning(void)
         return NULL;
     }
 
-    panning->parent.get_port_groups = Panning_get_port_groups;
     panning->parent.create_pstate = new_Panning_pstate;
     panning->parent.get_vstate_size = Panning_vstate_get_size;
     panning->parent.render_voice = Panning_vstate_render_voice;
