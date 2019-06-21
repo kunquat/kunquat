@@ -34,26 +34,6 @@
 #define NOISE_MAX 8
 
 
-void Noise_get_port_groups(
-        const Device_impl* dimpl, Device_port_type port_type, Device_port_groups groups)
-{
-    rassert(dimpl != NULL);
-    rassert(groups != NULL);
-
-    switch (port_type)
-    {
-        case DEVICE_PORT_TYPE_RECV: Device_port_groups_init(groups, 0); break;
-
-        case DEVICE_PORT_TYPE_SEND: Device_port_groups_init(groups, 2, 0); break;
-
-        default:
-            rassert(false);
-    }
-
-    return;
-}
-
-
 typedef struct Noise_pstate
 {
     Proc_state parent;
@@ -158,84 +138,49 @@ int32_t Noise_vstate_render_voice(
     Noise_pstate* noise_state = (Noise_pstate*)proc_state;
     Noise_vstate* noise_vstate = (Noise_vstate*)vstate;
 
-    // Get output buffer
-    Work_buffer* out_wb = Proc_get_voice_output_2ch(proc_ts, PORT_OUT_AUDIO_L);
-    if (out_wb == NULL)
-    {
-        vstate->active = false;
-        return 0;
-    }
-
-    float* out_buffer = Work_buffer_get_contents_mut(out_wb, 0);
+    bool any_outputs = false;
 
     const int order = noise_state->order;
-    if (order >= 0)
-    {
-        float* out = out_buffer;
-        for (int32_t i = 0; i < frame_count; ++i)
-        {
-            *out++ = scales[i] * (float)dc_zero_filter(
-                    order,
-                    noise_vstate->buf[0],
-                    Random_get_float_signal(&noise_vstate->rands[0]));
 
-            *out++ = scales[i] * (float)dc_zero_filter(
-                    order,
-                    noise_vstate->buf[1],
-                    Random_get_float_signal(&noise_vstate->rands[1]));
-        }
-    }
-    else
-    {
-        float* out = out_buffer;
-        for (int32_t i = 0; i < frame_count; ++i)
-        {
-            *out++ = scales[i] * (float)dc_pole_filter(
-                    -order,
-                    noise_vstate->buf[0],
-                    Random_get_float_signal(&noise_vstate->rands[0]));
-
-            *out++ = scales[i] * (float)dc_pole_filter(
-                    -order,
-                    noise_vstate->buf[1],
-                    Random_get_float_signal(&noise_vstate->rands[1]));
-        }
-    }
-
-#if 0
     for (int ch = 0; ch < 2; ++ch)
     {
-        float* out_buffer = out_buffers[ch];
-        if (out_buffer == NULL)
+        Work_buffer* out_wb = Device_thread_state_get_voice_buffer(
+                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L + ch, NULL);
+        if (out_wb == NULL)
             continue;
 
-        if (noise_state->order >= 0)
+        any_outputs = true;
+
+        float* out = Work_buffer_get_contents_mut(out_wb, 0);
+        double* buf = noise_vstate->buf[ch];
+        Random* random = &noise_vstate->rands[ch];
+
+        if (order >= 0)
         {
             for (int32_t i = 0; i < frame_count; ++i)
             {
-                const double val = dc_zero_filter(
-                        noise_state->order,
-                        noise_vstate->buf[ch],
-                        Random_get_float_signal(&noise_vstate->rands[ch]));
-                out_buffer[i] = (float)val * scales[i];
+                *out++ = scales[i] *
+                    (float)dc_zero_filter(order, buf, Random_get_float_signal(random));
             }
         }
         else
         {
             for (int32_t i = 0; i < frame_count; ++i)
             {
-                const double val = dc_pole_filter(
-                        -noise_state->order,
-                        noise_vstate->buf[ch],
-                        Random_get_float_signal(&noise_vstate->rands[ch]));
-                out_buffer[i] = (float)val * scales[i];
+                *out++ = scales[i] *
+                    (float)dc_pole_filter(-order, buf, Random_get_float_signal(random));
             }
         }
-    }
-#endif
 
-    const int32_t audio_rate = proc_state->parent.audio_rate;
-    Proc_ramp_attack(vstate, out_wb, frame_count, audio_rate);
+        const int32_t audio_rate = proc_state->parent.audio_rate;
+        Proc_ramp_attack(vstate, out_wb, frame_count, audio_rate);
+    }
+
+    if (!any_outputs)
+    {
+        vstate->active = false;
+        return 0;
+    }
 
 //  fprintf(stderr, "max_amp is %lf\n", max_amp);
     return frame_count;
