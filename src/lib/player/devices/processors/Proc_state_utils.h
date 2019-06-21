@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2019
  *
  * This file is part of Kunquat.
  *
@@ -61,6 +61,7 @@ Work_buffer* Proc_get_voice_output_2ch(
  * before returning from their process function.
  *
  * \param vstate        The Voice state -- must not be \c NULL.
+ * \param buf_count     The number of output buffers -- must be > \c 0.
  * \param out_wb        The output Work buffer -- must not be \c NULL and must
  *                      contain either 1 or 2 interleaved areas.
  * \param frame_count   Number of frames to be processed -- must be > \c 0.
@@ -68,7 +69,8 @@ Work_buffer* Proc_get_voice_output_2ch(
  */
 void Proc_ramp_attack(
         Voice_state* vstate,
-        Work_buffer* out_wb,
+        int buf_count,
+        Work_buffer* out_wb[buf_count],
         int32_t frame_count,
         int32_t audio_rate);
 

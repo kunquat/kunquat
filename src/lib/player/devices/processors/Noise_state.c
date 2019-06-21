@@ -135,23 +135,27 @@ int32_t Noise_vstate_render_voice(
     Proc_fill_scale_buffer(scales_wb, dBs_wb, frame_count);
     const float* scales = Work_buffer_get_contents(scales_wb, 0);
 
+    Work_buffer* out_wbs[2] = { NULL };
+    for (int ch = 0; ch < 2; ++ch)
+        out_wbs[ch] = Device_thread_state_get_voice_buffer(
+                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L + ch, NULL);
+    if ((out_wbs[0] == NULL) && (out_wbs[1] == NULL))
+    {
+        vstate->active = false;
+        return 0;
+    }
+
     Noise_pstate* noise_state = (Noise_pstate*)proc_state;
     Noise_vstate* noise_vstate = (Noise_vstate*)vstate;
-
-    bool any_outputs = false;
 
     const int order = noise_state->order;
 
     for (int ch = 0; ch < 2; ++ch)
     {
-        Work_buffer* out_wb = Device_thread_state_get_voice_buffer(
-                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L + ch, NULL);
-        if (out_wb == NULL)
+        if (out_wbs[ch] == NULL)
             continue;
 
-        any_outputs = true;
-
-        float* out = Work_buffer_get_contents_mut(out_wb, 0);
+        float* out = Work_buffer_get_contents_mut(out_wbs[ch], 0);
         double* buf = noise_vstate->buf[ch];
         Random* random = &noise_vstate->rands[ch];
 
@@ -171,16 +175,10 @@ int32_t Noise_vstate_render_voice(
                     (float)dc_pole_filter(-order, buf, Random_get_float_signal(random));
             }
         }
-
-        const int32_t audio_rate = proc_state->parent.audio_rate;
-        Proc_ramp_attack(vstate, out_wb, frame_count, audio_rate);
     }
 
-    if (!any_outputs)
-    {
-        vstate->active = false;
-        return 0;
-    }
+    const int32_t audio_rate = proc_state->parent.audio_rate;
+    Proc_ramp_attack(vstate, 2, out_wbs, frame_count, audio_rate);
 
 //  fprintf(stderr, "max_amp is %lf\n", max_amp);
     return frame_count;

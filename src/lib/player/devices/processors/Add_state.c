@@ -288,17 +288,7 @@ int32_t Add_vstate_render_voice(
     }
 
     if (add->is_ramp_attack_enabled)
-    {
-        const double orig_ramp_attack = vstate->ramp_attack; // TODO: clean up
-        if (out_wbs[0] != NULL)
-            Proc_ramp_attack(vstate, out_wbs[0], frame_count, dstate->audio_rate);
-
-        if (out_wbs[1] != NULL)
-        {
-            vstate->ramp_attack = orig_ramp_attack;
-            Proc_ramp_attack(vstate, out_wbs[1], frame_count, dstate->audio_rate);
-        }
-    }
+        Proc_ramp_attack(vstate, 2, out_wbs, frame_count, dstate->audio_rate);
 
     return frame_count;
 }
