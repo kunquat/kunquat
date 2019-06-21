@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2019
  *
  * This file is part of Kunquat.
  *
@@ -19,8 +19,6 @@
 #include <init/devices/Device_impl.h>
 #include <player/devices/Voice_state.h>
 
-
-Device_impl_get_port_groups_func Padsynth_get_port_groups;
 
 Voice_state_get_size_func Padsynth_vstate_get_size;
 Voice_state_init_func Padsynth_vstate_init;
