@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2019
  *
  * This file is part of Kunquat.
  *
@@ -20,8 +20,6 @@
 #include <player/devices/Device_state.h>
 #include <player/devices/Voice_state.h>
 
-
-Device_impl_get_port_groups_func Rangemap_get_port_groups;
 
 Device_state_create_func new_Rangemap_pstate;
 
