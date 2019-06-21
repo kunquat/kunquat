@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2019
  *
  * This file is part of Kunquat.
  *
@@ -60,16 +60,14 @@ Freeverb_comb* new_Freeverb_comb(int32_t buffer_size)
 
 
 void Freeverb_comb_process(
-        Freeverb_comb* comb_l,
-        Freeverb_comb* comb_r,
+        Freeverb_comb* comb,
         float* out_buf,
         const float* in_buf,
         const float* refls,
         const float* damps,
         int32_t frame_count)
 {
-    rassert(comb_l != NULL);
-    rassert(comb_r != NULL);
+    rassert(comb != NULL);
     rassert(out_buf != NULL);
     rassert(in_buf != NULL);
     rassert(refls != NULL);
@@ -85,38 +83,28 @@ void Freeverb_comb_process(
 
     for (int32_t i = 0; i < frame_count; ++i)
     {
-        float output_l = comb_l->buffer[comb_l->buffer_pos];
-        float output_r = comb_r->buffer[comb_r->buffer_pos];
+        float output = comb->buffer[comb->buffer_pos];
 #if !KQT_SSE
-        output_l = undenormalise(output_l);
-        output_r = undenormalise(output_r);
+        output = undenormalise(output);
 #endif
         const float damp1 = damps[i];
         const float damp2 = 1 - damp1;
 
         const float refl = refls[i];
 
-        comb_l->filter_store = (output_l * damp2) + (comb_l->filter_store * damp1);
-        comb_r->filter_store = (output_r * damp2) + (comb_r->filter_store * damp1);
+        comb->filter_store = (output * damp2) + (comb->filter_store * damp1);
 #if !KQT_SSE
-        comb_l->filter_store = undenormalise(comb_l->filter_store);
-        comb_r->filter_store = undenormalise(comb_r->filter_store);
+        comb->filter_store = undenormalise(comb->filter_store);
 #endif
-        comb_l->buffer[comb_l->buffer_pos] = *in + (comb_l->filter_store * refl);
-        comb_r->buffer[comb_r->buffer_pos] = *in + (comb_r->filter_store * refl);
+        comb->buffer[comb->buffer_pos] = *in + (comb->filter_store * refl);
 
         ++in;
 
-        *out++ += output_l;
-        *out++ += output_r;
+        *out++ += output;
 
-        ++comb_l->buffer_pos;
-        if (comb_l->buffer_pos >= comb_l->buffer_size)
-            comb_l->buffer_pos = 0;
-
-        ++comb_r->buffer_pos;
-        if (comb_r->buffer_pos >= comb_r->buffer_size)
-            comb_r->buffer_pos = 0;
+        ++comb->buffer_pos;
+        if (comb->buffer_pos >= comb->buffer_size)
+            comb->buffer_pos = 0;
     }
 
     return;
