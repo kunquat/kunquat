@@ -387,16 +387,16 @@ static void Filter_pstate_render_mixed(
 
     // Get parameter inputs
     const Work_buffer* cutoff_wb = Device_thread_state_get_mixed_buffer(
-            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_CUTOFF, NULL);
+            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_CUTOFF);
     const Work_buffer* resonance_wb = Device_thread_state_get_mixed_buffer(
-            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_RESONANCE, NULL);
+            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_RESONANCE);
 
     // Get audio inputs
     Work_buffer* in_wbs[2] = { NULL };
     for (int ch = 0; ch < 2; ++ch)
     {
         in_wbs[ch] = Device_thread_state_get_mixed_buffer(
-                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_L + ch, NULL);
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_L + ch);
         if (!Work_buffer_is_valid(in_wbs[ch], 0))
             in_wbs[ch] = NULL;
     }
@@ -405,7 +405,7 @@ static void Filter_pstate_render_mixed(
     Work_buffer* out_wbs[2] = { NULL };
     for (int ch = 0; ch < 2; ++ch)
         out_wbs[ch] = Device_thread_state_get_mixed_buffer(
-                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L + ch, NULL);
+                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L + ch);
     if ((out_wbs[0] == NULL) && (out_wbs[1] == NULL))
         return;
 
@@ -487,16 +487,16 @@ int32_t Filter_vstate_render_voice(
 
     // Get parameter inputs
     const Work_buffer* cutoff_wb = Device_thread_state_get_voice_buffer(
-            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_CUTOFF, NULL);
+            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_CUTOFF);
     const Work_buffer* resonance_wb = Device_thread_state_get_voice_buffer(
-            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_RESONANCE, NULL);
+            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_RESONANCE);
 
     // Get audio inputs
     Work_buffer* in_wbs[2] = { NULL };
     for (int ch = 0; ch < 2; ++ch)
     {
         in_wbs[ch] = Device_thread_state_get_voice_buffer(
-                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_L + ch, NULL);
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_L + ch);
         if (!Work_buffer_is_valid(in_wbs[ch], 0))
             in_wbs[ch] = NULL;
     }
@@ -505,7 +505,7 @@ int32_t Filter_vstate_render_voice(
     Work_buffer* out_wbs[2] = { NULL };
     for (int ch = 0; ch < 2; ++ch)
         out_wbs[ch] = Device_thread_state_get_voice_buffer(
-                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L + ch, NULL);
+                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L + ch);
     if ((out_wbs[0] == NULL) && (out_wbs[1] == NULL))
     {
         vstate->active = false;

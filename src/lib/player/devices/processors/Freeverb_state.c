@@ -202,7 +202,7 @@ static void Freeverb_pstate_render_mixed(
 
     // Get reflectivity parameter stream
     Work_buffer* refls_wb = Device_thread_state_get_mixed_buffer(
-            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_REFL, NULL);
+            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_REFL);
     float* refls = (refls_wb != NULL) && Work_buffer_is_valid(refls_wb, 0)
         ? Work_buffer_get_contents_mut(refls_wb, 0) : NULL;
     if (refls == NULL)
@@ -230,7 +230,7 @@ static void Freeverb_pstate_render_mixed(
     // Get damp parameter stream
     const float damp_adjust = 44100 / (float)Device_state_get_audio_rate(dstate);
     Work_buffer* damps_wb = Device_thread_state_get_mixed_buffer(
-            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_DAMP, NULL);
+            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_DAMP);
     float* damps = NULL;
     if ((damps_wb == NULL) || !Work_buffer_is_valid(damps_wb, 0))
     {
@@ -268,7 +268,7 @@ static void Freeverb_pstate_render_mixed(
     for (int ch = 0; ch < 2; ++ch)
     {
         in_wbs[ch] = Device_thread_state_get_mixed_buffer(
-                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_L + ch, NULL);
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_L + ch);
         if (!Work_buffer_is_valid(in_wbs[ch], 0))
             in_wbs[ch] = NULL;
     }
@@ -276,7 +276,7 @@ static void Freeverb_pstate_render_mixed(
     Work_buffer* out_wbs[2] = { NULL };
     for (int ch = 0; ch < 2; ++ch)
         out_wbs[ch] = Device_thread_state_get_mixed_buffer(
-                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L + ch, NULL);
+                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L + ch);
 
     // Apply reverb
     {

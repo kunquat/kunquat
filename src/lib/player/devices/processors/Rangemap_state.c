@@ -131,13 +131,13 @@ static void Rangemap_pstate_render_mixed(
 
     for (int ch = 0; ch < 2; ++ch)
     {
-        Work_buffer* out_wb = Device_thread_state_get_mixed_buffer(
-                proc_ts, DEVICE_PORT_TYPE_SEND, ch, NULL);
+        Work_buffer* out_wb =
+            Device_thread_state_get_mixed_buffer(proc_ts, DEVICE_PORT_TYPE_SEND, ch);
         if (out_wb == NULL)
             continue;
 
-        Work_buffer* in_wb = Device_thread_state_get_mixed_buffer(
-                proc_ts, DEVICE_PORT_TYPE_RECV, ch, NULL);
+        Work_buffer* in_wb =
+            Device_thread_state_get_mixed_buffer(proc_ts, DEVICE_PORT_TYPE_RECV, ch);
         if (!Work_buffer_is_valid(in_wb, 0))
         {
             in_wb = Work_buffers_get_buffer_mut(wbs, RANGEMAP_WB_FIXED_INPUT, 1);
@@ -209,13 +209,13 @@ int32_t Rangemap_vstate_render_voice(
 
     for (int ch = 0; ch < 2; ++ch)
     {
-        Work_buffer* out_wb = Device_thread_state_get_voice_buffer(
-                proc_ts, DEVICE_PORT_TYPE_SEND, ch, NULL);
+        Work_buffer* out_wb =
+            Device_thread_state_get_voice_buffer(proc_ts, DEVICE_PORT_TYPE_SEND, ch);
         if (out_wb == NULL)
             continue;
 
-        Work_buffer* in_wb = Device_thread_state_get_voice_buffer(
-                proc_ts, DEVICE_PORT_TYPE_RECV, ch, NULL);
+        Work_buffer* in_wb =
+            Device_thread_state_get_voice_buffer(proc_ts, DEVICE_PORT_TYPE_RECV, ch);
         if (!Work_buffer_is_valid(in_wb, 0))
         {
             in_wb = Work_buffers_get_buffer_mut(wbs, RANGEMAP_WB_FIXED_INPUT, 1);

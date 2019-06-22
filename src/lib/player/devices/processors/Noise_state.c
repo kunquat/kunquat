@@ -117,7 +117,7 @@ int32_t Noise_vstate_render_voice(
 
     // Get volume scales
     Work_buffer* scales_wb = Device_thread_state_get_voice_buffer(
-            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_FORCE, NULL);
+            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_FORCE);
     Work_buffer* dBs_wb = scales_wb;
     if ((dBs_wb != NULL) &&
             Work_buffer_is_valid(dBs_wb, 0) &&
@@ -138,7 +138,7 @@ int32_t Noise_vstate_render_voice(
     Work_buffer* out_wbs[2] = { NULL };
     for (int ch = 0; ch < 2; ++ch)
         out_wbs[ch] = Device_thread_state_get_voice_buffer(
-                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L + ch, NULL);
+                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L + ch);
     if ((out_wbs[0] == NULL) && (out_wbs[1] == NULL))
     {
         vstate->active = false;

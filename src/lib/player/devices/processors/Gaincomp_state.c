@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2019
  *
  * This file is part of Kunquat.
  *
@@ -111,18 +111,18 @@ static void Gaincomp_pstate_render_mixed(
     Work_buffer* in_buffers[] =
     {
         Device_thread_state_get_mixed_buffer(
-                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_L, NULL),
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_L),
         Device_thread_state_get_mixed_buffer(
-                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_R, NULL),
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_R),
     };
 
     // Get output
     Work_buffer* out_buffers[] =
     {
         Device_thread_state_get_mixed_buffer(
-                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L, NULL),
+                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L),
         Device_thread_state_get_mixed_buffer(
-                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_R, NULL),
+                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_R),
     };
 
     // Distort the signal
@@ -185,9 +185,9 @@ int32_t Gaincomp_vstate_render_voice(
     Work_buffer* in_buffers[] =
     {
         Device_thread_state_get_voice_buffer(
-                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_L, NULL),
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_L),
         Device_thread_state_get_voice_buffer(
-                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_R, NULL),
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_R),
     };
     if ((in_buffers[0] == NULL) && (in_buffers[1] == NULL))
         return 0;
@@ -196,9 +196,9 @@ int32_t Gaincomp_vstate_render_voice(
     Work_buffer* out_buffers[] =
     {
         Device_thread_state_get_voice_buffer(
-                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L, NULL),
+                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L),
         Device_thread_state_get_voice_buffer(
-                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_R, NULL),
+                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_R),
     };
 
     // Distort the signal

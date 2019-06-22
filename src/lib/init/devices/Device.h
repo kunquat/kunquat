@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2019
  *
  * This file is part of Kunquat.
  *
@@ -18,7 +18,6 @@
 
 #include <decl.h>
 #include <init/devices/Device_params.h>
-#include <init/devices/Device_port_groups.h>
 #include <kunquat/limits.h>
 #include <mathnum/Random.h>
 #include <mathnum/Tstamp.h>
@@ -208,18 +207,6 @@ bool Device_get_port_existence(const Device* device, Device_port_type type, int 
  * \return   \c true if successful, or \c false if ports are not valid.
  */
 bool Device_validate_ports(const Device* device, Error* error);
-
-
-/**
- * Get Device port group information.
- *
- * \param device   The Device -- must not be \c NULL.
- * \param type     The port type -- must be a valid type.
- * \param groups   Destination where the port groups will be stored -- must not
- *                 be \c NULL.
- */
-void Device_get_port_groups(
-        const Device* device, Device_port_type type, Device_port_groups groups);
 
 
 /**

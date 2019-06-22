@@ -149,15 +149,11 @@ static bool Mixed_signal_task_info_is_empty(const Mixed_signal_task_info* task_i
 static bool Mixed_signal_task_info_add_input(
         Mixed_signal_task_info* task_info,
         Work_buffer* recv_buf,
-        int recv_sub_index,
-        const Work_buffer* send_buf,
-        int send_sub_index)
+        const Work_buffer* send_buf)
 {
     rassert(task_info != NULL);
     rassert(recv_buf != NULL);
-    rassert(recv_sub_index == 0);
     rassert(send_buf != NULL);
-    rassert(send_sub_index == 0);
 
     return Vector_append(task_info->conns, MAKE_CONNECTION(recv_buf, send_buf));
 }
@@ -166,15 +162,11 @@ static bool Mixed_signal_task_info_add_input(
 static bool Mixed_signal_task_info_add_bypass_input(
         Mixed_signal_task_info* task_info,
         Work_buffer* recv_buf,
-        int recv_sub_index,
-        const Work_buffer* send_buf,
-        int send_sub_index)
+        const Work_buffer* send_buf)
 {
     rassert(task_info != NULL);
     rassert(recv_buf != NULL);
-    rassert(recv_sub_index == 0);
     rassert(send_buf != NULL);
-    rassert(send_sub_index == 0);
 
     rassert(task_info->bypass_conns != NULL);
 
@@ -341,22 +333,19 @@ static bool Mixed_signal_task_info_add_au_interface(
 
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
-        int out_sub_index = 0;
-        Work_buffer* out_buf = Device_thread_state_get_mixed_buffer(
-                target_ts, DEVICE_PORT_TYPE_SEND, port, &out_sub_index);
+        Work_buffer* out_buf =
+            Device_thread_state_get_mixed_buffer(target_ts, DEVICE_PORT_TYPE_SEND, port);
 
         if (out_buf != NULL)
         {
             Device_thread_state_mark_input_port_connected(source_ts, port);
 
-            int in_sub_index = 0;
             const Work_buffer* in_buf = Device_thread_state_get_mixed_buffer(
-                    source_ts, DEVICE_PORT_TYPE_RECV, port, &in_sub_index);
+                    source_ts, DEVICE_PORT_TYPE_RECV, port);
 
             if (in_buf != NULL)
             {
-                if (!Mixed_signal_task_info_add_input(
-                            task_info, out_buf, out_sub_index, in_buf, in_sub_index))
+                if (!Mixed_signal_task_info_add_input(task_info, out_buf, in_buf))
                     return false;
             }
         }
@@ -482,24 +471,18 @@ static bool Mixed_signal_plan_build_from_node(
 
                 for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
                 {
-                    int out_sub_index = 0;
                     Work_buffer* out_buf = Device_thread_state_get_mixed_buffer(
-                            recv_ts, DEVICE_PORT_TYPE_SEND, port, &out_sub_index);
+                            recv_ts, DEVICE_PORT_TYPE_SEND, port);
 
                     if (out_buf != NULL)
                     {
-                        int in_sub_index = 0;
                         const Work_buffer* in_buf = Device_thread_state_get_mixed_buffer(
-                                in_iface_ts, DEVICE_PORT_TYPE_SEND, port, &in_sub_index);
+                                in_iface_ts, DEVICE_PORT_TYPE_SEND, port);
 
                         if (in_buf != NULL)
                         {
                             if (!Mixed_signal_task_info_add_bypass_input(
-                                        task_info,
-                                        out_buf,
-                                        out_sub_index,
-                                        in_buf,
-                                        in_sub_index))
+                                        task_info, out_buf, in_buf))
                                 return false;
                         }
                     }
@@ -542,21 +525,15 @@ static bool Mixed_signal_plan_build_from_node(
             Device_thread_state* send_ts =
                 Device_states_get_thread_state(dstates, 0, Device_get_id(send_device));
 
-            int send_sub_index = 0;
             const Work_buffer* send_buf = Device_thread_state_get_mixed_buffer(
-                    send_ts, DEVICE_PORT_TYPE_SEND, edge->port, &send_sub_index);
-            int recv_sub_index = 0;
+                    send_ts, DEVICE_PORT_TYPE_SEND, edge->port);
             Work_buffer* recv_buf = Device_thread_state_get_mixed_buffer(
-                    recv_ts, recv_port_type, port, &recv_sub_index);
+                    recv_ts, recv_port_type, port);
 
             if ((send_buf != NULL) && (recv_buf != NULL))
             {
                 if (is_new_task_info && !Mixed_signal_task_info_add_input(
-                            task_info,
-                            recv_buf,
-                            recv_sub_index,
-                            send_buf,
-                            send_sub_index))
+                            task_info, recv_buf, send_buf))
                     return false;
             }
 

@@ -143,13 +143,13 @@ static void Panning_pstate_render_mixed(
 
     // Get panning values
     Work_buffer* pan_wb = Device_thread_state_get_mixed_buffer(
-            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_PANNING, NULL);
+            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_PANNING);
 
     // Get input
     const Work_buffer* in_wbs[2] = { NULL };
     for (int ch = 0; ch < 2; ++ch)
         in_wbs[ch] = Device_thread_state_get_mixed_buffer(
-                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_L + ch, NULL);
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_L + ch);
 
     if (!Work_buffer_is_valid(in_wbs[0], 0) && !Work_buffer_is_valid(in_wbs[1], 0))
         return;
@@ -158,7 +158,7 @@ static void Panning_pstate_render_mixed(
     Work_buffer* out_wbs[2] = { NULL };
     for (int ch = 0; ch < 2; ++ch)
         out_wbs[ch] = Device_thread_state_get_mixed_buffer(
-                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L + ch, NULL);
+                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L + ch);
 
     apply_panning(pan_wb, (float)ppstate->def_panning, in_wbs, out_wbs, frame_count);
 
@@ -230,13 +230,13 @@ int32_t Panning_vstate_render_voice(
 
     // Get panning values
     Work_buffer* pan_wb = Device_thread_state_get_voice_buffer(
-            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_PANNING, NULL);
+            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_PANNING);
 
     // Get input
     const Work_buffer* in_wbs[2] = { NULL };
     for (int ch = 0; ch < 2; ++ch)
         in_wbs[ch] = Device_thread_state_get_voice_buffer(
-                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_L + ch, NULL);
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_L + ch);
 
     if (!Work_buffer_is_valid(in_wbs[0], 0) && !Work_buffer_is_valid(in_wbs[1], 0))
         return 0;
@@ -245,7 +245,7 @@ int32_t Panning_vstate_render_voice(
     Work_buffer* out_wbs[2] = { NULL };
     for (int ch = 0; ch < 2; ++ch)
         out_wbs[ch] = Device_thread_state_get_voice_buffer(
-                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L + ch, NULL);
+                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L + ch);
 
     apply_panning(pan_wb, (float)panning->panning, in_wbs, out_wbs, frame_count);
 

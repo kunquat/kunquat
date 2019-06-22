@@ -155,7 +155,7 @@ static void Volume_pstate_render_mixed(
 
     // Get control stream
     Work_buffer* vol_wb = Device_thread_state_get_mixed_buffer(
-            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_FORCE, NULL);
+            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_FORCE);
     if ((vol_wb != NULL) && !Work_buffer_is_valid(vol_wb, 0))
         vol_wb = NULL;
 
@@ -163,13 +163,13 @@ static void Volume_pstate_render_mixed(
     const Work_buffer* in_wbs[2] = { NULL };
     for (int ch = 0; ch < 2; ++ch)
         in_wbs[ch] = Device_thread_state_get_mixed_buffer(
-                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_L + ch, NULL);
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_L + ch);
 
     // Get outputs
     Work_buffer* out_wbs[2] = { NULL };
     for (int ch = 0; ch < 2; ++ch)
         out_wbs[ch] = Device_thread_state_get_mixed_buffer(
-                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L + ch, NULL);
+                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L + ch);
 
     apply_volume(in_wbs, out_wbs, vol_wb, wbs, (float)vpstate->volume, frame_count);
 
@@ -226,7 +226,7 @@ int32_t Volume_vstate_render_voice(
 
     // Get control stream
     Work_buffer* vol_wb = Device_thread_state_get_voice_buffer(
-            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_FORCE, NULL);
+            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_FORCE);
     if (Work_buffer_is_valid(vol_wb, 0) &&
             Work_buffer_is_final(vol_wb, 0) &&
             (Work_buffer_get_const_start(vol_wb, 0) == 0) &&
@@ -240,7 +240,7 @@ int32_t Volume_vstate_render_voice(
     const Work_buffer* in_wbs[2] = { NULL };
     for (int ch = 0; ch < 2; ++ch)
         in_wbs[ch] = Device_thread_state_get_voice_buffer(
-                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_L + ch, NULL);
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_L + ch);
 
     if (!Work_buffer_is_valid(in_wbs[0], 0) && !Work_buffer_is_valid(in_wbs[1], 0))
         return 0;
@@ -249,7 +249,7 @@ int32_t Volume_vstate_render_voice(
     Work_buffer* out_wbs[2] = { NULL };
     for (int ch = 0; ch < 2; ++ch)
         out_wbs[ch] = Device_thread_state_get_voice_buffer(
-                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L + ch, NULL);
+                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L + ch);
 
     const Volume_pstate* vpstate = (const Volume_pstate*)proc_state;
     apply_volume(in_wbs, out_wbs, vol_wb, wbs, (float)vpstate->volume, frame_count);

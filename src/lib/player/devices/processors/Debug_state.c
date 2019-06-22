@@ -16,7 +16,6 @@
 
 #include <debug/assert.h>
 #include <init/devices/Device_impl.h>
-#include <init/devices/Device_port_groups.h>
 #include <init/devices/Processor.h>
 #include <init/devices/processors/Proc_debug.h>
 #include <mathnum/conversions.h>
@@ -47,7 +46,7 @@ int32_t Debug_vstate_render_voice(
     const Cond_work_buffer* actual_pitches = Cond_work_buffer_init(
             COND_WORK_BUFFER_AUTO,
             Device_thread_state_get_voice_buffer(
-                proc_ts, DEVICE_PORT_TYPE_RECV, 0, NULL),
+                proc_ts, DEVICE_PORT_TYPE_RECV, 0),
             0);
 
     // Get output buffers for writing
@@ -55,7 +54,7 @@ int32_t Debug_vstate_render_voice(
     for (int ch = 0; ch < 2; ++ch)
     {
         Work_buffer* out_wb = Device_thread_state_get_voice_buffer(
-                proc_ts, DEVICE_PORT_TYPE_SEND, ch, NULL);
+                proc_ts, DEVICE_PORT_TYPE_SEND, ch);
         if (out_wb != NULL)
         {
             rassert(Work_buffer_get_sub_count(out_wb) == 1);

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2019
  *
  * This file is part of Kunquat.
  *
@@ -18,7 +18,6 @@
 
 #include <containers/AAtree.h>
 #include <decl.h>
-#include <init/devices/Device_port_groups.h>
 #include <init/devices/param_types/Envelope.h>
 #include <init/devices/param_types/Hit_map.h>
 #include <init/devices/param_types/Note_map.h>
@@ -65,8 +64,6 @@ typedef bool (Set_state_padsynth_params_func)(
         Device_state*, const Key_indices, const Padsynth_params*);
 
 
-typedef void Device_impl_get_port_groups_func(
-        const Device_impl*, Device_port_type, Device_port_groups);
 typedef int32_t Device_impl_get_voice_wb_size_func(
         const Device_impl*, int32_t audio_rate);
 typedef void Device_impl_destroy_func(Device_impl*);
@@ -82,7 +79,6 @@ struct Device_impl
 
     Proc_type proc_type;
 
-    Device_impl_get_port_groups_func* get_port_groups;
     Device_state_create_func* create_pstate;
     Voice_state_get_size_func* get_vstate_size;
     Device_impl_get_voice_wb_size_func* get_voice_wb_size;
@@ -134,18 +130,6 @@ Proc_type Device_impl_get_proc_type(const Device_impl* dimpl);
  * \param device   The Device -- must not be \c NULL.
  */
 void Device_impl_set_device(Device_impl* dimpl, const Device* device);
-
-
-/**
- * Get Device implementation port group information.
- *
- * \param dimpl    The Device implementation -- must not be \c NULL.
- * \param type     The port type -- must be a valid type.
- * \param groups   Destination where the port groups will be stored -- must not
- *                 be \c NULL.
- */
-void Device_impl_get_port_groups(
-        const Device_impl* dimpl, Device_port_type type, Device_port_groups groups);
 
 
 /**

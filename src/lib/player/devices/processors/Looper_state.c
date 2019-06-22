@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2018
+ * Author: Tomi Jylhä-Ollila, Finland 2018-2019
  *
  * This file is part of Kunquat.
  *
@@ -707,7 +707,7 @@ static void Looper_pstate_render_mixed(
     for (int ch = 0; ch < 2; ++ch)
     {
         Work_buffer* in_wb = Device_thread_state_get_mixed_buffer(
-                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_L + ch, NULL);
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_L + ch);
         if ((in_wb != NULL) && Work_buffer_is_valid(in_wb, 0))
             in_data[ch] = Work_buffer_get_contents_mut(in_wb, 0);
     }
@@ -716,7 +716,7 @@ static void Looper_pstate_render_mixed(
     for (int ch = 0; ch < 2; ++ch)
     {
         Work_buffer* out_wb = Device_thread_state_get_mixed_buffer(
-                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L + ch, NULL);
+                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L + ch);
         if (out_wb != NULL)
         {
             Work_buffer_clear(out_wb, 0, 0, frame_count); // TODO: perhaps optimisable?
@@ -727,7 +727,7 @@ static void Looper_pstate_render_mixed(
     // Get speed input
     const float* speeds = NULL;
     Work_buffer* speeds_wb = Device_thread_state_get_mixed_buffer(
-            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_SPEED, NULL);
+            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_SPEED);
     if ((speeds_wb == NULL) || !Work_buffer_is_valid(speeds_wb, 0))
     {
         speeds_wb = Work_buffers_get_buffer_mut(wbs, LOOPER_WB_TEMP_SPEED, 1);

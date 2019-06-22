@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2019
  *
  * This file is part of Kunquat.
  *
@@ -134,7 +134,7 @@ int32_t Envgen_vstate_render_voice(
 
     // Get time stretch input
     Work_buffer* stretch_wb = Device_thread_state_get_voice_buffer(
-            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_STRETCH, NULL);
+            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_STRETCH);
     if ((stretch_wb == NULL) || !Work_buffer_is_valid(stretch_wb, 0))
     {
         stretch_wb = Work_buffers_get_buffer_mut(wbs, ENVGEN_WB_FIXED_STRETCH, 1);
@@ -150,7 +150,7 @@ int32_t Envgen_vstate_render_voice(
 
     // Get trigger signal input
     const Work_buffer* trigger_wb = Device_thread_state_get_voice_buffer(
-            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_TRIGGER, NULL);
+            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_TRIGGER);
     if ((trigger_wb == NULL) || !Work_buffer_is_valid(trigger_wb, 0))
     {
         Work_buffer* fixed_trigger_wb =
@@ -161,7 +161,7 @@ int32_t Envgen_vstate_render_voice(
 
     // Get output buffer for writing
     Work_buffer* out_wb = Device_thread_state_get_voice_buffer(
-            proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_ENV, NULL);
+            proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_ENV);
     if (out_wb == NULL)
     {
         vstate->active = false;

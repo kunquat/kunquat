@@ -144,7 +144,7 @@ static void Delay_pstate_render_mixed(
     for (int ch = 0; ch < 2; ++ch)
     {
         Work_buffer* in_wb = Device_thread_state_get_mixed_buffer(
-                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_L + ch, NULL);
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_L + ch);
         if (!Work_buffer_is_valid(in_wb, 0))
         {
             in_wb = Work_buffers_get_buffer_mut(wbs, DELAY_WB_FIXED_INPUT, 1);
@@ -158,7 +158,7 @@ static void Delay_pstate_render_mixed(
     for (int ch = 0; ch < 2; ++ch)
     {
         Work_buffer* out_wb = Device_thread_state_get_mixed_buffer(
-                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L + ch, NULL);
+                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L + ch);
         if (out_wb != NULL)
             out_bufs[ch] = Work_buffer_get_contents_mut(out_wb, 0);
     }
@@ -175,7 +175,7 @@ static void Delay_pstate_render_mixed(
 
     // Get delay stream
     Work_buffer* delays_wb = Device_thread_state_get_mixed_buffer(
-            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_DELAY, NULL);
+            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_DELAY);
     float* delays = ((delays_wb != NULL) && Work_buffer_is_valid(delays_wb, 0))
             ? Work_buffer_get_contents_mut(delays_wb, 0) : NULL;
     if (delays == NULL)

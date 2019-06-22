@@ -103,14 +103,14 @@ static void Mult_pstate_render_mixed(
     {
         // Get inputs
         Work_buffer* in1_wb = Device_thread_state_get_mixed_buffer(
-                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_SIGNAL_1_L + ch, NULL);
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_SIGNAL_1_L + ch);
 
         Work_buffer* in2_wb = Device_thread_state_get_mixed_buffer(
-                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_SIGNAL_2_L + ch, NULL);
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_SIGNAL_2_L + ch);
 
         // Get output
         Work_buffer* out_wb = Device_thread_state_get_mixed_buffer(
-                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_SIGNAL_L + ch, NULL);
+                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_SIGNAL_L + ch);
 
         // Multiply the signals
         multiply_signals(in1_wb, in2_wb, out_wb, frame_count);
@@ -178,13 +178,13 @@ int32_t Mult_vstate_render_voice(
     {
         // Get inputs
         const Work_buffer* in1_wb = Device_thread_state_get_voice_buffer(
-                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_SIGNAL_1_L + ch, NULL);
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_SIGNAL_1_L + ch);
         const Work_buffer* in2_wb = Device_thread_state_get_voice_buffer(
-                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_SIGNAL_2_L + ch, NULL);
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_SIGNAL_2_L + ch);
 
         // Get output
         Work_buffer* out_wb = Device_thread_state_get_voice_buffer(
-                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_SIGNAL_L + ch, NULL);
+                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_SIGNAL_L + ch);
         if (out_wb == NULL)
             continue;
 

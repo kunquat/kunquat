@@ -19,7 +19,6 @@
 #include <decl.h>
 #include <init/Background_loader.h>
 #include <init/devices/Device_impl.h>
-#include <init/devices/Device_port_groups.h>
 #include <mathnum/common.h>
 #include <string/common.h>
 #include <Value.h>
@@ -248,25 +247,6 @@ bool Device_validate_ports(const Device* device, Error* error)
     }
 
     return true;
-}
-
-
-void Device_get_port_groups(
-        const Device* device, Device_port_type type, Device_port_groups groups)
-{
-    rassert(device != NULL);
-    rassert(type < DEVICE_PORT_TYPES);
-    rassert(groups != NULL);
-
-    if (device->dimpl == NULL)
-    {
-        Device_port_groups_init(groups, 1, 0);
-        return;
-    }
-
-    Device_impl_get_port_groups(device->dimpl, type, groups);
-
-    return;
 }
 
 

@@ -913,15 +913,14 @@ static void Player_process_voice_group(
 
         // Don't feel like figuring out a generic solution right now, TODO
 
-        const Work_buffer* in_wb = Device_thread_state_get_voice_buffer(
-                test_ts, DEVICE_PORT_TYPE_SEND, 0, NULL);
+        const Work_buffer* in_wb =
+            Device_thread_state_get_voice_buffer(test_ts, DEVICE_PORT_TYPE_SEND, 0);
         if (Work_buffer_is_valid(in_wb, 0))
         {
             const Work_buffer* in_wbs[] =
             {
                 in_wb,
-                Device_thread_state_get_voice_buffer(
-                        test_ts, DEVICE_PORT_TYPE_SEND, 1, NULL),
+                Device_thread_state_get_voice_buffer(test_ts, DEVICE_PORT_TYPE_SEND, 1),
             };
             if (!Work_buffer_is_valid(in_wbs[1], 0))
                 in_wbs[1] = in_wbs[0];
@@ -1420,7 +1419,7 @@ static void Player_process_mixed_signals(Player* player, int32_t frame_count)
         for (int ch = 0; ch < KQT_BUFFERS_MAX; ++ch)
         {
             Work_buffer* master_wb = Device_thread_state_get_mixed_buffer(
-                    master_ts, DEVICE_PORT_TYPE_RECV, ch, NULL);
+                    master_ts, DEVICE_PORT_TYPE_RECV, ch);
             if (master_wb != NULL)
             {
                 if (!Work_buffer_is_valid(master_wb, 0))
@@ -1531,7 +1530,7 @@ static void Player_mix_test_voice_signals(Player* player, int32_t frame_count)
         for (int ch = 0; ch < 2; ++ch)
         {
             Work_buffer* master_wb = Device_thread_state_get_mixed_buffer(
-                    master_ts, DEVICE_PORT_TYPE_RECV, ch, NULL);
+                    master_ts, DEVICE_PORT_TYPE_RECV, ch);
             if (master_wb == NULL)
                 continue;
 
@@ -1572,7 +1571,7 @@ static void Player_apply_dc_blocker(Player* player, int32_t frame_count)
     for (int ch = 0; ch < 2; ++ch)
     {
         Work_buffer* wb = Device_thread_state_get_mixed_buffer(
-                master_ts, DEVICE_PORT_TYPE_RECV, ch, NULL);
+                master_ts, DEVICE_PORT_TYPE_RECV, ch);
         if (wb == NULL)
             continue;
 
@@ -1610,7 +1609,7 @@ static void Player_apply_master_volume(Player* player, int32_t frame_count)
     Work_buffer* master_wbs[2] = { NULL };
     for (int ch = 0; ch < 2; ++ch)
         master_wbs[ch] = Device_thread_state_get_mixed_buffer(
-                master_ts, DEVICE_PORT_TYPE_RECV, ch, NULL);
+                master_ts, DEVICE_PORT_TYPE_RECV, ch);
 
     if (!Work_buffer_is_valid(master_wbs[0], 0) && !Work_buffer_is_valid(master_wbs[1], 0))
     {
@@ -1767,7 +1766,7 @@ void Player_play(Player* player, int32_t nframes)
                 for (int ch = 0; ch < KQT_BUFFERS_MAX; ++ch)
                 {
                     master_wbs[ch] = Device_thread_state_get_mixed_buffer(
-                            master_ts, DEVICE_PORT_TYPE_RECV, ch, NULL);
+                            master_ts, DEVICE_PORT_TYPE_RECV, ch);
                     if (!Work_buffer_is_valid(master_wbs[ch], 0))
                     {
                         if (!silent_cleared)

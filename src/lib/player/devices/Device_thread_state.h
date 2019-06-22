@@ -132,31 +132,27 @@ void Device_thread_state_clear_mixed_buffers(
 /**
  * Return a mixed audio buffer of the Device thread state.
  *
- * \param ts          The Device thread state -- must not be \c NULL.
- * \param type        The port type -- must be valid.
- * \param port        The port number -- must be >= \c 0 and < \c KQT_DEVICE_PORTS_MAX.
- * \param sub_index   Destination address where the used subarea index will be stored,
- *                    or \c NULL if not needed.
+ * \param ts     The Device thread state -- must not be \c NULL.
+ * \param type   The port type -- must be valid.
+ * \param port   The port number -- must be >= \c 0 and < \c KQT_DEVICE_PORTS_MAX.
  *
  * \return   The Work buffer if one exists, otherwise \c NULL.
  */
 Work_buffer* Device_thread_state_get_mixed_buffer(
-        const Device_thread_state* ts, Device_port_type type, int port, int* sub_index);
+        const Device_thread_state* ts, Device_port_type type, int port);
 
 
 /**
  * Return a connected mixed audio buffer of the Device thread state.
  *
- * \param ts          The Device thread state -- must not be \c NULL.
- * \param type        The port type -- must be valid.
- * \param port        The port number -- must be >= \c 0 and < \c KQT_DEVICE_PORTS_MAX.
- * \param sub_index   Destination address where the used subarea index will be stored,
- *                    or \c NULL if not needed.
+ * \param ts     The Device thread state -- must not be \c NULL.
+ * \param type   The port type -- must be valid.
+ * \param port   The port number -- must be >= \c 0 and < \c KQT_DEVICE_PORTS_MAX.
  *
  * \return   The connected Work buffer if one exists, otherwise \c NULL.
  */
 Work_buffer* Device_thread_state_get_connected_mixed_buffer(
-        const Device_thread_state* ts, Device_port_type type, int port, int* sub_index);
+        const Device_thread_state* ts, Device_port_type type, int port);
 
 
 /**
@@ -214,16 +210,14 @@ void Device_thread_state_clear_voice_outputs(
 /**
  * Return a voice audio buffer of the Device thread state.
  *
- * \param ts          The Device thread state -- must not be \c NULL.
- * \param type        The port type -- must be valid.
- * \param port        The port number -- must be >= \c 0 and < \c KQT_DEVICE_PORTS_MAX.
- * \param sub_index   Destination address where the used subarea index will be stored,
- *                    or \c NULL if not needed.
+ * \param ts     The Device thread state -- must not be \c NULL.
+ * \param type   The port type -- must be valid.
+ * \param port   The port number -- must be >= \c 0 and < \c KQT_DEVICE_PORTS_MAX.
  *
  * \return   The Work buffer if one exists, otherwise \c NULL.
  */
 Work_buffer* Device_thread_state_get_voice_buffer(
-        const Device_thread_state* ts, Device_port_type type, int port, int* sub_index);
+        const Device_thread_state* ts, Device_port_type type, int port);
 
 
 /**

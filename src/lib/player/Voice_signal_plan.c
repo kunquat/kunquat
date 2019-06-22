@@ -114,15 +114,11 @@ static bool Voice_signal_task_info_add_sender_task(
 static bool Voice_signal_task_info_add_input(
         Voice_signal_task_info* task_info,
         Work_buffer* recv_buf,
-        int recv_sub_index,
-        const Work_buffer* send_buf,
-        int send_sub_index)
+        const Work_buffer* send_buf)
 {
     rassert(task_info != NULL);
     rassert(recv_buf != NULL);
-    rassert(recv_sub_index == 0);
     rassert(send_buf != NULL);
-    rassert(send_sub_index == 0);
 
     return Vector_append(task_info->buf_conns, MAKE_CONNECTION(recv_buf, send_buf));
 }
@@ -396,12 +392,10 @@ static bool Voice_signal_plan_build_from_node(
                         dstates, thread_id, Device_get_id(send_device));
                 rassert(send_ts != NULL);
 
-                int send_sub_index = 0;
                 const Work_buffer* send_buf = Device_thread_state_get_voice_buffer(
-                        send_ts, DEVICE_PORT_TYPE_SEND, edge->port, &send_sub_index);
-                int recv_sub_index = 0;
+                        send_ts, DEVICE_PORT_TYPE_SEND, edge->port);
                 Work_buffer* recv_buf = Device_thread_state_get_voice_buffer(
-                        recv_ts, DEVICE_PORT_TYPE_RECV, port, &recv_sub_index);
+                        recv_ts, DEVICE_PORT_TYPE_RECV, port);
 
                 if ((send_buf != NULL) && (recv_buf != NULL) && (sender_task_index >= 0))
                 {
@@ -411,12 +405,7 @@ static bool Voice_signal_plan_build_from_node(
                                 task_info, sender_task_index))
                         return false;
 
-                    if (!Voice_signal_task_info_add_input(
-                                task_info,
-                                recv_buf,
-                                recv_sub_index,
-                                send_buf,
-                                send_sub_index))
+                    if (!Voice_signal_task_info_add_input(task_info, recv_buf, send_buf))
                         return false;
                 }
             }

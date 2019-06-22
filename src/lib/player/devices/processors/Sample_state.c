@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2019
  *
  * This file is part of Kunquat.
  *
@@ -116,7 +116,7 @@ static int32_t Sample_render(
 
     // Get frequencies
     Work_buffer* freqs_wb = Device_thread_state_get_voice_buffer(
-            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_PITCH, NULL);
+            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_PITCH);
     Work_buffer* pitches_wb = freqs_wb;
     if ((freqs_wb == NULL) || !Work_buffer_is_valid(freqs_wb, 0))
         freqs_wb = Work_buffers_get_buffer_mut(wbs, SAMPLE_WB_FIXED_PITCH, 1);
@@ -125,7 +125,7 @@ static int32_t Sample_render(
 
     // Get force input
     Work_buffer* force_scales_wb = Device_thread_state_get_voice_buffer(
-            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_FORCE, NULL);
+            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_FORCE);
     Work_buffer* dBs_wb = force_scales_wb;
     if ((dBs_wb != NULL) &&
             Work_buffer_is_valid(dBs_wb, 0) &&
@@ -478,7 +478,7 @@ int32_t Sample_vstate_render_voice(
     const Cond_work_buffer* vols = Cond_work_buffer_init(
             COND_WORK_BUFFER_AUTO,
             Device_thread_state_get_voice_buffer(
-                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_FORCE, NULL),
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_FORCE),
             0.0);
 
     if (sample_state->sample < 0)
@@ -519,7 +519,7 @@ int32_t Sample_vstate_render_voice(
             // Get starting pitch
             float start_pitch = 0;
             const Work_buffer* pitches_wb = Device_thread_state_get_voice_buffer(
-                    proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_PITCH, NULL);
+                    proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_PITCH);
             const float* pitches =
                 ((pitches_wb != NULL) && Work_buffer_is_valid(pitches_wb, 0))
                 ? Work_buffer_get_contents(pitches_wb, 0) : NULL;
@@ -630,9 +630,9 @@ int32_t Sample_vstate_render_voice(
     Work_buffer* out_wbs[2] =
     {
         Device_thread_state_get_voice_buffer(
-                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L, NULL),
+                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L),
         Device_thread_state_get_voice_buffer(
-                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_R, NULL),
+                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_R),
     };
 
     if ((out_wbs[0] == NULL) && (out_wbs[1] == NULL))
