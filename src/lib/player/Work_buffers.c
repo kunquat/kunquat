@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2019
  *
  * This file is part of Kunquat.
  *
@@ -48,7 +48,7 @@ Work_buffers* new_Work_buffers(int32_t buf_size)
     {
         for (int i = 0; i < WORK_BUFFER_COUNT_; ++i)
         {
-            buffers->buffers[i] = new_Work_buffer(buf_size, WORK_BUFFER_SUB_COUNT_MAX);
+            buffers->buffers[i] = new_Work_buffer(buf_size, 1);
             if (buffers->buffers[i] == NULL)
             {
                 del_Work_buffers(buffers);
@@ -71,7 +71,7 @@ bool Work_buffers_resize(Work_buffers* buffers, int32_t new_size)
     {
         if (buffers->buffers[i] == NULL)
         {
-            buffers->buffers[i] = new_Work_buffer(new_size, WORK_BUFFER_SUB_COUNT_MAX);
+            buffers->buffers[i] = new_Work_buffer(new_size, 1);
             if (buffers->buffers[i] == NULL)
                 return false;
         }

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2019
  *
  * This file is part of Kunquat.
  *
@@ -260,7 +260,7 @@ void Device_get_port_groups(
 
     if (device->dimpl == NULL)
     {
-        Device_port_groups_init(groups, 2, 2, 0);
+        Device_port_groups_init(groups, 1, 0);
         return;
     }
 
