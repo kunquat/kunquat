@@ -100,23 +100,22 @@ int32_t Padsynth_vstate_render_voice(
     const bool needs_init = isnan(ps_vstate->init_pitch);
 
     if (needs_init)
-        ps_vstate->init_pitch =
-            ((pitches_wb != NULL) && Work_buffer_is_valid(pitches_wb, 0))
-            ? Work_buffer_get_contents(pitches_wb, 0)[0] : 0;
+        ps_vstate->init_pitch = Work_buffer_is_valid(pitches_wb)
+            ? Work_buffer_get_contents(pitches_wb)[0] : 0;
 
     if (freqs_wb == NULL)
-        freqs_wb = Work_buffers_get_buffer_mut(wbs, PADSYNTH_WB_FIXED_PITCH, 1);
+        freqs_wb = Work_buffers_get_buffer_mut(wbs, PADSYNTH_WB_FIXED_PITCH);
     Proc_fill_freq_buffer(freqs_wb, pitches_wb, 0, frame_count);
-    const float* freqs = Work_buffer_get_contents(freqs_wb, 0);
+    const float* freqs = Work_buffer_get_contents(freqs_wb);
 
     // Get volume scales
     Work_buffer* scales_wb = Device_thread_state_get_voice_buffer(
             proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_FORCE);
     Work_buffer* dBs_wb = scales_wb;
-    if ((dBs_wb != NULL) &&
-            Work_buffer_is_final(dBs_wb, 0) &&
-            (Work_buffer_get_const_start(dBs_wb, 0) == 0) &&
-            (Work_buffer_get_contents(dBs_wb, 0)[0] == -INFINITY))
+    if (Work_buffer_is_valid(dBs_wb) &&
+            Work_buffer_is_final(dBs_wb) &&
+            (Work_buffer_get_const_start(dBs_wb) == 0) &&
+            (Work_buffer_get_contents(dBs_wb)[0] == -INFINITY))
     {
         // We are only getting silent force from this point onwards
         vstate->active = false;
@@ -124,9 +123,9 @@ int32_t Padsynth_vstate_render_voice(
     }
 
     if (scales_wb == NULL)
-        scales_wb = Work_buffers_get_buffer_mut(wbs, PADSYNTH_WB_FIXED_FORCE, 1);
+        scales_wb = Work_buffers_get_buffer_mut(wbs, PADSYNTH_WB_FIXED_FORCE);
     Proc_fill_scale_buffer(scales_wb, dBs_wb, frame_count);
-    const float* scales = Work_buffer_get_contents(scales_wb, 0);
+    const float* scales = Work_buffer_get_contents(scales_wb);
 
     // Get output buffer for writing
     Work_buffer* out_wbs[2] = { NULL };
@@ -209,7 +208,7 @@ int32_t Padsynth_vstate_render_voice(
 
         double pos = state_pos[ch];
 
-        float* out = Work_buffer_get_contents_mut(out_wbs[ch], 0);
+        float* out = Work_buffer_get_contents_mut(out_wbs[ch]);
 
         for (int32_t i = 0; i < frame_count; ++i)
         {

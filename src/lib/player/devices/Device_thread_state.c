@@ -138,7 +138,7 @@ static bool Device_thread_state_add_buffer(
     if (Etable_get(ts->buffers[buf_type][port_type], port) != NULL)
         return true;
 
-    Work_buffer* wb = new_Work_buffer(ts->audio_buffer_size, 1);
+    Work_buffer* wb = new_Work_buffer(ts->audio_buffer_size);
     if ((wb == NULL) || !Etable_set(ts->buffers[buf_type][port_type], port, wb))
     {
         del_Work_buffer(wb);
@@ -169,7 +169,7 @@ static void Device_thread_state_clear_buffers(
         {
             Work_buffer* buffer = Etable_get(bufs, port);
             if (buffer != NULL)
-                Work_buffer_clear_all(buffer, buf_start, buf_stop);
+                Work_buffer_clear(buffer, buf_start, buf_stop);
         }
     }
 
@@ -368,7 +368,7 @@ void Device_thread_state_clear_voice_outputs(
     {
         Work_buffer* buffer = Etable_get(bufs, buf_index);
         if (buffer != NULL)
-            Work_buffer_clear_all(buffer, buf_start, buf_stop);
+            Work_buffer_clear(buffer, buf_start, buf_stop);
     }
 
     return;
@@ -443,9 +443,9 @@ void Device_thread_state_mix_voice_signals(
 
         //fprintf(stdout, "%p -> %p\n", (const void*)voice_buffer, (const void*)mixed_buffer);
 
-        if (!Work_buffer_is_valid(mixed_buffer, 0))
-            Work_buffer_clear_all(mixed_buffer, buf_start, clear_stop);
-        Work_buffer_mix_all_shifted(mixed_buffer, frame_offset, voice_buffer, mix_stop);
+        if (!Work_buffer_is_valid(mixed_buffer))
+            Work_buffer_clear(mixed_buffer, buf_start, clear_stop);
+        Work_buffer_mix_shifted(mixed_buffer, frame_offset, voice_buffer, mix_stop);
         Device_thread_state_mark_mixed_audio(ts);
     }
 
@@ -497,9 +497,7 @@ void Device_thread_state_combine_mixed_audio(
         const Work_buffer* src_buffer = Etable_get(src_buffers, i);
         rassert(src_buffer != NULL);
 
-        const uint8_t mask =
-            (uint8_t)((1 << Work_buffer_get_sub_count(dest_buffer)) - 1);
-        Work_buffer_mix_all(dest_buffer, src_buffer, buf_start, buf_stop, mask);
+        Work_buffer_mix(dest_buffer, src_buffer, buf_start, buf_stop);
     }
 
     return;

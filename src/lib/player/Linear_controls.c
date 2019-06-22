@@ -237,7 +237,7 @@ void Linear_controls_fill_work_buffer(
     rassert(wb != NULL);
     rassert(buf_start < buf_stop);
 
-    float* values = Work_buffer_get_contents_mut(wb, 0);
+    float* values = Work_buffer_get_contents_mut(wb);
 
     int32_t const_start = buf_start;
 
@@ -321,7 +321,7 @@ void Linear_controls_fill_work_buffer(
     }
 
     // Mark constant region of the buffer
-    Work_buffer_set_const_start(wb, 0, const_start);
+    Work_buffer_set_const_start(wb, const_start);
 
     return;
 }

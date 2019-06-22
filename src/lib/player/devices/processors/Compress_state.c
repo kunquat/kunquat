@@ -82,8 +82,8 @@ static void Compress_states_update(
 
         float level = cstate->level;
 
-        float* levels = Work_buffer_get_contents_mut(level_wbs[ch], 0);
-        const float* in = Work_buffer_get_contents(in_wbs[ch], 0);
+        float* levels = Work_buffer_get_contents_mut(level_wbs[ch]);
+        const float* in = Work_buffer_get_contents(in_wbs[ch]);
 
         for (int32_t i = 0; i < frame_count; ++i)
         {
@@ -114,10 +114,10 @@ static void Compress_states_update(
 
     const Work_buffer* applied_levels_wb =
         (in_wbs[0] == NULL) ? level_wbs[1] : level_wbs[0];
-    const float* applied_levels = Work_buffer_get_contents(applied_levels_wb, 0);
+    const float* applied_levels = Work_buffer_get_contents(applied_levels_wb);
 
-    Work_buffer_clear(gain_wb, 0, 0, frame_count);
-    float* gains = Work_buffer_get_contents_mut(gain_wb, 0);
+    Work_buffer_clear(gain_wb, 0, frame_count);
+    float* gains = Work_buffer_get_contents_mut(gain_wb);
 
     for (int32_t i = 0; i < frame_count; ++i)
         gains[i] = 1.0f;
@@ -179,15 +179,15 @@ static void write_audio(
     rassert(in_wbs != NULL);
     rassert(frame_count > 0);
 
-    const float* gains = Work_buffer_get_contents(gain_wb, 0);
+    const float* gains = Work_buffer_get_contents(gain_wb);
 
     for (int ch = 0; ch < 2; ++ch)
     {
         if (out_wbs[ch] == NULL || in_wbs[ch] == NULL)
             continue;
 
-        float* out = Work_buffer_get_contents_mut(out_wbs[ch], 0);
-        const float* in = Work_buffer_get_contents(in_wbs[ch], 0);
+        float* out = Work_buffer_get_contents_mut(out_wbs[ch]);
+        const float* in = Work_buffer_get_contents(in_wbs[ch]);
 
         for (int32_t i = 0; i < frame_count; ++i)
             out[i] = in[i] * gains[i];
@@ -278,8 +278,8 @@ static void Compress_pstate_render_mixed(
     };
     for (int ch = 0; ch < 2; ++ch)
     {
-        if ((in_wbs[ch] != NULL) && !Work_buffer_is_valid(in_wbs[ch], 0))
-            Work_buffer_clear_all(in_wbs[ch], 0, frame_count);
+        if ((in_wbs[ch] != NULL) && !Work_buffer_is_valid(in_wbs[ch]))
+            Work_buffer_clear(in_wbs[ch], 0, frame_count);
     }
 
     // Get audio output buffers
@@ -294,15 +294,15 @@ static void Compress_pstate_render_mixed(
     // Get level buffers
     Work_buffer* level_wbs[2] =
     {
-        Work_buffers_get_buffer_mut(wbs, COMPRESS_WB_LEVEL_L, 1),
-        Work_buffers_get_buffer_mut(wbs, COMPRESS_WB_LEVEL_R, 1),
+        Work_buffers_get_buffer_mut(wbs, COMPRESS_WB_LEVEL_L),
+        Work_buffers_get_buffer_mut(wbs, COMPRESS_WB_LEVEL_R),
     };
 
     // Get gain buffer
     Work_buffer* gain_wb = Device_thread_state_get_mixed_buffer(
             proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_GAIN);
     if (gain_wb == NULL)
-        gain_wb = Work_buffers_get_buffer_mut(wbs, COMPRESS_WB_GAIN, 1);
+        gain_wb = Work_buffers_get_buffer_mut(wbs, COMPRESS_WB_GAIN);
 
     Compress_states_update(
             cpstate->cstates,
@@ -395,8 +395,8 @@ int32_t Compress_vstate_render_voice(
     };
     for (int ch = 0; ch < 2; ++ch)
     {
-        if ((in_wbs[ch] != NULL) && !Work_buffer_is_valid(in_wbs[ch], 0))
-            Work_buffer_clear_all(in_wbs[ch], 0, frame_count);
+        if ((in_wbs[ch] != NULL) && !Work_buffer_is_valid(in_wbs[ch]))
+            Work_buffer_clear(in_wbs[ch], 0, frame_count);
     }
 
     // Get audio output buffers
@@ -411,15 +411,15 @@ int32_t Compress_vstate_render_voice(
     // Get level buffers
     Work_buffer* level_wbs[2] =
     {
-        Work_buffers_get_buffer_mut(wbs, COMPRESS_WB_LEVEL_L, 1),
-        Work_buffers_get_buffer_mut(wbs, COMPRESS_WB_LEVEL_R, 1),
+        Work_buffers_get_buffer_mut(wbs, COMPRESS_WB_LEVEL_L),
+        Work_buffers_get_buffer_mut(wbs, COMPRESS_WB_LEVEL_R),
     };
 
     // Get gain buffer
     Work_buffer* gain_wb = Device_thread_state_get_voice_buffer(
             proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_GAIN);
     if (gain_wb == NULL)
-        gain_wb = Work_buffers_get_buffer_mut(wbs, COMPRESS_WB_GAIN, 1);
+        gain_wb = Work_buffers_get_buffer_mut(wbs, COMPRESS_WB_GAIN);
 
     Compress_states_update(
             cvstate->cstates,

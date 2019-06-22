@@ -204,7 +204,7 @@ static void Mixed_signal_task_info_execute(
                 {
                     const Buffer_connection* conn =
                         Vector_get_ref(task_info->bypass_conns, i);
-                    Work_buffer_mix(conn->receiver, 0, conn->sender, 0, 0, frame_count);
+                    Work_buffer_mix(conn->receiver, conn->sender, 0, frame_count);
                 }
             }
             //fflush(stdout);
@@ -217,7 +217,7 @@ static void Mixed_signal_task_info_execute(
     for (int i = 0; i < Vector_size(task_info->conns); ++i)
     {
         const Buffer_connection* conn = Vector_get_ref(task_info->conns, i);
-        Work_buffer_mix(conn->receiver, 0, conn->sender, 0, 0, frame_count);
+        Work_buffer_mix(conn->receiver, conn->sender, 0, frame_count);
     }
 
     // Process current device state

@@ -158,11 +158,11 @@ static void Filter_state_impl_apply_input_buffers(
         int32_t fast_cutoff_stop = 0;
         float const_cutoff = NAN;
 
-        if ((cutoff_wb != NULL) && Work_buffer_is_valid(cutoff_wb, 0))
+        if (Work_buffer_is_valid(cutoff_wb))
         {
-            const int32_t const_start = Work_buffer_get_const_start(cutoff_wb, 0);
+            const int32_t const_start = Work_buffer_get_const_start(cutoff_wb);
             fast_cutoff_stop = min(const_start, frame_count);
-            const float* cutoff_buf = Work_buffer_get_contents(cutoff_wb, 0);
+            const float* cutoff_buf = Work_buffer_get_contents(cutoff_wb);
 
             // Get cutoff values from input
 #if ENABLE_FILTER_SSE
@@ -228,11 +228,11 @@ static void Filter_state_impl_apply_input_buffers(
         int32_t fast_res_stop = 0;
         float const_res = NAN;
 
-        if ((resonance_wb != NULL) && Work_buffer_is_valid(resonance_wb, 0))
+        if (Work_buffer_is_valid(resonance_wb))
         {
-            const int32_t const_start = Work_buffer_get_const_start(resonance_wb, 0);
+            const int32_t const_start = Work_buffer_get_const_start(resonance_wb);
             fast_res_stop = min(const_start, frame_count);
-            const float* resonance_buf = Work_buffer_get_contents(resonance_wb, 0);
+            const float* resonance_buf = Work_buffer_get_contents(resonance_wb);
 
             // Get resonance values from input
             for (int32_t i = 0; i < fast_res_stop; ++i)
@@ -282,17 +282,17 @@ static void Filter_state_impl_apply_input_buffers(
         {
             // If we no longer get valid input, we still need to produce a
             // valid output signal as the filter takes a while to adapt
-            in_wb = Work_buffers_get_buffer_mut(wbs, FILTER_WB_SILENT_INPUT, 1);
+            in_wb = Work_buffers_get_buffer_mut(wbs, FILTER_WB_SILENT_INPUT);
             if (!empty_input_created)
             {
-                Work_buffer_clear(in_wb, 0, 0, frame_count);
+                Work_buffer_clear(in_wb, 0, frame_count);
                 empty_input_created = true;
             }
         }
 
         // Apply the filter
-        const float* in = Work_buffer_get_contents(in_wb, 0);
-        float* out = Work_buffer_get_contents_mut(out_wb, 0);
+        const float* in = Work_buffer_get_contents(in_wb);
+        float* out = Work_buffer_get_contents_mut(out_wb);
 
         Filter_ch_state* fstate = &fimpl->states[ch];
 
@@ -397,7 +397,7 @@ static void Filter_pstate_render_mixed(
     {
         in_wbs[ch] = Device_thread_state_get_mixed_buffer(
                 proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_L + ch);
-        if (!Work_buffer_is_valid(in_wbs[ch], 0))
+        if (!Work_buffer_is_valid(in_wbs[ch]))
             in_wbs[ch] = NULL;
     }
 
@@ -497,7 +497,7 @@ int32_t Filter_vstate_render_voice(
     {
         in_wbs[ch] = Device_thread_state_get_voice_buffer(
                 proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_L + ch);
-        if (!Work_buffer_is_valid(in_wbs[ch], 0))
+        if (!Work_buffer_is_valid(in_wbs[ch]))
             in_wbs[ch] = NULL;
     }
 

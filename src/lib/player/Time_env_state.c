@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2019
  *
  * This file is part of Kunquat.
  *
@@ -70,8 +70,8 @@ int32_t Time_env_state_process(
     if (testate->is_finished)
         return buf_start;
 
-    const float* stretch_buf = Work_buffer_get_contents(stretch_wb, 0);
-    const int32_t stretch_const_start = Work_buffer_get_const_start(stretch_wb, 0);
+    const float* stretch_buf = Work_buffer_get_contents(stretch_wb);
+    const int32_t stretch_const_start = Work_buffer_get_const_start(stretch_wb);
     double fixed_scale_factor = 1.0;
     if (stretch_const_start < buf_stop)
         fixed_scale_factor = exp2(stretch_buf[stretch_const_start]);

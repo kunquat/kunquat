@@ -58,12 +58,12 @@ static void multiply_signals(
     if (out_wb == NULL)
         return;
 
-    if (Work_buffer_is_valid(in1_wb, 0) && Work_buffer_is_valid(in2_wb, 0))
+    if (Work_buffer_is_valid(in1_wb) && Work_buffer_is_valid(in2_wb))
     {
-        const float* in1_buf = Work_buffer_get_contents(in1_wb, 0);
-        const float* in2_buf = Work_buffer_get_contents(in2_wb, 0);
+        const float* in1_buf = Work_buffer_get_contents(in1_wb);
+        const float* in2_buf = Work_buffer_get_contents(in2_wb);
 
-        float* out_buffer = Work_buffer_get_contents_mut(out_wb, 0);
+        float* out_buffer = Work_buffer_get_contents_mut(out_wb);
 
         for (int32_t i = 0; i < frame_count; ++i)
         {
@@ -146,10 +146,10 @@ int32_t Mult_vstate_get_size(void)
 
 static bool is_final_zero(const Work_buffer* in_wb)
 {
-    return (!Work_buffer_is_valid(in_wb, 0) ||
-            (Work_buffer_is_final(in_wb, 0) &&
-             (Work_buffer_get_const_start(in_wb, 0) == 0) &&
-             (Work_buffer_get_contents(in_wb, 0)[0] == 0.0f)));
+    return (!Work_buffer_is_valid(in_wb) ||
+            (Work_buffer_is_final(in_wb) &&
+             (Work_buffer_get_const_start(in_wb) == 0) &&
+             (Work_buffer_get_contents(in_wb)[0] == 0.0f)));
 }
 
 
@@ -191,9 +191,9 @@ int32_t Mult_vstate_render_voice(
         const bool is_out_final_zero = is_final_zero(in1_wb) || is_final_zero(in2_wb);
         if (is_out_final_zero)
         {
-            Work_buffer_clear(out_wb, 0, 0, frame_count);
-            Work_buffer_set_const_start(out_wb, 0, 0);
-            Work_buffer_set_final(out_wb, 0, true);
+            Work_buffer_clear(out_wb, 0, frame_count);
+            Work_buffer_set_const_start(out_wb, 0);
+            Work_buffer_set_final(out_wb, true);
         }
         else
         {

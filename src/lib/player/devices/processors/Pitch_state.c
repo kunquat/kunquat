@@ -78,7 +78,7 @@ int32_t Pitch_vstate_render_voice(
         vstate->active = false;
         return 0;
     }
-    float* out_buf = Work_buffer_get_contents_mut(out_wb, 0);
+    float* out_buf = Work_buffer_get_contents_mut(out_wb);
 
     Pitch_vstate* pvstate = (Pitch_vstate*)vstate;
 
@@ -171,7 +171,7 @@ int32_t Pitch_vstate_render_voice(
     pvstate->pitch = out_buf[frame_count - 1];
 
     // Mark constant region of the buffer
-    Work_buffer_set_const_start(out_wb, 0, const_start);
+    Work_buffer_set_const_start(out_wb, const_start);
 
     return frame_count;
 }

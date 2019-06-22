@@ -119,21 +119,20 @@ int32_t Noise_vstate_render_voice(
     Work_buffer* scales_wb = Device_thread_state_get_voice_buffer(
             proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_FORCE);
     Work_buffer* dBs_wb = scales_wb;
-    if ((dBs_wb != NULL) &&
-            Work_buffer_is_valid(dBs_wb, 0) &&
-            Work_buffer_is_final(dBs_wb, 0) &&
-            (Work_buffer_get_const_start(dBs_wb, 0) == 0) &&
-            (Work_buffer_get_contents(dBs_wb, 0)[0] == -INFINITY))
+    if (Work_buffer_is_valid(dBs_wb) &&
+            Work_buffer_is_final(dBs_wb) &&
+            (Work_buffer_get_const_start(dBs_wb) == 0) &&
+            (Work_buffer_get_contents(dBs_wb)[0] == -INFINITY))
     {
         // We are only getting silent force from this point onwards
         vstate->active = false;
         return 0;
     }
 
-    if ((scales_wb == NULL) || !Work_buffer_is_valid(scales_wb, 0))
-        scales_wb = Work_buffers_get_buffer_mut(wbs, NOISE_WB_FIXED_FORCE, 1);
+    if (!Work_buffer_is_valid(scales_wb))
+        scales_wb = Work_buffers_get_buffer_mut(wbs, NOISE_WB_FIXED_FORCE);
     Proc_fill_scale_buffer(scales_wb, dBs_wb, frame_count);
-    const float* scales = Work_buffer_get_contents(scales_wb, 0);
+    const float* scales = Work_buffer_get_contents(scales_wb);
 
     Work_buffer* out_wbs[2] = { NULL };
     for (int ch = 0; ch < 2; ++ch)
@@ -155,7 +154,7 @@ int32_t Noise_vstate_render_voice(
         if (out_wbs[ch] == NULL)
             continue;
 
-        float* out = Work_buffer_get_contents_mut(out_wbs[ch], 0);
+        float* out = Work_buffer_get_contents_mut(out_wbs[ch]);
         double* buf = noise_vstate->buf[ch];
         Random* random = &noise_vstate->rands[ch];
 

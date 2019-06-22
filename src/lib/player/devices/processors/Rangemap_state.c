@@ -74,8 +74,8 @@ static void apply_range(
     rassert(isfinite(add));
     rassert(min_val <= max_val);
 
-    const float* in = Work_buffer_get_contents(in_wb, 0);
-    float* out = Work_buffer_get_contents_mut(out_wb, 0);
+    const float* in = Work_buffer_get_contents(in_wb);
+    float* out = Work_buffer_get_contents_mut(out_wb);
 
     for (int32_t i = 0; i < frame_count; ++i)
         out[i] = (mul * in[i]) + add;
@@ -138,16 +138,16 @@ static void Rangemap_pstate_render_mixed(
 
         Work_buffer* in_wb =
             Device_thread_state_get_mixed_buffer(proc_ts, DEVICE_PORT_TYPE_RECV, ch);
-        if (!Work_buffer_is_valid(in_wb, 0))
+        if (!Work_buffer_is_valid(in_wb))
         {
-            in_wb = Work_buffers_get_buffer_mut(wbs, RANGEMAP_WB_FIXED_INPUT, 1);
-            Work_buffer_clear(in_wb, 0, 0, frame_count);
+            in_wb = Work_buffers_get_buffer_mut(wbs, RANGEMAP_WB_FIXED_INPUT);
+            Work_buffer_clear(in_wb, 0, frame_count);
         }
 
         apply_range(in_wb, out_wb, frame_count, mul, add, min_val, max_val);
 
-        const int32_t const_start = Work_buffer_get_const_start(in_wb, 0);
-        Work_buffer_set_const_start(out_wb, 0, const_start);
+        const int32_t const_start = Work_buffer_get_const_start(in_wb);
+        Work_buffer_set_const_start(out_wb, const_start);
     }
 
     return;
@@ -216,19 +216,19 @@ int32_t Rangemap_vstate_render_voice(
 
         Work_buffer* in_wb =
             Device_thread_state_get_voice_buffer(proc_ts, DEVICE_PORT_TYPE_RECV, ch);
-        if (!Work_buffer_is_valid(in_wb, 0))
+        if (!Work_buffer_is_valid(in_wb))
         {
-            in_wb = Work_buffers_get_buffer_mut(wbs, RANGEMAP_WB_FIXED_INPUT, 1);
-            Work_buffer_clear(in_wb, 0, 0, frame_count);
+            in_wb = Work_buffers_get_buffer_mut(wbs, RANGEMAP_WB_FIXED_INPUT);
+            Work_buffer_clear(in_wb, 0, frame_count);
         }
 
         apply_range(in_wb, out_wb, frame_count, mul, add, min_val, max_val);
 
-        const int32_t const_start = Work_buffer_get_const_start(in_wb, 0);
-        const bool is_final = Work_buffer_is_final(in_wb, 0);
+        const int32_t const_start = Work_buffer_get_const_start(in_wb);
+        const bool is_final = Work_buffer_is_final(in_wb);
 
-        Work_buffer_set_const_start(out_wb, 0, const_start);
-        Work_buffer_set_final(out_wb, 0, is_final);
+        Work_buffer_set_const_start(out_wb, const_start);
+        Work_buffer_set_final(out_wb, is_final);
     }
 
     return frame_count;

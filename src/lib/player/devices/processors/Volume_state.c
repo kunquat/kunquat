@@ -72,15 +72,15 @@ static void apply_volume(
 
     int32_t vol_const_start = 0;
     bool is_vol_final = true;
-    if (Work_buffer_is_valid(vol_wb, 0))
+    if (Work_buffer_is_valid(vol_wb))
     {
-        vol_const_start = Work_buffer_get_const_start(vol_wb, 0);
-        is_vol_final = Work_buffer_is_final(vol_wb, 0);
+        vol_const_start = Work_buffer_get_const_start(vol_wb);
+        is_vol_final = Work_buffer_is_final(vol_wb);
     }
 
-    Work_buffer* scales_wb = Work_buffers_get_buffer_mut(wbs, VOLUME_WB_FIXED_VOLUME, 1);
+    Work_buffer* scales_wb = Work_buffers_get_buffer_mut(wbs, VOLUME_WB_FIXED_VOLUME);
     Proc_fill_scale_buffer(scales_wb, vol_wb, frame_count);
-    const float* scales = Work_buffer_get_contents(scales_wb, 0);
+    const float* scales = Work_buffer_get_contents(scales_wb);
 
     for (int ch = 0; ch < 2; ++ch)
     {
@@ -89,14 +89,14 @@ static void apply_volume(
             continue;
 
         const Work_buffer* in_wb = in_wbs[ch];
-        if (!Work_buffer_is_valid(in_wb, 0))
+        if (!Work_buffer_is_valid(in_wb))
             continue;
 
-        const int32_t in_const_start = Work_buffer_get_const_start(in_wb, 0);
-        const bool is_in_final = Work_buffer_is_final(in_wb, 0);
+        const int32_t in_const_start = Work_buffer_get_const_start(in_wb);
+        const bool is_in_final = Work_buffer_is_final(in_wb);
 
-        const float* in = Work_buffer_get_contents(in_wb, 0);
-        float* out = Work_buffer_get_contents_mut(out_wb, 0);
+        const float* in = Work_buffer_get_contents(in_wb);
+        float* out = Work_buffer_get_contents_mut(out_wb);
 
         for (int32_t i = 0; i < frame_count; ++i)
         {
@@ -109,8 +109,8 @@ static void apply_volume(
         const int32_t out_const_start = max(vol_const_start, in_const_start);
         const bool is_out_final = is_vol_final && is_in_final;
 
-        Work_buffer_set_const_start(out_wb, 0, out_const_start);
-        Work_buffer_set_final(out_wb, 0, is_out_final);
+        Work_buffer_set_const_start(out_wb, out_const_start);
+        Work_buffer_set_final(out_wb, is_out_final);
     }
 
     return;
@@ -156,7 +156,7 @@ static void Volume_pstate_render_mixed(
     // Get control stream
     Work_buffer* vol_wb = Device_thread_state_get_mixed_buffer(
             proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_FORCE);
-    if ((vol_wb != NULL) && !Work_buffer_is_valid(vol_wb, 0))
+    if ((vol_wb != NULL) && !Work_buffer_is_valid(vol_wb))
         vol_wb = NULL;
 
     // Get inputs
@@ -227,10 +227,10 @@ int32_t Volume_vstate_render_voice(
     // Get control stream
     Work_buffer* vol_wb = Device_thread_state_get_voice_buffer(
             proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_FORCE);
-    if (Work_buffer_is_valid(vol_wb, 0) &&
-            Work_buffer_is_final(vol_wb, 0) &&
-            (Work_buffer_get_const_start(vol_wb, 0) == 0) &&
-            (Work_buffer_get_contents(vol_wb, 0)[0] == -INFINITY))
+    if (Work_buffer_is_valid(vol_wb) &&
+            Work_buffer_is_final(vol_wb) &&
+            (Work_buffer_get_const_start(vol_wb) == 0) &&
+            (Work_buffer_get_contents(vol_wb)[0] == -INFINITY))
     {
         // We are only getting silent force from this point onwards
         return 0;
@@ -242,7 +242,7 @@ int32_t Volume_vstate_render_voice(
         in_wbs[ch] = Device_thread_state_get_voice_buffer(
                 proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_L + ch);
 
-    if (!Work_buffer_is_valid(in_wbs[0], 0) && !Work_buffer_is_valid(in_wbs[1], 0))
+    if (!Work_buffer_is_valid(in_wbs[0]) && !Work_buffer_is_valid(in_wbs[1]))
         return 0;
 
     // Get output

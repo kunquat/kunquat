@@ -101,8 +101,8 @@ static int32_t Sample_render(
 
     float* out_buffers[2] =
     {
-        (out_wbs[0] != NULL) ? Work_buffer_get_contents_mut(out_wbs[0], 0) : NULL,
-        (out_wbs[1] != NULL) ? Work_buffer_get_contents_mut(out_wbs[1], 0) : NULL,
+        (out_wbs[0] != NULL) ? Work_buffer_get_contents_mut(out_wbs[0]) : NULL,
+        (out_wbs[1] != NULL) ? Work_buffer_get_contents_mut(out_wbs[1]) : NULL,
     };
 
     // This implementation does not support larger sample lengths :-P
@@ -118,30 +118,29 @@ static int32_t Sample_render(
     Work_buffer* freqs_wb = Device_thread_state_get_voice_buffer(
             proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_PITCH);
     Work_buffer* pitches_wb = freqs_wb;
-    if ((freqs_wb == NULL) || !Work_buffer_is_valid(freqs_wb, 0))
-        freqs_wb = Work_buffers_get_buffer_mut(wbs, SAMPLE_WB_FIXED_PITCH, 1);
+    if (!Work_buffer_is_valid(freqs_wb))
+        freqs_wb = Work_buffers_get_buffer_mut(wbs, SAMPLE_WB_FIXED_PITCH);
     Proc_fill_freq_buffer(freqs_wb, pitches_wb, 0, frame_count);
-    const float* freqs = Work_buffer_get_contents(freqs_wb, 0);
+    const float* freqs = Work_buffer_get_contents(freqs_wb);
 
     // Get force input
     Work_buffer* force_scales_wb = Device_thread_state_get_voice_buffer(
             proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_FORCE);
     Work_buffer* dBs_wb = force_scales_wb;
-    if ((dBs_wb != NULL) &&
-            Work_buffer_is_valid(dBs_wb, 0) &&
-            Work_buffer_is_final(dBs_wb, 0) &&
-            (Work_buffer_get_const_start(dBs_wb, 0) == 0) &&
-            (Work_buffer_get_contents(dBs_wb, 0)[0] == -INFINITY))
+    if (Work_buffer_is_valid(dBs_wb) &&
+            Work_buffer_is_final(dBs_wb) &&
+            (Work_buffer_get_const_start(dBs_wb) == 0) &&
+            (Work_buffer_get_contents(dBs_wb)[0] == -INFINITY))
     {
         // We are only getting silent force from this point onwards
         vstate->active = false;
         return 0;
     }
 
-    if ((force_scales_wb == NULL) || !Work_buffer_is_valid(force_scales_wb, 0))
-        force_scales_wb = Work_buffers_get_buffer_mut(wbs, SAMPLE_WB_FIXED_FORCE, 1);
+    if (!Work_buffer_is_valid(force_scales_wb))
+        force_scales_wb = Work_buffers_get_buffer_mut(wbs, SAMPLE_WB_FIXED_FORCE);
     Proc_fill_scale_buffer(force_scales_wb, dBs_wb, frame_count);
-    const float* force_scales = Work_buffer_get_contents(force_scales_wb, 0);
+    const float* force_scales = Work_buffer_get_contents(force_scales_wb);
 
     float* abufs[KQT_BUFFERS_MAX] = { out_buffers[0], out_buffers[1] };
     if ((sample->channels == 1) && (out_buffers[0] == NULL))
@@ -441,7 +440,7 @@ static int32_t Sample_render(
         if (out_wb == NULL)
             continue;
 
-        float* out_buf = Work_buffer_get_contents_mut(out_wb, 0);
+        float* out_buf = Work_buffer_get_contents_mut(out_wb);
 
         //fprintf(stderr, "Clearing ch %d, [%d,%d)\n", ch, (int)new_buf_stop, (int)frame_count);
 
@@ -520,9 +519,8 @@ int32_t Sample_vstate_render_voice(
             float start_pitch = 0;
             const Work_buffer* pitches_wb = Device_thread_state_get_voice_buffer(
                     proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_PITCH);
-            const float* pitches =
-                ((pitches_wb != NULL) && Work_buffer_is_valid(pitches_wb, 0))
-                ? Work_buffer_get_contents(pitches_wb, 0) : NULL;
+            const float* pitches = Work_buffer_is_valid(pitches_wb)
+                ? Work_buffer_get_contents(pitches_wb) : NULL;
             if (pitches != NULL)
                 start_pitch = pitches[0];
 

@@ -73,7 +73,7 @@ void Proc_ramp_attack(
             continue;
 
         float ramp_attack = start_ramp_attack;
-        float* out = Work_buffer_get_contents_mut(out_wbs[ch], 0);
+        float* out = Work_buffer_get_contents_mut(out_wbs[ch]);
 
         for (int32_t i = 0; (i < frame_count) && (ramp_attack < 1); ++i)
         {
@@ -116,14 +116,14 @@ void Proc_fill_freq_buffer(
     rassert(buf_start >= 0);
     rassert(buf_stop >= 0);
 
-    if ((pitches != NULL) && Work_buffer_is_valid(pitches, 0))
+    if (Work_buffer_is_valid(pitches))
     {
         Proc_clamp_pitch_values(pitches, buf_start, buf_stop);
 
-        const int32_t const_start = Work_buffer_get_const_start(pitches, 0);
-        float* freqs_data = Work_buffer_get_contents_mut(freqs, 0);
+        const int32_t const_start = Work_buffer_get_const_start(pitches);
+        float* freqs_data = Work_buffer_get_contents_mut(freqs);
 
-        float* pitches_data = Work_buffer_get_contents_mut(pitches, 0);
+        float* pitches_data = Work_buffer_get_contents_mut(pitches);
 
         const int32_t fast_stop = clamp(const_start, buf_start, buf_stop);
 
@@ -140,16 +140,16 @@ void Proc_fill_freq_buffer(
                 freqs_data[i] = freq;
         }
 
-        Work_buffer_set_const_start(freqs, 0, const_start);
+        Work_buffer_set_const_start(freqs, const_start);
     }
     else
     {
-        float* freqs_data = Work_buffer_get_contents_mut(freqs, 0);
+        float* freqs_data = Work_buffer_get_contents_mut(freqs);
 
         for (int32_t i = buf_start; i < buf_stop; ++i)
             freqs_data[i] = 440;
 
-        Work_buffer_set_const_start(freqs, 0, buf_start);
+        Work_buffer_set_const_start(freqs, buf_start);
     }
 
     return;
@@ -161,12 +161,12 @@ void Proc_fill_scale_buffer(Work_buffer* scales, Work_buffer* dBs, int32_t frame
     rassert(scales != NULL);
     rassert(frame_count > 0);
 
-    if ((dBs != NULL) && Work_buffer_is_valid(dBs, 0))
+    if (Work_buffer_is_valid(dBs))
     {
-        const int32_t const_start = Work_buffer_get_const_start(dBs, 0);
-        float* scales_data = Work_buffer_get_contents_mut(scales, 0);
+        const int32_t const_start = Work_buffer_get_const_start(dBs);
+        float* scales_data = Work_buffer_get_contents_mut(scales);
 
-        float* dBs_data = Work_buffer_get_contents_mut(dBs, 0);
+        float* dBs_data = Work_buffer_get_contents_mut(dBs);
 
         const int32_t fast_stop = min(const_start, frame_count);
 
@@ -214,16 +214,16 @@ void Proc_fill_scale_buffer(Work_buffer* scales, Work_buffer* dBs, int32_t frame
                 scales_data[i] = scale;
         }
 
-        Work_buffer_set_const_start(scales, 0, const_start);
+        Work_buffer_set_const_start(scales, const_start);
     }
     else
     {
-        float* scales_data = Work_buffer_get_contents_mut(scales, 0);
+        float* scales_data = Work_buffer_get_contents_mut(scales);
 
         for (int32_t i = 0; i < frame_count; ++i)
             scales_data[i] = 1;
 
-        Work_buffer_set_const_start(scales, 0, 0);
+        Work_buffer_set_const_start(scales, 0);
     }
 
     return;
@@ -236,12 +236,12 @@ void Proc_clamp_pitch_values(Work_buffer* pitches, int32_t buf_start, int32_t bu
     rassert(buf_start >= 0);
     rassert(buf_stop >= 0);
 
-    const int32_t const_start = Work_buffer_get_const_start(pitches, 0);
+    const int32_t const_start = Work_buffer_get_const_start(pitches);
     const int32_t fast_stop = clamp(const_start, buf_start, buf_stop);
 
     const float bound = 2000000.0f;
 
-    float* pitches_data = Work_buffer_get_contents_mut(pitches, 0);
+    float* pitches_data = Work_buffer_get_contents_mut(pitches);
 
     for (int32_t i = buf_start; i < fast_stop; ++i)
         pitches_data[i] = clamp(pitches_data[i], -bound, bound);
@@ -253,7 +253,7 @@ void Proc_clamp_pitch_values(Work_buffer* pitches, int32_t buf_start, int32_t bu
             pitches_data[i] = pitch;
     }
 
-    Work_buffer_set_const_start(pitches, 0, const_start);
+    Work_buffer_set_const_start(pitches, const_start);
 
     return;
 }
@@ -268,10 +268,10 @@ Cond_work_buffer* Cond_work_buffer_init(
     cwb->def_value = def_value;
     cwb->wb_contents = &cwb->def_value;
 
-    if ((wb != NULL) && Work_buffer_is_valid(wb, 0))
+    if (Work_buffer_is_valid(wb))
     {
         cwb->index_mask = ~(int32_t)0;
-        cwb->wb_contents = Work_buffer_get_contents(wb, 0);
+        cwb->wb_contents = Work_buffer_get_contents(wb);
     }
 
     return cwb;

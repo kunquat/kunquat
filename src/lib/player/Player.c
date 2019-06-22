@@ -300,7 +300,7 @@ static bool Player_thread_params_create_buffers(
         for (int ch = 0; ch < 2; ++ch)
         {
             rassert(tp->test_voice_outputs[ch] == NULL);
-            tp->test_voice_outputs[ch] = new_Work_buffer(audio_buffer_size, 1);
+            tp->test_voice_outputs[ch] = new_Work_buffer(audio_buffer_size);
             if (tp->test_voice_outputs[ch] == NULL)
             {
                 Player_thread_params_deinit(tp);
@@ -915,28 +915,26 @@ static void Player_process_voice_group(
 
         const Work_buffer* in_wb =
             Device_thread_state_get_voice_buffer(test_ts, DEVICE_PORT_TYPE_SEND, 0);
-        if (Work_buffer_is_valid(in_wb, 0))
+        if (Work_buffer_is_valid(in_wb))
         {
             const Work_buffer* in_wbs[] =
             {
                 in_wb,
                 Device_thread_state_get_voice_buffer(test_ts, DEVICE_PORT_TYPE_SEND, 1),
             };
-            if (!Work_buffer_is_valid(in_wbs[1], 0))
+            if (!Work_buffer_is_valid(in_wbs[1]))
                 in_wbs[1] = in_wbs[0];
 
             for (int si = 0; si < 2; ++si)
             {
                 Work_buffer_mix(
                         tparams->test_voice_outputs[si],
-                        0,
                         in_wbs[si],
-                        0,
                         0,
                         test_output_stop);
 
                 Work_buffer_clear(
-                        tparams->test_voice_outputs[si], 0, test_output_stop, frame_count);
+                        tparams->test_voice_outputs[si], test_output_stop, frame_count);
             }
         }
     }
@@ -1422,8 +1420,8 @@ static void Player_process_mixed_signals(Player* player, int32_t frame_count)
                     master_ts, DEVICE_PORT_TYPE_RECV, ch);
             if (master_wb != NULL)
             {
-                if (!Work_buffer_is_valid(master_wb, 0))
-                    Work_buffer_clear(master_wb, 0, 0, frame_count);
+                if (!Work_buffer_is_valid(master_wb))
+                    Work_buffer_clear(master_wb, 0, frame_count);
             }
         }
     }
@@ -1535,13 +1533,13 @@ static void Player_mix_test_voice_signals(Player* player, int32_t frame_count)
                 continue;
 
             const Work_buffer* test_wb = tp->test_voice_outputs[ch];
-            if (!Work_buffer_is_valid(test_wb, 0))
+            if (!Work_buffer_is_valid(test_wb))
                 continue;
 
-            float first_val = Work_buffer_get_contents(test_wb, 0)[0];
+            float first_val = Work_buffer_get_contents(test_wb)[0];
 
-            if ((Work_buffer_get_const_start(test_wb, 0) > 0) || (first_val != 0))
-                Work_buffer_mix(master_wb, 0, test_wb, 0, 0, frame_count);
+            if ((Work_buffer_get_const_start(test_wb) > 0) || (first_val != 0))
+                Work_buffer_mix(master_wb, test_wb, 0, frame_count);
         }
     }
 
@@ -1578,7 +1576,7 @@ static void Player_apply_dc_blocker(Player* player, int32_t frame_count)
         float feedforward = player->master_params.dc_block_state[ch].feedforward;
         float feedback = player->master_params.dc_block_state[ch].feedback;
 
-        float* buf = Work_buffer_get_contents_mut(wb, 0);
+        float* buf = Work_buffer_get_contents_mut(wb);
         for (int32_t i = 0; i < frame_count; ++i)
         {
             const float in = *buf;
@@ -1611,7 +1609,7 @@ static void Player_apply_master_volume(Player* player, int32_t frame_count)
         master_wbs[ch] = Device_thread_state_get_mixed_buffer(
                 master_ts, DEVICE_PORT_TYPE_RECV, ch);
 
-    if (!Work_buffer_is_valid(master_wbs[0], 0) && !Work_buffer_is_valid(master_wbs[1], 0))
+    if (!Work_buffer_is_valid(master_wbs[0]) && !Work_buffer_is_valid(master_wbs[1]))
     {
         Slider_skip(&player->master_params.volume_slider, frame_count);
         return;
@@ -1623,12 +1621,12 @@ static void Player_apply_master_volume(Player* player, int32_t frame_count)
     for (int ch = 0; ch < 2; ++ch)
     {
         Work_buffer* wb = master_wbs[ch];
-        if (!Work_buffer_is_valid(wb, 0))
+        if (!Work_buffer_is_valid(wb))
             continue;
 
         Slider_copy(&slider, &player->master_params.volume_slider);
 
-        float* buf = Work_buffer_get_contents_mut(wb, 0);
+        float* buf = Work_buffer_get_contents_mut(wb);
 
         if (Slider_in_progress(&slider))
         {
@@ -1759,7 +1757,7 @@ void Player_play(Player* player, int32_t nframes)
 
                 static const int MASTER_WB_SILENT_OUT = 0;
                 Work_buffer* silent_wb = Work_buffers_get_buffer_mut(
-                        player->thread_params[0].work_buffers, MASTER_WB_SILENT_OUT, 1);
+                        player->thread_params[0].work_buffers, MASTER_WB_SILENT_OUT);
                 bool silent_cleared = false;
 
                 const Work_buffer* master_wbs[KQT_BUFFERS_MAX] = { NULL };
@@ -1767,11 +1765,11 @@ void Player_play(Player* player, int32_t nframes)
                 {
                     master_wbs[ch] = Device_thread_state_get_mixed_buffer(
                             master_ts, DEVICE_PORT_TYPE_RECV, ch);
-                    if (!Work_buffer_is_valid(master_wbs[ch], 0))
+                    if (!Work_buffer_is_valid(master_wbs[ch]))
                     {
                         if (!silent_cleared)
                         {
-                            Work_buffer_clear(silent_wb, 0, 0, to_be_rendered);
+                            Work_buffer_clear(silent_wb, 0, to_be_rendered);
                             silent_cleared = true;
                         }
                         master_wbs[ch] = silent_wb;
@@ -1780,7 +1778,7 @@ void Player_play(Player* player, int32_t nframes)
 
                 const float* master_in[KQT_BUFFERS_MAX] = { NULL };
                 for (int ch = 0; ch < KQT_BUFFERS_MAX; ++ch)
-                    master_in[ch] = Work_buffer_get_contents(master_wbs[ch], 0);
+                    master_in[ch] = Work_buffer_get_contents(master_wbs[ch]);
 
                 // Apply render volume and copy to output
                 const float mix_vol = (float)player->module->mix_vol;

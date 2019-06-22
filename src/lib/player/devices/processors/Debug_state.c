@@ -57,11 +57,8 @@ int32_t Debug_vstate_render_voice(
                 proc_ts, DEVICE_PORT_TYPE_SEND, ch);
         if (out_wb != NULL)
         {
-            rassert(Work_buffer_get_sub_count(out_wb) == 1);
-            rassert(Work_buffer_get_stride(out_wb) == 1);
-
-            out_buffers[ch] = Work_buffer_get_contents_mut(out_wb, 0);
-            Work_buffer_mark_valid(out_wb, 0);
+            out_buffers[ch] = Work_buffer_get_contents_mut(out_wb);
+            Work_buffer_mark_valid(out_wb);
         }
     }
 

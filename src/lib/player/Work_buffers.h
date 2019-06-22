@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2019
  *
  * This file is part of Kunquat.
  *
@@ -67,17 +67,14 @@ bool Work_buffers_resize(Work_buffers* buffers, int32_t new_size);
 /**
  * Get a mutable Work buffer.
  *
- * \param buffers     The Work buffers -- must not be \c NULL and must have
- *                    non-zero buffer size.
- * \param type        The Work buffer type -- must be valid.
- * \param sub_count   The number of interleaved areas inside the buffer --
- *                    must be >= \c 1, <= \c WORK_BUFFER_SUB_COUNT_MAX and a
- *                    power of two.
+ * \param buffers   The Work buffers -- must not be \c NULL and must have
+ *                  non-zero buffer size.
+ * \param type      The Work buffer type -- must be valid.
  *
  * \return   The Work buffer. This is never \c NULL.
  */
 Work_buffer* Work_buffers_get_buffer_mut(
-        const Work_buffers* buffers, Work_buffer_type type, int sub_count);
+        const Work_buffers* buffers, Work_buffer_type type);
 
 
 /**

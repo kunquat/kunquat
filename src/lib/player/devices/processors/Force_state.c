@@ -94,13 +94,13 @@ int32_t Force_vstate_render_voice(
     // Get envelope time stretch inputs
     Work_buffer* stretch_wb = Device_thread_state_get_voice_buffer(
             proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_ENV_STRETCH);
-    if ((stretch_wb == NULL) || !Work_buffer_is_valid(stretch_wb, 0))
+    if (!Work_buffer_is_valid(stretch_wb))
     {
-        stretch_wb = Work_buffers_get_buffer_mut(wbs, FORCE_WB_FIXED_ENV_STRETCH, 1);
-        float* stretches = Work_buffer_get_contents_mut(stretch_wb, 0);
+        stretch_wb = Work_buffers_get_buffer_mut(wbs, FORCE_WB_FIXED_ENV_STRETCH);
+        float* stretches = Work_buffer_get_contents_mut(stretch_wb);
         for (int32_t i = 0; i < frame_count; ++i)
             stretches[i] = 0;
-        Work_buffer_set_const_start(stretch_wb, 0, 0);
+        Work_buffer_set_const_start(stretch_wb, 0);
     }
     else
     {
@@ -109,14 +109,14 @@ int32_t Force_vstate_render_voice(
 
     Work_buffer* rel_stretch_wb = Device_thread_state_get_voice_buffer(
             proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_ENV_REL_STRETCH);
-    if ((rel_stretch_wb == NULL) || !Work_buffer_is_valid(rel_stretch_wb, 0))
+    if (!Work_buffer_is_valid(rel_stretch_wb))
     {
         rel_stretch_wb =
-            Work_buffers_get_buffer_mut(wbs, FORCE_WB_FIXED_ENV_REL_STRETCH, 1);
-        float* stretches = Work_buffer_get_contents_mut(rel_stretch_wb, 0);
+            Work_buffers_get_buffer_mut(wbs, FORCE_WB_FIXED_ENV_REL_STRETCH);
+        float* stretches = Work_buffer_get_contents_mut(rel_stretch_wb);
         for (int32_t i = 0; i < frame_count; ++i)
             stretches[i] = 0;
-        Work_buffer_set_const_start(rel_stretch_wb, 0, 0);
+        Work_buffer_set_const_start(rel_stretch_wb, 0);
     }
     else
     {
@@ -131,7 +131,7 @@ int32_t Force_vstate_render_voice(
         vstate->active = false;
         return 0;
     }
-    float* out_buf = Work_buffer_get_contents_mut(out_wb, 0);
+    float* out_buf = Work_buffer_get_contents_mut(out_wb);
 
     Force_vstate* fvstate = (Force_vstate*)vstate;
     const Proc_force* force = (const Proc_force*)proc_state->parent.device->dimpl;
@@ -233,8 +233,8 @@ int32_t Force_vstate_render_voice(
         const_start = max(const_start, env_force_stop);
 
         Work_buffer* wb_time_env =
-            Work_buffers_get_buffer_mut(wbs, WORK_BUFFER_TIME_ENV, 1);
-        float* time_env = Work_buffer_get_contents_mut(wb_time_env, 0);
+            Work_buffers_get_buffer_mut(wbs, WORK_BUFFER_TIME_ENV);
+        float* time_env = Work_buffer_get_contents_mut(wb_time_env);
 
         // Convert envelope data to dB
 #if KQT_SSE4_1
@@ -303,8 +303,8 @@ int32_t Force_vstate_render_voice(
                 new_buf_stop = env_force_rel_stop;
 
             Work_buffer* wb_time_env =
-                Work_buffers_get_buffer_mut(wbs, WORK_BUFFER_TIME_ENV, 1);
-            float* time_env = Work_buffer_get_contents_mut(wb_time_env, 0);
+                Work_buffers_get_buffer_mut(wbs, WORK_BUFFER_TIME_ENV);
+            float* time_env = Work_buffer_get_contents_mut(wb_time_env);
 
             // Convert envelope data to dB
 #if KQT_SSE4_1
@@ -362,8 +362,8 @@ int32_t Force_vstate_render_voice(
     }
 
     // Mark constant region of the buffer
-    Work_buffer_set_const_start(out_wb, 0, const_start);
-    Work_buffer_set_final(out_wb, 0, keep_alive_stop < frame_count);
+    Work_buffer_set_const_start(out_wb, const_start);
+    Work_buffer_set_final(out_wb, keep_alive_stop < frame_count);
 
     Voice_state_set_keep_alive_stop(vstate, keep_alive_stop);
 

@@ -41,8 +41,8 @@ static void distort(
 
     if (gc->is_map_enabled && (gc->map != NULL))
     {
-        const float* in_values = Work_buffer_get_contents(in_buffer, 0);
-        float* out_values = Work_buffer_get_contents_mut(out_buffer, 0);
+        const float* in_values = Work_buffer_get_contents(in_buffer);
+        float* out_values = Work_buffer_get_contents_mut(out_buffer);
 
         const double* first = Envelope_get_node(gc->map, 0);
         if (first[0] == -1)
@@ -72,7 +72,7 @@ static void distort(
     }
     else
     {
-        Work_buffer_copy(out_buffer, 0, in_buffer, 0, 0, frame_count);
+        Work_buffer_copy(out_buffer, in_buffer, 0, frame_count);
     }
 
     return;
@@ -129,9 +129,7 @@ static void Gaincomp_pstate_render_mixed(
     const Proc_gaincomp* gc = (const Proc_gaincomp*)dstate->device->dimpl;
     for (int ch = 0; ch < 2; ++ch)
     {
-        if ((in_buffers[ch] != NULL) &&
-                Work_buffer_is_valid(in_buffers[ch], 0) &&
-                (out_buffers[ch] != NULL))
+        if (Work_buffer_is_valid(in_buffers[ch]) && (out_buffers[ch] != NULL))
             distort(gc, in_buffers[ch], out_buffers[ch], frame_count);
     }
 
@@ -205,9 +203,7 @@ int32_t Gaincomp_vstate_render_voice(
     const Proc_gaincomp* gc = (const Proc_gaincomp*)proc_state->parent.device->dimpl;
     for (int ch = 0; ch < 2; ++ch)
     {
-        if ((in_buffers[ch] != NULL) &&
-                Work_buffer_is_valid(in_buffers[ch], 0) &&
-                (out_buffers[ch] != NULL))
+        if (Work_buffer_is_valid(in_buffers[ch]) && (out_buffers[ch] != NULL))
             distort(gc, in_buffers[ch], out_buffers[ch], frame_count);
     }
 

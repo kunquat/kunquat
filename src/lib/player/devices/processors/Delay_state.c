@@ -74,8 +74,7 @@ static bool Delay_pstate_set_audio_rate(Device_state* dstate, int32_t audio_rate
     {
         if (!Work_buffer_resize(dpstate->bufs[ch], delay_buf_size))
             return false;
-        Work_buffer_clear(
-                dpstate->bufs[ch], 0, 0, Work_buffer_get_size(dpstate->bufs[ch]));
+        Work_buffer_clear(dpstate->bufs[ch], 0, Work_buffer_get_size(dpstate->bufs[ch]));
     }
 
     dpstate->buf_pos = 0;
@@ -91,8 +90,7 @@ static void Delay_pstate_reset(Device_state* dstate)
     Delay_pstate* dpstate = (Delay_pstate*)dstate;
 
     for (int ch = 0; ch < 2; ++ch)
-        Work_buffer_clear(
-                dpstate->bufs[ch], 0, 0, Work_buffer_get_size(dpstate->bufs[ch]));
+        Work_buffer_clear(dpstate->bufs[ch], 0, Work_buffer_get_size(dpstate->bufs[ch]));
 
     dpstate->buf_pos = 0;
 
@@ -145,13 +143,13 @@ static void Delay_pstate_render_mixed(
     {
         Work_buffer* in_wb = Device_thread_state_get_mixed_buffer(
                 proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_L + ch);
-        if (!Work_buffer_is_valid(in_wb, 0))
+        if (!Work_buffer_is_valid(in_wb))
         {
-            in_wb = Work_buffers_get_buffer_mut(wbs, DELAY_WB_FIXED_INPUT, 1);
-            Work_buffer_clear(in_wb, 0, 0, frame_count);
+            in_wb = Work_buffers_get_buffer_mut(wbs, DELAY_WB_FIXED_INPUT);
+            Work_buffer_clear(in_wb, 0, frame_count);
         }
 
-        in_bufs[ch] = Work_buffer_get_contents_mut(in_wb, 0);
+        in_bufs[ch] = Work_buffer_get_contents_mut(in_wb);
     }
 
     float* out_bufs[2] = { NULL };
@@ -160,12 +158,12 @@ static void Delay_pstate_render_mixed(
         Work_buffer* out_wb = Device_thread_state_get_mixed_buffer(
                 proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L + ch);
         if (out_wb != NULL)
-            out_bufs[ch] = Work_buffer_get_contents_mut(out_wb, 0);
+            out_bufs[ch] = Work_buffer_get_contents_mut(out_wb);
     }
 
     float* history_data[2] = { NULL };
     for (int ch = 0; ch < 2; ++ch)
-        history_data[ch] = Work_buffer_get_contents_mut(dpstate->bufs[ch], 0);
+        history_data[ch] = Work_buffer_get_contents_mut(dpstate->bufs[ch]);
 
     const int32_t delay_buf_size = Work_buffer_get_size(dpstate->bufs[0]);
     const int32_t delay_max = delay_buf_size - 1;
@@ -176,8 +174,8 @@ static void Delay_pstate_render_mixed(
     // Get delay stream
     Work_buffer* delays_wb = Device_thread_state_get_mixed_buffer(
             proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_DELAY);
-    float* delays = ((delays_wb != NULL) && Work_buffer_is_valid(delays_wb, 0))
-            ? Work_buffer_get_contents_mut(delays_wb, 0) : NULL;
+    float* delays = Work_buffer_is_valid(delays_wb)
+            ? Work_buffer_get_contents_mut(delays_wb) : NULL;
     if (delays == NULL)
     {
         delays = Work_buffers_get_buffer_contents_mut(wbs, DELAY_WB_FIXED_DELAY);
@@ -309,8 +307,7 @@ static void Delay_pstate_clear_history(Proc_state* proc_state)
     Delay_pstate* dpstate = (Delay_pstate*)proc_state;
 
     for (int ch = 0; ch < 2; ++ch)
-        Work_buffer_clear(
-                dpstate->bufs[ch], 0, 0, Work_buffer_get_size(dpstate->bufs[ch]));
+        Work_buffer_clear(dpstate->bufs[ch], 0, Work_buffer_get_size(dpstate->bufs[ch]));
 
     dpstate->buf_pos = 0;
 
@@ -351,7 +348,7 @@ Device_state* new_Delay_pstate(
 
     for (int ch = 0; ch < 2; ++ch)
     {
-        dpstate->bufs[ch] = new_Work_buffer(delay_buf_size, 1);
+        dpstate->bufs[ch] = new_Work_buffer(delay_buf_size);
         if (dpstate->bufs[ch] == NULL)
         {
             del_Device_state(&dpstate->parent.parent);
@@ -380,8 +377,7 @@ bool Delay_pstate_set_max_delay(
     {
         if (!Work_buffer_resize(dpstate->bufs[ch], delay_buf_size))
             return false;
-        Work_buffer_clear(
-                dpstate->bufs[ch], 0, 0, Work_buffer_get_size(dpstate->bufs[ch]));
+        Work_buffer_clear(dpstate->bufs[ch], 0, Work_buffer_get_size(dpstate->bufs[ch]));
     }
 
     dpstate->buf_pos = 0;

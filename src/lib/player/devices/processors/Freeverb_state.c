@@ -203,8 +203,8 @@ static void Freeverb_pstate_render_mixed(
     // Get reflectivity parameter stream
     Work_buffer* refls_wb = Device_thread_state_get_mixed_buffer(
             proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_REFL);
-    float* refls = (refls_wb != NULL) && Work_buffer_is_valid(refls_wb, 0)
-        ? Work_buffer_get_contents_mut(refls_wb, 0) : NULL;
+    float* refls = Work_buffer_is_valid(refls_wb)
+        ? Work_buffer_get_contents_mut(refls_wb) : NULL;
     if (refls == NULL)
     {
         refls = Work_buffers_get_buffer_contents_mut(wbs, FREEVERB_WB_FIXED_REFL);
@@ -232,7 +232,7 @@ static void Freeverb_pstate_render_mixed(
     Work_buffer* damps_wb = Device_thread_state_get_mixed_buffer(
             proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_DAMP);
     float* damps = NULL;
-    if ((damps_wb == NULL) || !Work_buffer_is_valid(damps_wb, 0))
+    if (!Work_buffer_is_valid(damps_wb))
     {
         damps = Work_buffers_get_buffer_contents_mut(wbs, FREEVERB_WB_FIXED_DAMP);
         const float adj_damp =
@@ -243,10 +243,10 @@ static void Freeverb_pstate_render_mixed(
     }
     else
     {
-        const int32_t const_start = Work_buffer_get_const_start(damps_wb, 0);
+        const int32_t const_start = Work_buffer_get_const_start(damps_wb);
         const int32_t var_stop = min(const_start, frame_count);
 
-        damps = Work_buffer_get_contents_mut(damps_wb, 0);
+        damps = Work_buffer_get_contents_mut(damps_wb);
 
         for (int32_t i = 0; i < var_stop; ++i)
         {
@@ -269,7 +269,7 @@ static void Freeverb_pstate_render_mixed(
     {
         in_wbs[ch] = Device_thread_state_get_mixed_buffer(
                 proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_L + ch);
-        if (!Work_buffer_is_valid(in_wbs[ch], 0))
+        if (!Work_buffer_is_valid(in_wbs[ch]))
             in_wbs[ch] = NULL;
     }
 
@@ -281,13 +281,13 @@ static void Freeverb_pstate_render_mixed(
     // Apply reverb
     {
         Work_buffer* comb_input_wb =
-            Work_buffers_get_buffer_mut(wbs, FREEVERB_WB_COMB_INPUT, 1);
-        float* comb_input = Work_buffer_get_contents_mut(comb_input_wb, 0);
+            Work_buffers_get_buffer_mut(wbs, FREEVERB_WB_COMB_INPUT);
+        float* comb_input = Work_buffer_get_contents_mut(comb_input_wb);
 
         if ((in_wbs[0] != NULL) && (in_wbs[1] != NULL))
         {
-            const float* in_0 = Work_buffer_get_contents(in_wbs[0], 0);
-            const float* in_1 = Work_buffer_get_contents(in_wbs[1], 0);
+            const float* in_0 = Work_buffer_get_contents(in_wbs[0]);
+            const float* in_1 = Work_buffer_get_contents(in_wbs[1]);
             const float gain = (float)freeverb->gain;
             for (int32_t i = 0; i < frame_count; ++i)
                 comb_input[i] = (in_0[i] + in_1[i]) * gain;
@@ -296,14 +296,14 @@ static void Freeverb_pstate_render_mixed(
         {
             // Use the valid channel as the input for both channels
             const Work_buffer* valid_in_wb = (in_wbs[0] != NULL) ? in_wbs[0] : in_wbs[1];
-            const float* valid_in = Work_buffer_get_contents(valid_in_wb, 0);
+            const float* valid_in = Work_buffer_get_contents(valid_in_wb);
             const float gain = (float)(freeverb->gain * 2.0);
             for (int32_t i = 0; i < frame_count; ++i)
                 comb_input[i] = valid_in[i] * gain;
         }
         else
         {
-            Work_buffer_clear(comb_input_wb, 0, 0, frame_count);
+            Work_buffer_clear(comb_input_wb, 0, frame_count);
         }
 
 #if KQT_SSE
@@ -317,8 +317,8 @@ static void Freeverb_pstate_render_mixed(
             if (out_wb == NULL)
                 continue;
 
-            Work_buffer_clear(out_wb, 0, 0, frame_count);
-            float* out_contents = Work_buffer_get_contents_mut(out_wb, 0);
+            Work_buffer_clear(out_wb, 0, frame_count);
+            float* out_contents = Work_buffer_get_contents_mut(out_wb);
 
             for (int comb_index = 0; comb_index < FREEVERB_COMBS; ++comb_index)
                 Freeverb_comb_process(

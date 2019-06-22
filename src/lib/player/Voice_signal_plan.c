@@ -199,7 +199,7 @@ static int32_t Voice_signal_task_info_execute(
     for (int64_t i = 0; i < conn_count; ++i)
     {
         const Buffer_connection* conn = Vector_get_ref(task_info->buf_conns, i);
-        Work_buffer_mix(conn->receiver, 0, conn->sender, 0, 0, frame_count);
+        Work_buffer_mix(conn->receiver, conn->sender, 0, frame_count);
     }
 
     bool active = false;

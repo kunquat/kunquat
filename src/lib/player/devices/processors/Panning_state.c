@@ -60,12 +60,12 @@ static void apply_panning(
     rassert(frame_count > 0);
 
     int32_t pan_const_start = 0;
-    if ((pan_wb != NULL) && Work_buffer_is_valid(pan_wb, 0))
-        pan_const_start = Work_buffer_get_const_start(pan_wb, 0);
+    if (Work_buffer_is_valid(pan_wb))
+        pan_const_start = Work_buffer_get_const_start(pan_wb);
 
     if (pan_const_start > 0)
     {
-        float* pan = Work_buffer_get_contents_mut(pan_wb, 0);
+        float* pan = Work_buffer_get_contents_mut(pan_wb);
 
         const int32_t var_stop = min(pan_const_start, frame_count);
 
@@ -80,11 +80,11 @@ static void apply_panning(
 
         for (int ch = 0; ch < 2; ++ch)
         {
-            if (!Work_buffer_is_valid(in_wbs[ch], 0) || (out_wbs[ch] == NULL))
+            if (!Work_buffer_is_valid(in_wbs[ch]) || (out_wbs[ch] == NULL))
                 continue;
 
-            const float* in = Work_buffer_get_contents(in_wbs[ch], 0);
-            float* out = Work_buffer_get_contents_mut(out_wbs[ch], 0);
+            const float* in = Work_buffer_get_contents(in_wbs[ch]);
+            float* out = Work_buffer_get_contents_mut(out_wbs[ch]);
 
             for (int32_t i = 0; i < var_stop; ++i)
                 *out++ = *in++ * (1 + (pan_mult[ch] * pan[i]));
@@ -94,19 +94,19 @@ static void apply_panning(
     if (pan_const_start < frame_count)
     {
         float fixed_pan = def_pan;
-        if ((pan_wb != NULL) && Work_buffer_is_valid(pan_wb, 0))
-            fixed_pan = Work_buffer_get_contents(pan_wb, 0)[pan_const_start];
+        if (Work_buffer_is_valid(pan_wb))
+            fixed_pan = Work_buffer_get_contents(pan_wb)[pan_const_start];
         fixed_pan = clamp(fixed_pan, -1, 1);
 
         const float pans[2] = { 1 - fixed_pan, 1 + fixed_pan };
 
         for (int ch = 0; ch < 2; ++ch)
         {
-            if (!Work_buffer_is_valid(in_wbs[ch], 0) || (out_wbs[ch] == NULL))
+            if (!Work_buffer_is_valid(in_wbs[ch]) || (out_wbs[ch] == NULL))
                 continue;
 
-            const float* in = Work_buffer_get_contents(in_wbs[ch], 0);
-            float* out = Work_buffer_get_contents_mut(out_wbs[ch], 0);
+            const float* in = Work_buffer_get_contents(in_wbs[ch]);
+            float* out = Work_buffer_get_contents_mut(out_wbs[ch]);
             const float pan = pans[ch];
 
             for (int32_t i = pan_const_start; i < frame_count; ++i)
@@ -151,7 +151,7 @@ static void Panning_pstate_render_mixed(
         in_wbs[ch] = Device_thread_state_get_mixed_buffer(
                 proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_L + ch);
 
-    if (!Work_buffer_is_valid(in_wbs[0], 0) && !Work_buffer_is_valid(in_wbs[1], 0))
+    if (!Work_buffer_is_valid(in_wbs[0]) && !Work_buffer_is_valid(in_wbs[1]))
         return;
 
     // Get output
@@ -238,7 +238,7 @@ int32_t Panning_vstate_render_voice(
         in_wbs[ch] = Device_thread_state_get_voice_buffer(
                 proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_L + ch);
 
-    if (!Work_buffer_is_valid(in_wbs[0], 0) && !Work_buffer_is_valid(in_wbs[1], 0))
+    if (!Work_buffer_is_valid(in_wbs[0]) && !Work_buffer_is_valid(in_wbs[1]))
         return 0;
 
     // Get output
