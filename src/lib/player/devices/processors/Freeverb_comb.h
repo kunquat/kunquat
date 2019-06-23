@@ -41,7 +41,7 @@ Freeverb_comb* new_Freeverb_comb(int32_t buffer_size);
 /**
  * Process data buffer.
  *
- * \param comb_l        The Freeverb comb filter -- must not be \c NULL.
+ * \param comb          The Freeverb comb filter -- must not be \c NULL.
  * \param out_buf       The output buffer -- must not be \c NULL.
  * \param in_buf        The input buffer -- must not be \c NULL.
  * \param refls         The reflectivity parameter buffer -- must not be \c NULL.
