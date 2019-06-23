@@ -29,7 +29,6 @@
 #include <player/Voice.h>
 #include <player/Voice_group.h>
 #include <player/Work_buffer.h>
-#include <player/Work_buffer_conn_rules.h>
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -37,6 +36,17 @@
 
 
 typedef int16_t Task_index;
+
+
+typedef struct Buffer_connection
+{
+    Work_buffer* receiver;
+    const Work_buffer* sender;
+} Buffer_connection;
+
+
+#define MAKE_CONNECTION(recv_buf, send_buf) \
+    (&(Buffer_connection){ .receiver = (recv_buf), .sender = (send_buf) })
 
 
 typedef struct Voice_signal_task_info
@@ -73,7 +83,7 @@ static bool Voice_signal_task_info_init(
     task_info->is_processed = false;
 
     task_info->sender_tasks = new_Vector(sizeof(Task_index));
-    task_info->buf_conns = new_Vector(sizeof(Work_buffer_conn_rules));
+    task_info->buf_conns = new_Vector(sizeof(Buffer_connection));
     if ((task_info->sender_tasks == NULL) || (task_info->buf_conns == NULL))
         return false;
 
@@ -104,52 +114,13 @@ static bool Voice_signal_task_info_add_sender_task(
 static bool Voice_signal_task_info_add_input(
         Voice_signal_task_info* task_info,
         Work_buffer* recv_buf,
-        int recv_sub_index,
-        const Work_buffer* send_buf,
-        int send_sub_index)
+        const Work_buffer* send_buf)
 {
     rassert(task_info != NULL);
     rassert(recv_buf != NULL);
-    rassert(recv_sub_index >= 0);
-    rassert(recv_sub_index < Work_buffer_get_sub_count(recv_buf));
     rassert(send_buf != NULL);
-    rassert(send_sub_index >= 0);
-    rassert(send_sub_index < Work_buffer_get_sub_count(send_buf));
 
-    const Work_buffer_conn_rules* rules = Work_buffer_conn_rules_init(
-            WORK_BUFFER_CONN_RULES_AUTO,
-            recv_buf,
-            recv_sub_index,
-            send_buf,
-            send_sub_index);
-
-    return Vector_append(task_info->buf_conns, rules);
-}
-
-
-static void Voice_signal_task_info_merge_connections(Voice_signal_task_info* task_info)
-{
-    rassert(task_info != NULL);
-
-    int cur_size = (int)Vector_size(task_info->buf_conns);
-    for (int di = 0; di < cur_size - 1; ++di)
-    {
-        Work_buffer_conn_rules* dest_rules = Vector_get_ref(task_info->buf_conns, di);
-
-        for (int si = di + 1; si < cur_size; ++si)
-        {
-            const Work_buffer_conn_rules* src_rules =
-                Vector_get_ref(task_info->buf_conns, si);
-            if (Work_buffer_conn_rules_try_merge(dest_rules, dest_rules, src_rules))
-            {
-                Vector_remove_at(task_info->buf_conns, si);
-                --cur_size;
-                break;
-            }
-        }
-    }
-
-    return;
+    return Vector_append(task_info->buf_conns, MAKE_CONNECTION(recv_buf, send_buf));
 }
 
 
@@ -227,8 +198,8 @@ static int32_t Voice_signal_task_info_execute(
     const int64_t conn_count = Vector_size(task_info->buf_conns);
     for (int64_t i = 0; i < conn_count; ++i)
     {
-        const Work_buffer_conn_rules* rules = Vector_get_ref(task_info->buf_conns, i);
-        Work_buffer_conn_rules_mix(rules, frame_count);
+        const Buffer_connection* conn = Vector_get_ref(task_info->buf_conns, i);
+        Work_buffer_mix(conn->receiver, conn->sender, 0, frame_count);
     }
 
     bool active = false;
@@ -421,12 +392,10 @@ static bool Voice_signal_plan_build_from_node(
                         dstates, thread_id, Device_get_id(send_device));
                 rassert(send_ts != NULL);
 
-                int send_sub_index = 0;
                 const Work_buffer* send_buf = Device_thread_state_get_voice_buffer(
-                        send_ts, DEVICE_PORT_TYPE_SEND, edge->port, &send_sub_index);
-                int recv_sub_index = 0;
+                        send_ts, DEVICE_PORT_TYPE_SEND, edge->port);
                 Work_buffer* recv_buf = Device_thread_state_get_voice_buffer(
-                        recv_ts, DEVICE_PORT_TYPE_RECV, port, &recv_sub_index);
+                        recv_ts, DEVICE_PORT_TYPE_RECV, port);
 
                 if ((send_buf != NULL) && (recv_buf != NULL) && (sender_task_index >= 0))
                 {
@@ -436,12 +405,7 @@ static bool Voice_signal_plan_build_from_node(
                                 task_info, sender_task_index))
                         return false;
 
-                    if (!Voice_signal_task_info_add_input(
-                                task_info,
-                                recv_buf,
-                                recv_sub_index,
-                                send_buf,
-                                send_sub_index))
+                    if (!Voice_signal_task_info_add_input(task_info, recv_buf, send_buf))
                         return false;
                 }
             }
@@ -456,26 +420,6 @@ static bool Voice_signal_plan_build_from_node(
     Device_thread_state_set_node_state(recv_ts, DEVICE_NODE_STATE_VISITED);
 
     return true;
-}
-
-
-static void Voice_signal_plan_finalise(Voice_signal_plan* plan, int thread_id)
-{
-    rassert(plan != NULL);
-    rassert(thread_id >= 0);
-    rassert(thread_id < KQT_THREADS_MAX);
-
-    Vector* tasks = plan->tasks[thread_id];
-    rassert(tasks != NULL);
-
-    for (int i = 0; i < Vector_size(tasks); ++i)
-    {
-        Voice_signal_task_info* task_info = Vector_get_ref(tasks, i);
-        rassert(task_info != NULL);
-        Voice_signal_task_info_merge_connections(task_info);
-    }
-
-    return;
 }
 
 
@@ -497,8 +441,6 @@ static bool Voice_signal_plan_build(
     Device_states_reset_node_states(dstates);
     if (!Voice_signal_plan_build_from_node(plan, dstates, thread_id, master, true, NULL))
         return false;
-
-    Voice_signal_plan_finalise(plan, thread_id);
 
     return true;
 }

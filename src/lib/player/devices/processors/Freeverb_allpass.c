@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2019
  *
  * This file is part of Kunquat.
  *
@@ -69,13 +69,9 @@ void Freeverb_allpass_set_feedback(Freeverb_allpass* allpass, float feedback)
 
 
 void Freeverb_allpass_process(
-        Freeverb_allpass* allpass_l,
-        Freeverb_allpass* allpass_r,
-        float* buffer,
-        int32_t frame_count)
+        Freeverb_allpass* allpass, float* buffer, int32_t frame_count)
 {
-    rassert(allpass_l != NULL);
-    rassert(allpass_r != NULL);
+    rassert(allpass != NULL);
     rassert(buffer != NULL);
     rassert(frame_count > 0);
 
@@ -83,35 +79,20 @@ void Freeverb_allpass_process(
     dassert(_MM_GET_FLUSH_ZERO_MODE() == _MM_FLUSH_ZERO_ON);
 #endif
 
-    float* value = buffer;
-
     for (int32_t i = 0; i < frame_count; ++i)
     {
-        float bufout_l = allpass_l->buffer[allpass_l->buffer_pos];
-        float bufout_r = allpass_r->buffer[allpass_r->buffer_pos];
+        float bufout = allpass->buffer[allpass->buffer_pos];
 #if !KQT_SSE
-        bufout_l = undenormalise(bufout_l);
-        bufout_r = undenormalise(bufout_r);
+        bufout = undenormalise(bufout);
 #endif
-        float value_l = *value;
-        allpass_l->buffer[allpass_l->buffer_pos] =
-            value_l + (bufout_l * allpass_l->feedback);
-        value_l = -value_l + bufout_l;
-        *value++ = value_l;
+        const float value = buffer[i];
+        allpass->buffer[allpass->buffer_pos] = value + (bufout * allpass->feedback);
 
-        float value_r = *value;
-        allpass_r->buffer[allpass_r->buffer_pos] =
-            value_r + (bufout_r * allpass_r->feedback);
-        value_r = -value_r + bufout_r;
-        *value++ = value_r;
+        buffer[i] = -value + bufout;
 
-        ++allpass_l->buffer_pos;
-        if (allpass_l->buffer_pos >= allpass_l->buffer_size)
-            allpass_l->buffer_pos = 0;
-
-        ++allpass_r->buffer_pos;
-        if (allpass_r->buffer_pos >= allpass_r->buffer_size)
-            allpass_r->buffer_pos = 0;
+        ++allpass->buffer_pos;
+        if (allpass->buffer_pos >= allpass->buffer_size)
+            allpass->buffer_pos = 0;
     }
 
     return;

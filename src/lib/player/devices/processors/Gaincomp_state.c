@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2019
  *
  * This file is part of Kunquat.
  *
@@ -41,8 +41,8 @@ static void distort(
 
     if (gc->is_map_enabled && (gc->map != NULL))
     {
-        const float* in_values = Work_buffer_get_contents(in_buffer, 0);
-        float* out_values = Work_buffer_get_contents_mut(out_buffer, 0);
+        const float* in_values = Work_buffer_get_contents(in_buffer);
+        float* out_values = Work_buffer_get_contents_mut(out_buffer);
 
         const double* first = Envelope_get_node(gc->map, 0);
         if (first[0] == -1)
@@ -72,7 +72,7 @@ static void distort(
     }
     else
     {
-        Work_buffer_copy(out_buffer, 0, in_buffer, 0, 0, frame_count);
+        Work_buffer_copy(out_buffer, in_buffer, 0, frame_count);
     }
 
     return;
@@ -111,27 +111,25 @@ static void Gaincomp_pstate_render_mixed(
     Work_buffer* in_buffers[] =
     {
         Device_thread_state_get_mixed_buffer(
-                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_L, NULL),
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_L),
         Device_thread_state_get_mixed_buffer(
-                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_R, NULL),
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_R),
     };
 
     // Get output
     Work_buffer* out_buffers[] =
     {
         Device_thread_state_get_mixed_buffer(
-                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L, NULL),
+                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L),
         Device_thread_state_get_mixed_buffer(
-                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_R, NULL),
+                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_R),
     };
 
     // Distort the signal
     const Proc_gaincomp* gc = (const Proc_gaincomp*)dstate->device->dimpl;
     for (int ch = 0; ch < 2; ++ch)
     {
-        if ((in_buffers[ch] != NULL) &&
-                Work_buffer_is_valid(in_buffers[ch], 0) &&
-                (out_buffers[ch] != NULL))
+        if (Work_buffer_is_valid(in_buffers[ch]) && (out_buffers[ch] != NULL))
             distort(gc, in_buffers[ch], out_buffers[ch], frame_count);
     }
 
@@ -185,9 +183,9 @@ int32_t Gaincomp_vstate_render_voice(
     Work_buffer* in_buffers[] =
     {
         Device_thread_state_get_voice_buffer(
-                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_L, NULL),
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_L),
         Device_thread_state_get_voice_buffer(
-                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_R, NULL),
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_R),
     };
     if ((in_buffers[0] == NULL) && (in_buffers[1] == NULL))
         return 0;
@@ -196,18 +194,16 @@ int32_t Gaincomp_vstate_render_voice(
     Work_buffer* out_buffers[] =
     {
         Device_thread_state_get_voice_buffer(
-                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L, NULL),
+                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L),
         Device_thread_state_get_voice_buffer(
-                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_R, NULL),
+                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_R),
     };
 
     // Distort the signal
     const Proc_gaincomp* gc = (const Proc_gaincomp*)proc_state->parent.device->dimpl;
     for (int ch = 0; ch < 2; ++ch)
     {
-        if ((in_buffers[ch] != NULL) &&
-                Work_buffer_is_valid(in_buffers[ch], 0) &&
-                (out_buffers[ch] != NULL))
+        if (Work_buffer_is_valid(in_buffers[ch]) && (out_buffers[ch] != NULL))
             distort(gc, in_buffers[ch], out_buffers[ch], frame_count);
     }
 

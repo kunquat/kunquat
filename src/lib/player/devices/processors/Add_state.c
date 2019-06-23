@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2019
  *
  * This file is part of Kunquat.
  *
@@ -26,28 +26,6 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-
-
-void Add_get_port_groups(
-        const Device_impl* dimpl, Device_port_type port_type, Device_port_groups groups)
-{
-    rassert(dimpl != NULL);
-    rassert(groups != NULL);
-
-    // So far, the vast majority of use cases for this processor are using one channel,
-    // so it's probably more fruitful to optimise for multiple harmonics instead
-    switch (port_type)
-    {
-        case DEVICE_PORT_TYPE_RECV: Device_port_groups_init(groups, 0); break;
-
-        case DEVICE_PORT_TYPE_SEND: Device_port_groups_init(groups, 0); break;
-
-        default:
-            rassert(false);
-    }
-
-    return;
-}
 
 
 typedef struct Add_tone_state
@@ -118,23 +96,22 @@ int32_t Add_vstate_render_voice(
 
     // Get frequencies
     Work_buffer* freqs_wb = Device_thread_state_get_voice_buffer(
-            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_PITCH, NULL);
+            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_PITCH);
     Work_buffer* pitches_wb = freqs_wb;
-    if ((freqs_wb == NULL) || !Work_buffer_is_valid(freqs_wb, 0))
-        freqs_wb = Work_buffers_get_buffer_mut(wbs, ADD_WORK_BUFFER_FIXED_PITCH, 1);
+    if (!Work_buffer_is_valid(freqs_wb))
+        freqs_wb = Work_buffers_get_buffer_mut(wbs, ADD_WORK_BUFFER_FIXED_PITCH);
 
     Proc_fill_freq_buffer(freqs_wb, pitches_wb, 0, frame_count);
-    const float* freqs = Work_buffer_get_contents(freqs_wb, 0);
+    const float* freqs = Work_buffer_get_contents(freqs_wb);
 
     // Get volume scales
     Work_buffer* scales_wb = Device_thread_state_get_voice_buffer(
-            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_FORCE, NULL);
+            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_FORCE);
     Work_buffer* dBs_wb = scales_wb;
-    if ((dBs_wb != NULL) &&
-            Work_buffer_is_valid(dBs_wb, 0) &&
-            Work_buffer_is_final(dBs_wb, 0) &&
-            (Work_buffer_get_const_start(dBs_wb, 0) == 0) &&
-            (Work_buffer_get_contents(dBs_wb, 0)[0] == -INFINITY))
+    if (Work_buffer_is_valid(dBs_wb) &&
+            Work_buffer_is_final(dBs_wb) &&
+            (Work_buffer_get_const_start(dBs_wb) == 0) &&
+            (Work_buffer_get_contents(dBs_wb)[0] == -INFINITY))
     {
         // We are only getting silent force from this point onwards
         vstate->active = false;
@@ -142,9 +119,9 @@ int32_t Add_vstate_render_voice(
     }
 
     if (scales_wb == NULL)
-        scales_wb = Work_buffers_get_buffer_mut(wbs, ADD_WORK_BUFFER_FIXED_FORCE, 1);
+        scales_wb = Work_buffers_get_buffer_mut(wbs, ADD_WORK_BUFFER_FIXED_FORCE);
     Proc_fill_scale_buffer(scales_wb, dBs_wb, frame_count);
-    const float* scales = Work_buffer_get_contents(scales_wb, 0);
+    const float* scales = Work_buffer_get_contents(scales_wb);
 
     // Get output buffer for writing
     Work_buffer* out_wbs[2] = { NULL };
@@ -152,10 +129,10 @@ int32_t Add_vstate_render_voice(
     for (int ch = 0; ch < 2; ++ch)
     {
         Work_buffer* out_wb = Device_thread_state_get_voice_buffer(
-                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L + ch, NULL);
+                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L + ch);
         if (out_wb != NULL)
         {
-            float* out_buf = Work_buffer_get_contents_mut(out_wb, 0);
+            float* out_buf = Work_buffer_get_contents_mut(out_wb);
             for (int32_t i = 0; i < frame_count; ++i)
                 out_buf[i] = 0;
 
@@ -168,18 +145,18 @@ int32_t Add_vstate_render_voice(
     const Work_buffer* mod_wbs[] =
     {
         Device_thread_state_get_voice_buffer(
-                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_PHASE_MOD_L, NULL),
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_PHASE_MOD_L),
         Device_thread_state_get_voice_buffer(
-                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_PHASE_MOD_R, NULL),
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_PHASE_MOD_R),
     };
 
     for (int ch = 0; ch < 2; ++ch)
     {
-        if ((mod_wbs[ch] == NULL) || !Work_buffer_is_valid(mod_wbs[ch], 0))
+        if (!Work_buffer_is_valid(mod_wbs[ch]))
         {
             Work_buffer* zero_buf = Work_buffers_get_buffer_mut(
-                    wbs, (Work_buffer_type)(ADD_WORK_BUFFER_MOD_L + ch), 1);
-            Work_buffer_clear(zero_buf, 0, 0, frame_count);
+                    wbs, (Work_buffer_type)(ADD_WORK_BUFFER_MOD_L + ch));
+            Work_buffer_clear(zero_buf, 0, frame_count);
             mod_wbs[ch] = zero_buf;
         }
     }
@@ -195,11 +172,11 @@ int32_t Add_vstate_render_voice(
         if (out_buf_ch == NULL)
             continue;
 
-        const float* mod_values_ch = Work_buffer_get_contents(mod_wbs[ch], 0);
+        const float* mod_values_ch = Work_buffer_get_contents(mod_wbs[ch]);
 
         const int32_t res_check_stop = min(frame_count,
-                max(Work_buffer_get_const_start(freqs_wb, 0),
-                    Work_buffer_get_const_start(mod_wbs[ch], 0)) + 1);
+                max(Work_buffer_get_const_start(freqs_wb),
+                    Work_buffer_get_const_start(mod_wbs[ch])) + 1);
 
         for (int h = 0; h < add_state->tone_limit; ++h)
         {
@@ -310,17 +287,7 @@ int32_t Add_vstate_render_voice(
     }
 
     if (add->is_ramp_attack_enabled)
-    {
-        const double orig_ramp_attack = vstate->ramp_attack; // TODO: clean up
-        if (out_wbs[0] != NULL)
-            Proc_ramp_attack(vstate, out_wbs[0], frame_count, dstate->audio_rate);
-
-        if (out_wbs[1] != NULL)
-        {
-            vstate->ramp_attack = orig_ramp_attack;
-            Proc_ramp_attack(vstate, out_wbs[1], frame_count, dstate->audio_rate);
-        }
-    }
+        Proc_ramp_attack(vstate, 2, out_wbs, frame_count, dstate->audio_rate);
 
     return frame_count;
 }

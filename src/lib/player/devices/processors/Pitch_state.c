@@ -72,13 +72,13 @@ int32_t Pitch_vstate_render_voice(
 
     // Get output
     Work_buffer* out_wb = Device_thread_state_get_voice_buffer(
-            proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_PITCH, NULL);
+            proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_PITCH);
     if (out_wb == NULL)
     {
         vstate->active = false;
         return 0;
     }
-    float* out_buf = Work_buffer_get_contents_mut(out_wb, 0);
+    float* out_buf = Work_buffer_get_contents_mut(out_wb);
 
     Pitch_vstate* pvstate = (Pitch_vstate*)vstate;
 
@@ -171,7 +171,7 @@ int32_t Pitch_vstate_render_voice(
     pvstate->pitch = out_buf[frame_count - 1];
 
     // Mark constant region of the buffer
-    Work_buffer_set_const_start(out_wb, 0, const_start);
+    Work_buffer_set_const_start(out_wb, const_start);
 
     return frame_count;
 }

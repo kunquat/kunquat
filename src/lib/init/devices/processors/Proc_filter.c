@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2019
  *
  * This file is part of Kunquat.
  *
@@ -43,7 +43,6 @@ Device_impl* new_Proc_filter(void)
         return NULL;
     }
 
-    filter->parent.get_port_groups = Filter_get_port_groups;
     filter->parent.create_pstate = new_Filter_pstate;
     filter->parent.get_vstate_size = Filter_vstate_get_size;
     filter->parent.init_vstate = Filter_vstate_init;

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2019
  *
  * This file is part of Kunquat.
  *
@@ -25,26 +25,6 @@
 
 #include <stdint.h>
 #include <stdlib.h>
-
-
-void Rangemap_get_port_groups(
-        const Device_impl* dimpl, Device_port_type port_type, Device_port_groups groups)
-{
-    rassert(dimpl != NULL);
-    rassert(groups != NULL);
-
-    switch (port_type)
-    {
-        case DEVICE_PORT_TYPE_RECV: Device_port_groups_init(groups, 2, 0); break;
-
-        case DEVICE_PORT_TYPE_SEND: Device_port_groups_init(groups, 2, 0); break;
-
-        default:
-            rassert(false);
-    }
-
-    return;
-}
 
 
 static void get_scalars(
@@ -94,23 +74,21 @@ static void apply_range(
     rassert(isfinite(add));
     rassert(min_val <= max_val);
 
-    const float* in = Work_buffer_get_contents(in_wb, 0);
-    float* out = Work_buffer_get_contents_mut(out_wb, 0);
+    const float* in = Work_buffer_get_contents(in_wb);
+    float* out = Work_buffer_get_contents_mut(out_wb);
 
-    const int32_t item_count = frame_count * 2;
-
-    for (int32_t i = 0; i < item_count; ++i)
+    for (int32_t i = 0; i < frame_count; ++i)
         out[i] = (mul * in[i]) + add;
 
     if (isfinite(min_val))
     {
-        for (int32_t i = 0; i < item_count; ++i)
+        for (int32_t i = 0; i < frame_count; ++i)
             out[i] = max(out[i], min_val);
     }
 
     if (isfinite(max_val))
     {
-        for (int32_t i = 0; i < item_count; ++i)
+        for (int32_t i = 0; i < frame_count; ++i)
             out[i] = min(out[i], max_val);
     }
 
@@ -151,17 +129,26 @@ static void Rangemap_pstate_render_mixed(
     const float min_val = (float)(rangemap->clamp_dest_min ? range_min : -INFINITY);
     const float max_val = (float)(rangemap->clamp_dest_max ? range_max : INFINITY);
 
-    Work_buffer* in_wb = Proc_get_mixed_input_2ch(proc_ts, 0, frame_count);
-    if (in_wb == NULL)
+    for (int ch = 0; ch < 2; ++ch)
     {
-        in_wb = Work_buffers_get_buffer_mut(wbs, RANGEMAP_WB_FIXED_INPUT, 2);
-        Work_buffer_clear_all(in_wb, 0, frame_count);
+        Work_buffer* out_wb =
+            Device_thread_state_get_mixed_buffer(proc_ts, DEVICE_PORT_TYPE_SEND, ch);
+        if (out_wb == NULL)
+            continue;
+
+        Work_buffer* in_wb =
+            Device_thread_state_get_mixed_buffer(proc_ts, DEVICE_PORT_TYPE_RECV, ch);
+        if (!Work_buffer_is_valid(in_wb))
+        {
+            in_wb = Work_buffers_get_buffer_mut(wbs, RANGEMAP_WB_FIXED_INPUT);
+            Work_buffer_clear(in_wb, 0, frame_count);
+        }
+
+        apply_range(in_wb, out_wb, frame_count, mul, add, min_val, max_val);
+
+        const int32_t const_start = Work_buffer_get_const_start(in_wb);
+        Work_buffer_set_const_start(out_wb, const_start);
     }
-
-    Work_buffer* out_wb = Proc_get_mixed_output_2ch(proc_ts, 0);
-    rassert(out_wb != NULL);
-
-    apply_range(in_wb, out_wb, frame_count, mul, add, min_val, max_val);
 
     return;
 }
@@ -220,17 +207,29 @@ int32_t Rangemap_vstate_render_voice(
     const float min_val = (float)(rangemap->clamp_dest_min ? range_min : -INFINITY);
     const float max_val = (float)(rangemap->clamp_dest_max ? range_max : INFINITY);
 
-    Work_buffer* in_wb = Proc_get_voice_input_2ch(proc_ts, 0, frame_count);
-    if (in_wb == NULL)
+    for (int ch = 0; ch < 2; ++ch)
     {
-        in_wb = Work_buffers_get_buffer_mut(wbs, RANGEMAP_WB_FIXED_INPUT, 2);
-        Work_buffer_clear_all(in_wb, 0, frame_count);
+        Work_buffer* out_wb =
+            Device_thread_state_get_voice_buffer(proc_ts, DEVICE_PORT_TYPE_SEND, ch);
+        if (out_wb == NULL)
+            continue;
+
+        Work_buffer* in_wb =
+            Device_thread_state_get_voice_buffer(proc_ts, DEVICE_PORT_TYPE_RECV, ch);
+        if (!Work_buffer_is_valid(in_wb))
+        {
+            in_wb = Work_buffers_get_buffer_mut(wbs, RANGEMAP_WB_FIXED_INPUT);
+            Work_buffer_clear(in_wb, 0, frame_count);
+        }
+
+        apply_range(in_wb, out_wb, frame_count, mul, add, min_val, max_val);
+
+        const int32_t const_start = Work_buffer_get_const_start(in_wb);
+        const bool is_final = Work_buffer_is_final(in_wb);
+
+        Work_buffer_set_const_start(out_wb, const_start);
+        Work_buffer_set_final(out_wb, is_final);
     }
-
-    Work_buffer* out_wb = Proc_get_voice_output_2ch(proc_ts, 0);
-    rassert(out_wb != NULL);
-
-    apply_range(in_wb, out_wb, frame_count, mul, add, min_val, max_val);
 
     return frame_count;
 }

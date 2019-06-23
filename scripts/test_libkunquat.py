@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2018
+# Author: Tomi Jylhä-Ollila, Finland 2014-2019
 #
 # This file is part of Kunquat.
 #
@@ -58,7 +58,6 @@ def test_libkunquat(builder, options, cc):
             'filter': ['fast_exp2', 'fast_sin'],
             'player': [
                 'handle',
-                'work_buffer',
                 'streader',
                 'fast_sin',
                 'fast_exp2',

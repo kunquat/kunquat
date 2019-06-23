@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2019
  *
  * This file is part of Kunquat.
  *
@@ -48,7 +48,7 @@ Work_buffers* new_Work_buffers(int32_t buf_size)
     {
         for (int i = 0; i < WORK_BUFFER_COUNT_; ++i)
         {
-            buffers->buffers[i] = new_Work_buffer(buf_size, WORK_BUFFER_SUB_COUNT_MAX);
+            buffers->buffers[i] = new_Work_buffer(buf_size);
             if (buffers->buffers[i] == NULL)
             {
                 del_Work_buffers(buffers);
@@ -71,7 +71,7 @@ bool Work_buffers_resize(Work_buffers* buffers, int32_t new_size)
     {
         if (buffers->buffers[i] == NULL)
         {
-            buffers->buffers[i] = new_Work_buffer(new_size, WORK_BUFFER_SUB_COUNT_MAX);
+            buffers->buffers[i] = new_Work_buffer(new_size);
             if (buffers->buffers[i] == NULL)
                 return false;
         }
@@ -87,17 +87,13 @@ bool Work_buffers_resize(Work_buffers* buffers, int32_t new_size)
 
 
 Work_buffer* Work_buffers_get_buffer_mut(
-        const Work_buffers* buffers, Work_buffer_type type, int sub_count)
+        const Work_buffers* buffers, Work_buffer_type type)
 {
     rassert(buffers != NULL);
     rassert(type < WORK_BUFFER_COUNT_);
-    rassert(sub_count >= 1);
-    rassert(sub_count <= WORK_BUFFER_SUB_COUNT_MAX);
-    rassert(is_p2(sub_count));
 
     Work_buffer* buffer = buffers->buffers[type];
     rassert(buffer != NULL);
-    Work_buffer_set_sub_count(buffer, sub_count);
 
     return buffer;
 }
@@ -109,10 +105,10 @@ float* Work_buffers_get_buffer_contents_mut(
     rassert(buffers != NULL);
     rassert(type < WORK_BUFFER_COUNT_);
 
-    Work_buffer* buffer = Work_buffers_get_buffer_mut(buffers, type, 1);
+    Work_buffer* buffer = Work_buffers_get_buffer_mut(buffers, type);
     rassert(buffer != NULL);
 
-    return Work_buffer_get_contents_mut(buffer, 0);
+    return Work_buffer_get_contents_mut(buffer);
 }
 
 
@@ -124,7 +120,7 @@ int32_t* Work_buffers_get_buffer_contents_int_mut(
 
     rassert(buffers->buffers[type] != NULL);
 
-    return Work_buffer_get_contents_int_mut(buffers->buffers[type], 0);
+    return Work_buffer_get_contents_int_mut(buffers->buffers[type]);
 }
 
 

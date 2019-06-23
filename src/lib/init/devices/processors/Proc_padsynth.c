@@ -315,7 +315,6 @@ Device_impl* new_Proc_padsynth(void)
         return NULL;
     }
 
-    padsynth->parent.get_port_groups = Padsynth_get_port_groups;
     padsynth->parent.get_vstate_size = Padsynth_vstate_get_size;
     padsynth->parent.init_vstate = Padsynth_vstate_init;
     padsynth->parent.render_voice = Padsynth_vstate_render_voice;

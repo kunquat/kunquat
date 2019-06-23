@@ -44,7 +44,6 @@ Device_impl* new_Proc_mult(void)
         return NULL;
     }
 
-    mult->parent.get_port_groups = Mult_get_port_groups;
     mult->parent.create_pstate = new_Mult_pstate;
     mult->parent.get_vstate_size = Mult_vstate_get_size;
     mult->parent.render_voice = Mult_vstate_render_voice;

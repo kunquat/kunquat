@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2019
  *
  * This file is part of Kunquat.
  *
@@ -46,7 +46,7 @@ typedef struct Player_thread_params
     int active_voices;
     int active_vgroups;
     Work_buffers* work_buffers;
-    Work_buffer* test_voice_output;
+    Work_buffer* test_voice_outputs[2];
 } Player_thread_params;
 
 

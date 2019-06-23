@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2019
  *
  * This file is part of Kunquat.
  *
@@ -73,7 +73,7 @@ bool Voice_work_buffers_allocate_space(
         wbs->count = count;
         wbs->buf_size = buf_size;
 
-        memory_free_aligned(wbs->wbs);
+        memory_free(wbs->wbs);
         wbs->wbs = NULL;
         memory_free_aligned(wbs->space);
         wbs->space = NULL;
@@ -88,11 +88,11 @@ bool Voice_work_buffers_allocate_space(
         (req_min_buf_size + (elems_alignment - 1)) & ~(elems_alignment - 1);
 
     // Allocate memory
-    Work_buffer* new_wbs = memory_alloc_items_aligned(Work_buffer, count, 32);
+    Work_buffer* new_wbs = memory_alloc_items(Work_buffer, count);
     if (new_wbs == NULL)
         return false;
 
-    memory_free_aligned(wbs->wbs);
+    memory_free(wbs->wbs);
     wbs->wbs = new_wbs;
 
     wbs->count = min(wbs->count, count);
@@ -112,7 +112,6 @@ bool Voice_work_buffers_allocate_space(
     for (int i = 0; i < wbs->count; ++i)
         Work_buffer_init_with_memory(
                 &wbs->wbs[i],
-                1,
                 (float*)wbs->space + (i * actual_buf_size),
                 actual_buf_size);
 
@@ -138,7 +137,7 @@ void del_Voice_work_buffers(Voice_work_buffers* wbs)
     if (wbs == NULL)
         return;
 
-    memory_free_aligned(wbs->wbs);
+    memory_free(wbs->wbs);
     memory_free_aligned(wbs->space);
     memory_free(wbs);
 

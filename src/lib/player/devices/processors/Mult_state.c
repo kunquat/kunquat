@@ -27,26 +27,6 @@
 #include <stdlib.h>
 
 
-void Mult_get_port_groups(
-        const Device_impl* dimpl, Device_port_type port_type, Device_port_groups groups)
-{
-    rassert(dimpl != NULL);
-    rassert(groups != NULL);
-
-    switch (port_type)
-    {
-        case DEVICE_PORT_TYPE_RECV: Device_port_groups_init(groups, 2, 2, 0); break;
-
-        case DEVICE_PORT_TYPE_SEND: Device_port_groups_init(groups, 2, 0); break;
-
-        default:
-            rassert(false);
-    }
-
-    return;
-}
-
-
 enum
 {
     PORT_IN_SIGNAL_1_L = 0,
@@ -68,22 +48,24 @@ enum
 
 
 static void multiply_signals(
-        Work_buffer* in1_wb,
-        Work_buffer* in2_wb,
-        float* out_buffer,
+        const Work_buffer* in1_wb,
+        const Work_buffer* in2_wb,
+        Work_buffer* out_wb,
         int32_t frame_count)
 {
-    rassert(out_buffer != NULL);
     rassert(frame_count > 0);
 
-    const int32_t item_count = frame_count * 2;
+    if (out_wb == NULL)
+        return;
 
-    if ((in1_wb != NULL) && (in2_wb != NULL))
+    if (Work_buffer_is_valid(in1_wb) && Work_buffer_is_valid(in2_wb))
     {
-        const float* in1_buf = Work_buffer_get_contents(in1_wb, 0);
-        const float* in2_buf = Work_buffer_get_contents(in2_wb, 0);
+        const float* in1_buf = Work_buffer_get_contents(in1_wb);
+        const float* in2_buf = Work_buffer_get_contents(in2_wb);
 
-        for (int32_t i = 0; i < item_count; ++i)
+        float* out_buffer = Work_buffer_get_contents_mut(out_wb);
+
+        for (int32_t i = 0; i < frame_count; ++i)
         {
             float in1 = in1_buf[i];
             float in2 = in2_buf[i];
@@ -97,8 +79,7 @@ static void multiply_signals(
     }
     else
     {
-        for (int32_t i = 0; i < item_count; ++i)
-            out_buffer[i] = 0;
+        Work_buffer_invalidate(out_wb);
     }
 
     return;
@@ -118,20 +99,22 @@ static void Mult_pstate_render_mixed(
     rassert(isfinite(tempo));
     rassert(tempo > 0);
 
-    // Get inputs
-    Work_buffer* in1_wb =
-        Proc_get_mixed_input_2ch(proc_ts, PORT_IN_SIGNAL_1_L, frame_count);
+    for (int ch = 0; ch < 2; ++ch)
+    {
+        // Get inputs
+        Work_buffer* in1_wb = Device_thread_state_get_mixed_buffer(
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_SIGNAL_1_L + ch);
 
-    Work_buffer* in2_wb =
-        Proc_get_mixed_input_2ch(proc_ts, PORT_IN_SIGNAL_2_L, frame_count);
+        Work_buffer* in2_wb = Device_thread_state_get_mixed_buffer(
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_SIGNAL_2_L + ch);
 
-    // Get output
-    Work_buffer* out_wb = Proc_get_mixed_output_2ch(proc_ts, PORT_OUT_SIGNAL_L);
-    rassert(out_wb != NULL);
-    float* out_buf = Work_buffer_get_contents_mut(out_wb, 0);
+        // Get output
+        Work_buffer* out_wb = Device_thread_state_get_mixed_buffer(
+                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_SIGNAL_L + ch);
 
-    // Multiply the signals
-    multiply_signals(in1_wb, in2_wb, out_buf, frame_count);
+        // Multiply the signals
+        multiply_signals(in1_wb, in2_wb, out_wb, frame_count);
+    }
 
     return;
 }
@@ -161,12 +144,12 @@ int32_t Mult_vstate_get_size(void)
 }
 
 
-static bool is_final_zero(const Work_buffer* in_wb, int ch)
+static bool is_final_zero(const Work_buffer* in_wb)
 {
-    return ((in_wb == NULL) ||
-            (Work_buffer_is_final(in_wb, ch) &&
-             (Work_buffer_get_const_start(in_wb, ch) == 0) &&
-             (Work_buffer_get_contents(in_wb, ch)[0] == 0.0f)));
+    return (!Work_buffer_is_valid(in_wb) ||
+            (Work_buffer_is_final(in_wb) &&
+             (Work_buffer_get_const_start(in_wb) == 0) &&
+             (Work_buffer_get_contents(in_wb)[0] == 0.0f)));
 }
 
 
@@ -189,44 +172,42 @@ int32_t Mult_vstate_render_voice(
 
     rassert(proc_state->is_voice_connected_to_mixed == (vstate != NULL));
 
-    // Get inputs
-    Work_buffer* in1_wb =
-        Proc_get_voice_input_2ch(proc_ts, PORT_IN_SIGNAL_1_L, frame_count);
+    bool all_outs_final_zero = true;
 
-    Work_buffer* in2_wb =
-        Proc_get_voice_input_2ch(proc_ts, PORT_IN_SIGNAL_2_L, frame_count);
+    for (int ch = 0; ch < 2; ++ch)
+    {
+        // Get inputs
+        const Work_buffer* in1_wb = Device_thread_state_get_voice_buffer(
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_SIGNAL_1_L + ch);
+        const Work_buffer* in2_wb = Device_thread_state_get_voice_buffer(
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_SIGNAL_2_L + ch);
 
-    const bool is_out1_final_zero =
-        (is_final_zero(in1_wb, 0) || is_final_zero(in2_wb, 0));
-    const bool is_out2_final_zero =
-        (is_final_zero(in1_wb, 1) || is_final_zero(in2_wb, 1));
+        // Get output
+        Work_buffer* out_wb = Device_thread_state_get_voice_buffer(
+                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_SIGNAL_L + ch);
+        if (out_wb == NULL)
+            continue;
 
-    if (is_out1_final_zero && is_out2_final_zero)
+        const bool is_out_final_zero = is_final_zero(in1_wb) || is_final_zero(in2_wb);
+        if (is_out_final_zero)
+        {
+            Work_buffer_clear(out_wb, 0, frame_count);
+            Work_buffer_set_const_start(out_wb, 0);
+            Work_buffer_set_final(out_wb, true);
+        }
+        else
+        {
+            all_outs_final_zero = false;
+            multiply_signals(in1_wb, in2_wb, out_wb, frame_count);
+        }
+    }
+
+    if (all_outs_final_zero)
     {
         if (vstate != NULL)
             vstate->active = false;
 
         return 0;
-    }
-
-    // Get outputs
-    Work_buffer* out_wb = Proc_get_voice_output_2ch(proc_ts, PORT_OUT_SIGNAL_L);
-    rassert(out_wb != NULL);
-    float* out_buf = Work_buffer_get_contents_mut(out_wb, 0);
-
-    // Multiply the signals
-    multiply_signals(in1_wb, in2_wb, out_buf, frame_count);
-
-    if (is_out1_final_zero)
-    {
-        Work_buffer_set_const_start(out_wb, 0, 0);
-        Work_buffer_set_final(out_wb, 0, true);
-    }
-
-    if (is_out2_final_zero)
-    {
-        Work_buffer_set_const_start(out_wb, 1, 0);
-        Work_buffer_set_final(out_wb, 1, true);
     }
 
     return frame_count;

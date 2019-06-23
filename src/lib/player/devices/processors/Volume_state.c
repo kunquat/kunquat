@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2019
  *
  * This file is part of Kunquat.
  *
@@ -17,6 +17,7 @@
 #include <debug/assert.h>
 #include <init/devices/Device.h>
 #include <init/devices/processors/Proc_volume.h>
+#include <mathnum/common.h>
 #include <mathnum/conversions.h>
 #include <memory.h>
 #include <player/devices/Device_thread_state.h>
@@ -28,27 +29,9 @@
 #include <player/Work_buffers.h>
 #include <string/key_pattern.h>
 
+#include <float.h>
 #include <stdint.h>
 #include <stdlib.h>
-
-
-void Volume_get_port_groups(
-        const Device_impl* dimpl, Device_port_type port_type, Device_port_groups groups)
-{
-    rassert(dimpl != NULL);
-
-    switch (port_type)
-    {
-        case DEVICE_PORT_TYPE_RECV: Device_port_groups_init(groups, 2, 1, 0); break;
-
-        case DEVICE_PORT_TYPE_SEND: Device_port_groups_init(groups, 2, 0); break;
-
-        default:
-            rassert(false);
-    }
-
-    return;
-}
 
 
 enum
@@ -73,32 +56,61 @@ static const int VOLUME_WB_FIXED_VOLUME = WORK_BUFFER_IMPL_1;
 
 
 static void apply_volume(
-        float* in_buffer,
-        float* out_buffer,
+        const Work_buffer* in_wbs[2],
+        Work_buffer* out_wbs[2],
         Work_buffer* vol_wb,
         const Work_buffers* wbs,
         float global_vol,
         int32_t frame_count)
 {
-    rassert(in_buffer != NULL);
-    rassert(out_buffer != NULL);
+    rassert(in_wbs != NULL);
+    rassert(out_wbs != NULL);
     rassert(isfinite(global_vol));
     rassert(frame_count > 0);
 
     const float global_scale = (float)dB_to_scale(global_vol);
 
-    Work_buffer* scales_wb = Work_buffers_get_buffer_mut(wbs, VOLUME_WB_FIXED_VOLUME, 1);
-    Proc_fill_scale_buffer(scales_wb, vol_wb, frame_count);
-    const float* scales = Work_buffer_get_contents(scales_wb, 0);
-
-    const float* in = in_buffer;
-    float* out = out_buffer;
-
-    for (int32_t i = 0; i < frame_count; ++i)
+    int32_t vol_const_start = 0;
+    bool is_vol_final = true;
+    if (Work_buffer_is_valid(vol_wb))
     {
-        const float scale = scales[i] * global_scale;
-        *out++ = (*in++) * scale;
-        *out++ = (*in++) * scale;
+        vol_const_start = Work_buffer_get_const_start(vol_wb);
+        is_vol_final = Work_buffer_is_final(vol_wb);
+    }
+
+    Work_buffer* scales_wb = Work_buffers_get_buffer_mut(wbs, VOLUME_WB_FIXED_VOLUME);
+    Proc_fill_scale_buffer(scales_wb, vol_wb, frame_count);
+    const float* scales = Work_buffer_get_contents(scales_wb);
+
+    for (int ch = 0; ch < 2; ++ch)
+    {
+        Work_buffer* out_wb = out_wbs[ch];
+        if (out_wb == NULL)
+            continue;
+
+        const Work_buffer* in_wb = in_wbs[ch];
+        if (!Work_buffer_is_valid(in_wb))
+            continue;
+
+        const int32_t in_const_start = Work_buffer_get_const_start(in_wb);
+        const bool is_in_final = Work_buffer_is_final(in_wb);
+
+        const float* in = Work_buffer_get_contents(in_wb);
+        float* out = Work_buffer_get_contents_mut(out_wb);
+
+        for (int32_t i = 0; i < frame_count; ++i)
+        {
+            const float scale = scales[i] * global_scale;
+            float in_clamped = *in++;
+            in_clamped = clamp(in_clamped, -FLT_MAX, FLT_MAX);
+            *out++ = in_clamped * scale;
+        }
+
+        const int32_t out_const_start = max(vol_const_start, in_const_start);
+        const bool is_out_final = is_vol_final && is_in_final;
+
+        Work_buffer_set_const_start(out_wb, out_const_start);
+        Work_buffer_set_final(out_wb, is_out_final);
     }
 
     return;
@@ -143,37 +155,23 @@ static void Volume_pstate_render_mixed(
 
     // Get control stream
     Work_buffer* vol_wb = Device_thread_state_get_mixed_buffer(
-            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_FORCE, NULL);
-    if ((vol_wb != NULL) && !Work_buffer_is_valid(vol_wb, 0))
+            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_FORCE);
+    if ((vol_wb != NULL) && !Work_buffer_is_valid(vol_wb))
         vol_wb = NULL;
 
-    // Get input
-    float* in_buf = NULL;
-    {
-        Work_buffer* in_wb =
-            Proc_get_mixed_input_2ch(proc_ts, PORT_IN_AUDIO_L, frame_count);
-        if (in_wb != NULL)
-            in_buf = Work_buffer_get_contents_mut(in_wb, 0);
-    }
+    // Get inputs
+    const Work_buffer* in_wbs[2] = { NULL };
+    for (int ch = 0; ch < 2; ++ch)
+        in_wbs[ch] = Device_thread_state_get_mixed_buffer(
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_L + ch);
 
-    // Get output
-    float* out_buf = NULL;
-    {
-        Work_buffer* out_wb = Proc_get_mixed_output_2ch(proc_ts, PORT_OUT_AUDIO_L);
-        if (out_wb != NULL)
-            out_buf = Work_buffer_get_contents_mut(out_wb, 0);
-    }
+    // Get outputs
+    Work_buffer* out_wbs[2] = { NULL };
+    for (int ch = 0; ch < 2; ++ch)
+        out_wbs[ch] = Device_thread_state_get_mixed_buffer(
+                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L + ch);
 
-    rassert(out_buf != NULL);
-
-    if (in_buf == NULL)
-    {
-        for (int32_t i = 0; i < frame_count * 2; ++i)
-            out_buf[i] = 0;
-        return;
-    }
-
-    apply_volume(in_buf, out_buf, vol_wb, wbs, (float)vpstate->volume, frame_count);
+    apply_volume(in_wbs, out_wbs, vol_wb, wbs, (float)vpstate->volume, frame_count);
 
     return;
 }
@@ -228,40 +226,33 @@ int32_t Volume_vstate_render_voice(
 
     // Get control stream
     Work_buffer* vol_wb = Device_thread_state_get_voice_buffer(
-            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_FORCE, NULL);
-    if ((vol_wb != NULL) &&
-            Work_buffer_is_final(vol_wb, 0) &&
-            (Work_buffer_get_const_start(vol_wb, 0) == 0) &&
-            (Work_buffer_get_contents(vol_wb, 0)[0] == -INFINITY))
+            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_FORCE);
+    if (Work_buffer_is_valid(vol_wb) &&
+            Work_buffer_is_final(vol_wb) &&
+            (Work_buffer_get_const_start(vol_wb) == 0) &&
+            (Work_buffer_get_contents(vol_wb)[0] == -INFINITY))
     {
         // We are only getting silent force from this point onwards
         return 0;
     }
 
     // Get input
-    float* in_buf = NULL;
-    {
-        Work_buffer* in_wb =
-            Proc_get_voice_input_2ch(proc_ts, PORT_IN_AUDIO_L, frame_count);
-        if (in_wb != NULL)
-            in_buf = Work_buffer_get_contents_mut(in_wb, 0);
-    }
+    const Work_buffer* in_wbs[2] = { NULL };
+    for (int ch = 0; ch < 2; ++ch)
+        in_wbs[ch] = Device_thread_state_get_voice_buffer(
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_L + ch);
 
-    if (in_buf == NULL)
+    if (!Work_buffer_is_valid(in_wbs[0]) && !Work_buffer_is_valid(in_wbs[1]))
         return 0;
 
     // Get output
-    float* out_buf = NULL;
-    {
-        Work_buffer* out_wb = Proc_get_voice_output_2ch(proc_ts, PORT_OUT_AUDIO_L);
-        if (out_wb != NULL)
-            out_buf = Work_buffer_get_contents_mut(out_wb, 0);
-    }
-
-    rassert(out_buf != NULL);
+    Work_buffer* out_wbs[2] = { NULL };
+    for (int ch = 0; ch < 2; ++ch)
+        out_wbs[ch] = Device_thread_state_get_voice_buffer(
+                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L + ch);
 
     const Volume_pstate* vpstate = (const Volume_pstate*)proc_state;
-    apply_volume(in_buf, out_buf, vol_wb, wbs, (float)vpstate->volume, frame_count);
+    apply_volume(in_wbs, out_wbs, vol_wb, wbs, (float)vpstate->volume, frame_count);
 
     return frame_count;
 }

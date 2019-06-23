@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2019
  *
  * This file is part of Kunquat.
  *
@@ -134,14 +134,14 @@ int32_t Envgen_vstate_render_voice(
 
     // Get time stretch input
     Work_buffer* stretch_wb = Device_thread_state_get_voice_buffer(
-            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_STRETCH, NULL);
-    if ((stretch_wb == NULL) || !Work_buffer_is_valid(stretch_wb, 0))
+            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_STRETCH);
+    if (!Work_buffer_is_valid(stretch_wb))
     {
-        stretch_wb = Work_buffers_get_buffer_mut(wbs, ENVGEN_WB_FIXED_STRETCH, 1);
-        float* stretches = Work_buffer_get_contents_mut(stretch_wb, 0);
+        stretch_wb = Work_buffers_get_buffer_mut(wbs, ENVGEN_WB_FIXED_STRETCH);
+        float* stretches = Work_buffer_get_contents_mut(stretch_wb);
         for (int32_t i = 0; i < frame_count; ++i)
             stretches[i] = 0;
-        Work_buffer_set_const_start(stretch_wb, 0, 0);
+        Work_buffer_set_const_start(stretch_wb, 0);
     }
     else
     {
@@ -150,24 +150,24 @@ int32_t Envgen_vstate_render_voice(
 
     // Get trigger signal input
     const Work_buffer* trigger_wb = Device_thread_state_get_voice_buffer(
-            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_TRIGGER, NULL);
-    if ((trigger_wb == NULL) || !Work_buffer_is_valid(trigger_wb, 0))
+            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_TRIGGER);
+    if (!Work_buffer_is_valid(trigger_wb))
     {
         Work_buffer* fixed_trigger_wb =
-            Work_buffers_get_buffer_mut(wbs, ENVGEN_WB_FIXED_TRIGGER, 1);
-        Work_buffer_clear(fixed_trigger_wb, 0, 0, frame_count);
+            Work_buffers_get_buffer_mut(wbs, ENVGEN_WB_FIXED_TRIGGER);
+        Work_buffer_clear(fixed_trigger_wb, 0, frame_count);
         trigger_wb = fixed_trigger_wb;
     }
 
     // Get output buffer for writing
     Work_buffer* out_wb = Device_thread_state_get_voice_buffer(
-            proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_ENV, NULL);
+            proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_ENV);
     if (out_wb == NULL)
     {
         vstate->active = false;
         return 0;
     }
-    float* out_buffer = Work_buffer_get_contents_mut(out_wb, 0);
+    float* out_buffer = Work_buffer_get_contents_mut(out_wb);
 
     const bool is_time_env_enabled =
         egen->is_time_env_enabled && (egen->time_env != NULL);
@@ -192,7 +192,7 @@ int32_t Envgen_vstate_render_voice(
                 // Process floor trigger
                 if (egen->trig_impulse_floor)
                 {
-                    const float* trigger = Work_buffer_get_contents(trigger_wb, 0);
+                    const float* trigger = Work_buffer_get_contents(trigger_wb);
 
                     if (egen_state->trig_floor_active)
                     {
@@ -225,7 +225,7 @@ int32_t Envgen_vstate_render_voice(
                 // Process ceil trigger
                 if (egen->trig_impulse_ceil)
                 {
-                    const float* trigger = Work_buffer_get_contents(trigger_wb, 0);
+                    const float* trigger = Work_buffer_get_contents(trigger_wb);
 
                     if (egen_state->trig_ceil_active)
                     {
@@ -348,7 +348,7 @@ int32_t Envgen_vstate_render_voice(
                         !egen->trig_impulse_ceil &&
                         (!egen->trig_release || egen_state->was_released);
 
-                    Work_buffer_set_final(out_wb, 0, is_final);
+                    Work_buffer_set_final(out_wb, is_final);
                 }
 
                 const_start = env_stop;
@@ -412,11 +412,11 @@ int32_t Envgen_vstate_render_voice(
         for (int32_t i = 0; i < frame_count; ++i)
             out_buffer[i] = value;
 
-        Work_buffer_set_final(out_wb, 0, true);
+        Work_buffer_set_final(out_wb, true);
     }
 
     // Mark constant region of the buffer
-    Work_buffer_set_const_start(out_wb, 0, const_start);
+    Work_buffer_set_const_start(out_wb, const_start);
 
     return frame_count;
 }

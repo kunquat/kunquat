@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2019
  *
  * This file is part of Kunquat.
  *
@@ -41,7 +41,6 @@ Device_impl* new_Proc_debug(void)
         return NULL;
     }
 
-    debug->parent.get_port_groups = Debug_get_port_groups;
     debug->parent.init_vstate = Debug_vstate_init;
     debug->parent.render_voice = Debug_vstate_render_voice;
 
