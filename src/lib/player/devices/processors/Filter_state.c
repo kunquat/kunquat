@@ -121,7 +121,7 @@ static float get_cutoff_fast(double rel_freq)
 
     const double scaled_freq = PI * rel_freq;
 
-    return (float)(fast_sin(scaled_freq) / fast_sin((PI * 0.5) + scaled_freq));
+    return (float)fast_tan(scaled_freq);
 }
 
 #endif
