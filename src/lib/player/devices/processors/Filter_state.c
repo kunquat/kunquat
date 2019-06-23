@@ -23,7 +23,6 @@
 #include <mathnum/common.h>
 #include <mathnum/conversions.h>
 #include <mathnum/fast_exp2.h>
-#include <mathnum/fast_sin.h>
 #include <mathnum/fast_tan.h>
 #include <memory.h>
 #include <player/devices/Device_thread_state.h>
