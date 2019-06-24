@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2018
+ * Author: Tomi Jylhä-Ollila, Finland 2018-2019
  *
  * This file is part of Kunquat.
  *
@@ -28,20 +28,41 @@
 #endif
 
 
-#if ENABLE_F4_TEST
-
 static float test_value_pos(int32_t index, int32_t count)
 {
     return (float)(0.01 + (index / (double)count) * PI * 0.24);
 }
 
+START_TEST(Maximum_relative_error_is_small)
+{
+    static const int32_t test_count = 1048577;
+
+    for (int32_t i = 0; i < test_count; ++i)
+    {
+        const double small = lerp(0.00001f, 0.003f, i / (double)test_count);
+
+        const double x = test_value_pos(i, test_count);
+        const double result = fast_tan(x);
+        const double std_tan = tan(x);
+        const double rel_error = fabs((result / std_tan) - 1);
+
+        fail_unless(rel_error <= small,
+                "fast_tan(%.7g) yields %.7g, which is too far from %.7g",
+                x, result, std_tan);
+    }
+}
+END_TEST
+
+#if ENABLE_F4_TEST
+
 START_TEST(Maximum_relative_error_is_small_f4)
 {
-    static const float small = 0.015f;
     static const int32_t test_count = 1048577;
 
     for (int32_t i = 0; i < test_count; i += 4)
     {
+        const float small = lerp(0.00001f, 0.003f, (float)i / (float)test_count);
+
         const float x_data[4] __attribute__((aligned(16))) =
         {
             test_value_pos(i, test_count),
@@ -81,6 +102,7 @@ static Suite* Fast_tan_suite(void)
     suite_add_tcase(s, tc_correctness);
     tcase_set_timeout(tc_correctness, timeout);
 
+    tcase_add_test(tc_correctness, Maximum_relative_error_is_small);
 #if ENABLE_F4_TEST
     tcase_add_test(tc_correctness, Maximum_relative_error_is_small_f4);
 #endif

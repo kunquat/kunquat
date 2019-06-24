@@ -23,7 +23,6 @@
 #include <mathnum/common.h>
 #include <mathnum/conversions.h>
 #include <mathnum/fast_exp2.h>
-#include <mathnum/fast_sin.h>
 #include <mathnum/fast_tan.h>
 #include <memory.h>
 #include <player/devices/Device_thread_state.h>
@@ -121,7 +120,7 @@ static float get_cutoff_fast(double rel_freq)
 
     const double scaled_freq = PI * rel_freq;
 
-    return (float)(fast_sin(scaled_freq) / fast_sin((PI * 0.5) + scaled_freq));
+    return (float)fast_tan(scaled_freq);
 }
 
 #endif
