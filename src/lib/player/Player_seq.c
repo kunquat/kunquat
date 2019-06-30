@@ -602,7 +602,7 @@ bool Player_check_perform_goto(Player* player)
 }
 
 
-void Player_process_cgiters(Player* player, Tstamp* limit, bool skip)
+static void Player_process_cgiters(Player* player, Tstamp* limit, bool skip)
 {
     rassert(player != NULL);
     rassert(!Player_has_stopped(player));
