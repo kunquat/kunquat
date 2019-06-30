@@ -46,6 +46,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 
 #ifdef ENABLE_THREADS
@@ -1075,6 +1076,243 @@ static void Player_process_all_local_events(Player* player)
 }
 
 
+static void Player_process_voices_single_threaded(
+        Player* player, int32_t frame_count, Render_stats* stats)
+{
+    rassert(player != NULL);
+    rassert(frame_count > 0);
+    rassert(stats != NULL);
+
+    // Foreground voices
+    {
+        for (int ci = 0; ci < KQT_CHANNELS_MAX; ++ci)
+            player->channels[ci]->fg_group_temp = *VOICE_GROUP_AUTO;
+
+        Voice_pool_start_group_iteration(player->voices);
+
+        {
+            Voice_group* vgroup = VOICE_GROUP_AUTO;
+
+            Voice_group* vg = Voice_pool_get_next_fg_group(player->voices, vgroup);
+            while (vg != NULL)
+            {
+                Voice* first_voice = Voice_group_get_voice(vg, 0);
+                const int ch_num = first_voice->ch_num;
+
+                if (ch_num >= 0)
+                {
+                    Channel* ch = player->channels[ch_num];
+                    if (ch->fg_group_id == first_voice->group_id)
+                    {
+                        rassert(player->channels[ch_num]->fg_group_temp.size == 0);
+                        Voice_group_copy(&player->channels[ch_num]->fg_group_temp, vg);
+                    }
+                }
+                else
+                {
+                    // Process externally started notes first
+                    Player_process_voice_group(
+                            player,
+                            &player->thread_params[0],
+                            vg,
+                            frame_count,
+                            0,
+                            frame_count,
+                            stats);
+                }
+
+                vg = Voice_pool_get_next_fg_group(player->voices, vgroup);
+            }
+        }
+
+        int note_count = 0;
+
+        for (int ci = 0; ci < KQT_CHANNELS_MAX; ++ci)
+        {
+            Channel* ch = player->channels[ci];
+            const Channel_event_buffer* events = &ch->local_events;
+            const int event_count = Channel_event_buffer_get_event_count(events);
+
+            int event_index = 0;
+            int32_t slice_start = 0;
+
+            while (slice_start < frame_count)
+            {
+                int32_t slice_stop = frame_count;
+
+                const Channel_event* event = NULL;
+                if (event_index < event_count)
+                {
+                    event = Channel_event_buffer_get_event(events, event_index);
+                    rassert(event->frame_offset <= frame_count);
+                    slice_stop = event->frame_offset;
+
+                    ++event_index;
+                }
+
+                if (slice_start < slice_stop)
+                {
+                    const int32_t cur_frame_count = slice_stop - slice_start;
+
+                    if (ch->fg_group_id != 0)
+                    {
+                        Voice_group* vg = &ch->fg_group_temp;
+                        if (Voice_group_get_size(vg) != 0)
+                        {
+                            //fprintf(stdout, "process foreground voice group %d, frames [%d, %d)\n",
+                            //        (int)Voice_group_get_voice(vg, 0)->group_id,
+                            //        (int)slice_start, (int)slice_stop);
+                            Player_process_voice_group(
+                                    player,
+                                    &player->thread_params[0],
+                                    vg,
+                                    cur_frame_count,
+                                    slice_start,
+                                    frame_count,
+                                    stats);
+                        }
+                    }
+
+                    // Update carried controls
+                    {
+                        Force_controls* fc = &ch->force_controls;
+
+                        if (Slider_in_progress(&fc->slider))
+                            fc->force = (float)Slider_skip(&fc->slider, cur_frame_count);
+
+                        if (LFO_active(&fc->tremolo))
+                            LFO_skip(&fc->tremolo, cur_frame_count);
+                    }
+
+                    {
+                        Pitch_controls* pc = &ch->pitch_controls;
+
+                        if (Slider_in_progress(&pc->slider))
+                            pc->pitch = Slider_skip(&pc->slider, cur_frame_count);
+
+                        if (LFO_active(&pc->vibrato))
+                            LFO_skip(&pc->vibrato, cur_frame_count);
+                    }
+
+                    Channel_stream_state_update(ch->csstate, cur_frame_count);
+                }
+
+                if (event != NULL)
+                {
+                    ch->frame_offset_temp = event->frame_offset;
+
+                    const uint64_t prev_fg_group_id = ch->fg_group_id;
+
+                    if (event->type == Event_channel_note_on)
+                        ++note_count;
+
+                    /*
+                    {
+                        fprintf(stdout, "processing local event %d", (int)event->type);
+                        if (event->argument.type != VALUE_TYPE_NONE)
+                        {
+                            char arg_s[128] = "";
+                            Value_serialise(&event->argument, 128, arg_s);
+                            fprintf(stdout, " %s", arg_s);
+                        }
+                        fprintf(stdout, ", frame offset %d\n", event->frame_offset);
+                    }
+                    */
+
+                    const bool external = false;
+                    Event_handler_trigger_by_type(
+                            player->event_handler,
+                            ci,
+                            event->type,
+                            &event->argument,
+                            external);
+
+                    if (prev_fg_group_id != ch->fg_group_id)
+                    {
+                        if (ch->fg_group_id != 0)
+                        {
+                            Voice_group* new_group = Voice_pool_get_group(
+                                    player->voices, ch->fg_group_id, VOICE_GROUP_AUTO);
+                            if (new_group != NULL)
+                                Voice_group_copy(&ch->fg_group_temp, new_group);
+                            else
+                                ch->fg_group_temp = *VOICE_GROUP_AUTO;
+                        }
+                        else
+                        {
+                            ch->fg_group_temp = *VOICE_GROUP_AUTO;
+                        }
+                    }
+
+                    ch->frame_offset_temp = 0;
+                }
+
+                slice_start = slice_stop;
+            }
+
+            for (; event_index < event_count; ++event_index)
+            {
+                const Channel_event* event =
+                    Channel_event_buffer_get_event(events, event_index);
+                rassert(event->frame_offset == frame_count);
+
+                if (event->type == Event_channel_note_on)
+                    ++note_count;
+
+                const bool external = false;
+                Event_handler_trigger_by_type(
+                        player->event_handler,
+                        ci,
+                        event->type,
+                        &event->argument,
+                        external);
+            }
+
+            Channel_event_buffer_init(&ch->local_events);
+        }
+    }
+
+    // Background voices
+    {
+        Voice_pool_start_group_iteration(player->voices);
+
+        Voice_group* vgroup = VOICE_GROUP_AUTO;
+
+        Voice_group* vg = Voice_pool_get_next_bg_group(player->voices, vgroup);
+        while (vg != NULL)
+        {
+            Voice* first_voice = Voice_group_get_voice(vg, 0);
+            const int32_t frame_offset = first_voice->frame_offset;
+            const int32_t cur_frame_count = frame_count - frame_offset;
+
+            /*
+            fprintf(stdout, "process background voice group %d, frames [%d, %d)\n",
+                    (int)Voice_group_get_voice(vg, 0)->group_id,
+                    (int)frame_offset, (int)frame_count);
+            */
+
+            Player_process_voice_group(
+                    player,
+                    &player->thread_params[0],
+                    vg,
+                    cur_frame_count,
+                    frame_offset,
+                    frame_count,
+                    stats);
+
+            for (int vi = 0; vi < Voice_group_get_size(vg); ++vi)
+                Voice_group_get_voice(vg, vi)->frame_offset = 0;
+
+            vg = Voice_pool_get_next_bg_group(player->voices, vgroup);
+        }
+    }
+
+    //fprintf(stdout, "---\n");
+
+    return;
+}
+
+
 static void Player_process_voices(Player* player, int32_t frame_count)
 {
     rassert(player != NULL);
@@ -1119,235 +1357,7 @@ static void Player_process_voices(Player* player, int32_t frame_count)
         // Process all voice groups in a single thread
         Render_stats* stats = RENDER_STATS_AUTO;
 
-        // Foreground voices
-        {
-            for (int ci = 0; ci < KQT_CHANNELS_MAX; ++ci)
-                player->channels[ci]->fg_group_temp = *VOICE_GROUP_AUTO;
-
-            Voice_pool_start_group_iteration(player->voices);
-
-            {
-                Voice_group* vgroup = VOICE_GROUP_AUTO;
-
-                Voice_group* vg = Voice_pool_get_next_fg_group(player->voices, vgroup);
-                while (vg != NULL)
-                {
-                    Voice* first_voice = Voice_group_get_voice(vg, 0);
-                    const int ch_num = first_voice->ch_num;
-
-                    if (ch_num >= 0)
-                    {
-                        Channel* ch = player->channels[ch_num];
-                        if (ch->fg_group_id == first_voice->group_id)
-                        {
-                            rassert(player->channels[ch_num]->fg_group_temp.size == 0);
-                            Voice_group_copy(
-                                    &player->channels[ch_num]->fg_group_temp, vg);
-                        }
-                    }
-                    else
-                    {
-                        // Process externally started notes first
-                        Player_process_voice_group(
-                                player,
-                                &player->thread_params[0],
-                                vg,
-                                frame_count,
-                                0,
-                                frame_count,
-                                stats);
-                    }
-
-                    vg = Voice_pool_get_next_fg_group(player->voices, vgroup);
-                }
-            }
-
-            int note_count = 0;
-
-            for (int ci = 0; ci < KQT_CHANNELS_MAX; ++ci)
-            {
-                Channel* ch = player->channels[ci];
-                const Channel_event_buffer* events = &ch->local_events;
-                const int event_count = Channel_event_buffer_get_event_count(events);
-
-                int event_index = 0;
-                int32_t slice_start = 0;
-
-                while (slice_start < frame_count)
-                {
-                    int32_t slice_stop = frame_count;
-
-                    const Channel_event* event = NULL;
-                    if (event_index < event_count)
-                    {
-                        event = Channel_event_buffer_get_event(events, event_index);
-                        rassert(event->frame_offset <= frame_count);
-                        slice_stop = event->frame_offset;
-
-                        ++event_index;
-                    }
-
-                    if (slice_start < slice_stop)
-                    {
-                        const int32_t cur_frame_count = slice_stop - slice_start;
-
-                        if (ch->fg_group_id != 0)
-                        {
-                            Voice_group* vg = &ch->fg_group_temp;
-                            if (Voice_group_get_size(vg) != 0)
-                            {
-                                //fprintf(stdout, "process foreground voice group %d, frames [%d, %d)\n",
-                                //        (int)Voice_group_get_voice(vg, 0)->group_id,
-                                //        (int)slice_start, (int)slice_stop);
-                                Player_process_voice_group(
-                                        player,
-                                        &player->thread_params[0],
-                                        vg,
-                                        cur_frame_count,
-                                        slice_start,
-                                        frame_count,
-                                        stats);
-                            }
-                        }
-
-                        // Update carried controls
-                        {
-                            Force_controls* fc = &ch->force_controls;
-
-                            if (Slider_in_progress(&fc->slider))
-                                fc->force =
-                                    (float)Slider_skip(&fc->slider, cur_frame_count);
-
-                            if (LFO_active(&fc->tremolo))
-                                LFO_skip(&fc->tremolo, cur_frame_count);
-                        }
-
-                        {
-                            Pitch_controls* pc = &ch->pitch_controls;
-
-                            if (Slider_in_progress(&pc->slider))
-                                pc->pitch = Slider_skip(&pc->slider, cur_frame_count);
-
-                            if (LFO_active(&pc->vibrato))
-                                LFO_skip(&pc->vibrato, cur_frame_count);
-                        }
-
-                        Channel_stream_state_update(ch->csstate, cur_frame_count);
-                    }
-
-                    if (event != NULL)
-                    {
-                        ch->frame_offset_temp = event->frame_offset;
-
-                        const uint64_t prev_fg_group_id = ch->fg_group_id;
-
-                        if (event->type == Event_channel_note_on)
-                            ++note_count;
-
-                        /*
-                        {
-                            fprintf(stdout, "processing local event %d", (int)event->type);
-                            if (event->argument.type != VALUE_TYPE_NONE)
-                            {
-                                char arg_s[128] = "";
-                                Value_serialise(&event->argument, 128, arg_s);
-                                fprintf(stdout, " %s", arg_s);
-                            }
-                            fprintf(stdout, ", frame offset %d\n", event->frame_offset);
-                        }
-                        */
-
-                        const bool external = false;
-                        Event_handler_trigger_by_type(
-                                player->event_handler,
-                                ci,
-                                event->type,
-                                &event->argument,
-                                external);
-
-                        if (prev_fg_group_id != ch->fg_group_id)
-                        {
-                            if (ch->fg_group_id != 0)
-                            {
-                                Voice_group* new_group = Voice_pool_get_group(
-                                        player->voices,
-                                        ch->fg_group_id,
-                                        VOICE_GROUP_AUTO);
-                                if (new_group != NULL)
-                                    Voice_group_copy(&ch->fg_group_temp, new_group);
-                                else
-                                    ch->fg_group_temp = *VOICE_GROUP_AUTO;
-                            }
-                            else
-                            {
-                                ch->fg_group_temp = *VOICE_GROUP_AUTO;
-                            }
-                        }
-
-                        ch->frame_offset_temp = 0;
-                    }
-
-                    slice_start = slice_stop;
-                }
-
-                for (; event_index < event_count; ++event_index)
-                {
-                    const Channel_event* event =
-                        Channel_event_buffer_get_event(events, event_index);
-                    rassert(event->frame_offset == frame_count);
-
-                    if (event->type == Event_channel_note_on)
-                        ++note_count;
-
-                    const bool external = false;
-                    Event_handler_trigger_by_type(
-                            player->event_handler,
-                            ci,
-                            event->type,
-                            &event->argument,
-                            external);
-                }
-
-                Channel_event_buffer_init(&ch->local_events);
-            }
-        }
-
-        // Background voices
-        {
-            Voice_pool_start_group_iteration(player->voices);
-
-            Voice_group* vgroup = VOICE_GROUP_AUTO;
-
-            Voice_group* vg = Voice_pool_get_next_bg_group(player->voices, vgroup);
-            while (vg != NULL)
-            {
-                Voice* first_voice = Voice_group_get_voice(vg, 0);
-                const int32_t frame_offset = first_voice->frame_offset;
-                const int32_t cur_frame_count = frame_count - frame_offset;
-
-                /*
-                fprintf(stdout, "process background voice group %d, frames [%d, %d)\n",
-                        (int)Voice_group_get_voice(vg, 0)->group_id,
-                        (int)frame_offset, (int)frame_count);
-                */
-
-                Player_process_voice_group(
-                        player,
-                        &player->thread_params[0],
-                        vg,
-                        cur_frame_count,
-                        frame_offset,
-                        frame_count,
-                        stats);
-
-                for (int vi = 0; vi < Voice_group_get_size(vg); ++vi)
-                    Voice_group_get_voice(vg, vi)->frame_offset = 0;
-
-                vg = Voice_pool_get_next_bg_group(player->voices, vgroup);
-            }
-        }
-
-        //fprintf(stdout, "---\n");
+        Player_process_voices_single_threaded(player, frame_count, stats);
 
         active_voice_count = stats->voice_count;
         active_vgroup_count = stats->vgroup_count;
@@ -1675,8 +1685,15 @@ static void Player_init_final(Player* player)
 }
 
 
+static clock_t voice_time = 0;
+static clock_t mixed_time = 0;
+static clock_t total_time = 0;
+
+
 void Player_play(Player* player, int32_t nframes)
 {
+    const clock_t total_start_time = clock();
+
     rassert(player != NULL);
     rassert(player->audio_buffer_size > 0);
     rassert(nframes >= 0);
@@ -1731,14 +1748,22 @@ void Player_play(Player* player, int32_t nframes)
         }
 
         // Process voices
+        const clock_t voice_start_time = clock();
         Player_process_voices(player, to_be_rendered);
+        const clock_t voice_end_time = clock();
+        rassert(voice_start_time <= voice_end_time);
+        voice_time += (voice_end_time - voice_start_time);
 
         if (!Event_buffer_is_skipping(player->event_buffer))
             Voice_group_reservations_init(&player->voice_group_res);
 
         // Process mixed signals in the connection graph
         {
+            const clock_t mixed_start_time = clock();
             Player_process_mixed_signals(player, to_be_rendered);
+            const clock_t mixed_end_time = clock();
+            rassert(mixed_start_time <= mixed_end_time);
+            mixed_time += (mixed_end_time - mixed_start_time);
 
             Player_apply_master_volume(player, to_be_rendered);
 
@@ -1799,6 +1824,10 @@ void Player_play(Player* player, int32_t nframes)
     player->audio_frames_processed += rendered;
 
     player->events_returned = false;
+
+    const clock_t total_end_time = clock();
+    rassert(total_start_time <= total_end_time);
+    total_time += (total_end_time - total_start_time);
 
     return;
 }
@@ -2078,6 +2107,21 @@ void del_Player(Player* player)
     del_Event_buffer(player->event_buffer);
     del_Env_state(player->estate);
     del_Device_states(player->device_states);
+
+    /*
+    {
+        const double voice_time_s = (double)voice_time / (double)CLOCKS_PER_SEC;
+        const double mixed_time_s = (double)mixed_time / (double)CLOCKS_PER_SEC;
+        const double total_time_s = (double)total_time / (double)CLOCKS_PER_SEC;
+
+        fprintf(stderr, "Voice time: %.2f seconds (%.1f%% of total)\n",
+                voice_time_s, 100 * voice_time_s / total_time_s);
+        fprintf(stderr, "Mixed time: %.2f seconds (%.1f%% ot total)\n",
+                mixed_time_s, 100 * mixed_time_s / total_time_s);
+        fprintf(stderr, "Total time: %.2f seconds (%.1f%% signal processing time)\n",
+                total_time_s, 100 * (voice_time_s + mixed_time_s) / total_time_s);
+    }
+    */
 
     memory_free(player->audio_buffer);
 
