@@ -92,8 +92,6 @@ bool reserve_voices(
 
             Voice_group_reservations_add_entry(
                     ch->voice_group_res, ch->num, new_group_id);
-
-            Voice_pool_sort_groups(ch->pool); // TODO: don't do this for every note
         }
     }
     else if (event_type == Event_channel_hit)
@@ -132,8 +130,6 @@ bool reserve_voices(
 
                 Voice_group_reservations_add_entry(
                         ch->voice_group_res, ch->num, new_group_id);
-
-                Voice_pool_sort_groups(ch->pool); // TODO: don't do this for every note
             }
         }
     }

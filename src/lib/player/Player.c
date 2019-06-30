@@ -1748,6 +1748,7 @@ void Player_play(Player* player, int32_t nframes)
         }
 
         // Process voices
+        Voice_pool_sort_groups(player->voices);
         const clock_t voice_start_time = clock();
         Player_process_voices(player, to_be_rendered);
         const clock_t voice_end_time = clock();
