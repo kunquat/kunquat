@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2018
+ * Author: Tomi Jylhä-Ollila, Finland 2018-2019
  *
  * This file is part of Kunquat.
  *
@@ -27,6 +27,7 @@ typedef struct Voice_group_res_entry
 {
     int channel;
     uint64_t group_id;
+    bool used;
 } Voice_group_res_entry;
 
 

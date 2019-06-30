@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2018
+ * Author: Tomi Jylhä-Ollila, Finland 2018-2019
  *
  * This file is part of Kunquat.
  *
@@ -43,6 +43,7 @@ void Voice_group_reservations_add_entry(
     Voice_group_res_entry* entry = &res->reservations[res->add_pos];
     entry->channel = channel;
     entry->group_id = group_id;
+    entry->used = false;
 
     ++res->add_pos;
     if (res->add_pos >= KQT_VOICES_MAX)
@@ -63,14 +64,14 @@ bool Voice_group_reservations_get_clear_entry(
     rassert(channel < KQT_CHANNELS_MAX);
     rassert(out_group_id != NULL);
 
-    // TODO: this may need additional sync
+    // TODO: Fix potential false sharing between threads
 
     for (int i = 0; i < res->res_count; ++i)
     {
         Voice_group_res_entry* entry = &res->reservations[i];
-        if (entry->channel == channel)
+        if ((entry->channel == channel) && !entry->used)
         {
-            entry->channel = -1;
+            entry->used = true;
             *out_group_id = entry->group_id;
             return true;
         }
