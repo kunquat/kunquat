@@ -2035,6 +2035,8 @@ bool Player_fire(Player* player, int ch_num, Streader* event_reader)
     if (!Streader_match_char(event_reader, ']'))
         return false;
 
+    Voice_pool_sort_groups(player->voices);
+
     // Fire
     const bool is_at_global_breakpoint = true;
     const int32_t frame_offset = 0;
