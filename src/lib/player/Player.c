@@ -868,8 +868,8 @@ static void Player_process_voice_group(
     if (plan != NULL)
     {
         const int ch_num = Voice_group_get_ch_num(vgroup);
-        const bool is_muted =
-            (ch_num >= 0) ? Channel_is_muted(player->channels[ch_num]) : false;
+        const bool is_muted = !Voice_group_is_external(vgroup)
+            ? Channel_is_muted(player->channels[ch_num]) : false;
         const bool enable_mixing = !is_muted && !use_test_output;
 
         const int32_t process_stop = Voice_signal_plan_execute(
@@ -1099,7 +1099,7 @@ static void Player_process_voices_single_threaded(
                 Voice* first_voice = Voice_group_get_voice(vg, 0);
                 const int ch_num = first_voice->ch_num;
 
-                if (ch_num >= 0)
+                if (!first_voice->is_external)
                 {
                     Channel* ch = player->channels[ch_num];
                     if (ch->fg_group_id == first_voice->group_id)

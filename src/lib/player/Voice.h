@@ -46,6 +46,7 @@ struct Voice
 {
     uint64_t group_id;       ///< The ID of the group this Voice currently belongs to.
     int ch_num;              ///< The last Channel that initialised this Voice.
+    bool is_external;        ///< Whether reserved via Player_fire or the sequencer.
     bool updated;            ///< Used to cut Voices that are not updated.
     Voice_prio prio;         ///< Current priority of the Voice.
     int32_t frame_offset;
@@ -107,11 +108,22 @@ uint64_t Voice_get_group_id(const Voice* voice);
 /**
  * Get the Channel number associated with the Voice.
  *
- * \param voice   The Voice -- must not be \c NULL.
+ * \param voice   the voice -- must not be \c null.
  *
  * \return   The Channel number, or \c -1 if \a voice is not in use.
  */
 int Voice_get_ch_num(const Voice* voice);
+
+
+/**
+ * Find out whether the Voice is external.
+ *
+ * \param voice   the voice -- must not be \c null.
+ *
+ * \return   \c true if the Voice was initialised via Player_fire, or \c false
+ *           if initialised via the sequencer.
+ */
+bool Voice_is_external(const Voice* voice);
 
 
 /**
@@ -136,14 +148,15 @@ void Voice_set_work_buffer(Voice* voice, Work_buffer* wb);
 /**
  * Reserve the Voice for a new note.
  *
- * \param voice      The Voice -- must not be \c NULL.
- * \param group_id   The ID of the group this Voice belongs to. This is used
- *                   to identify which Voices are connected.
- * \param ch_num     The Channel number associated with this initialisation
- *                   -- must be >= \c 0 and < \c KQT_CHANNELS_MAX, or \c -1
- *                   which indicates indeterminate Channel.
+ * \param voice         The Voice -- must not be \c NULL.
+ * \param group_id      The ID of the group this Voice belongs to. This is used
+ *                      to identify which Voices are connected.
+ * \param ch_num        The Channel number associated with this initialisation
+ *                      -- must be >= \c 0 and < \c KQT_CHANNELS_MAX.
+ * \param is_external   \c true if the Voice reservation originates from an
+ *                      external event, otherwise \c false.
  */
-void Voice_reserve(Voice* voice, uint64_t group_id, int ch_num);
+void Voice_reserve(Voice* voice, uint64_t group_id, int ch_num, bool is_external);
 
 
 /**

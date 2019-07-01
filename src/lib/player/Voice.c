@@ -36,6 +36,7 @@ Voice* new_Voice(void)
 
     voice->group_id = 0;
     voice->ch_num = -1;
+    voice->is_external = false;
     voice->updated = false;
     voice->prio = VOICE_PRIO_INACTIVE;
     voice->frame_offset = 0;
@@ -104,6 +105,13 @@ int Voice_get_ch_num(const Voice* voice)
 }
 
 
+bool Voice_is_external(const Voice* voice)
+{
+    rassert(voice != NULL);
+    return voice->is_external;
+}
+
+
 const Processor* Voice_get_proc(const Voice* voice)
 {
     rassert(voice != NULL);
@@ -119,17 +127,18 @@ void Voice_set_work_buffer(Voice* voice, Work_buffer* wb)
 }
 
 
-void Voice_reserve(Voice* voice, uint64_t group_id, int ch_num)
+void Voice_reserve(Voice* voice, uint64_t group_id, int ch_num, bool is_external)
 {
     rassert(voice != NULL);
     rassert(group_id != 0);
-    rassert(ch_num >= -1);
+    rassert(ch_num >= 0);
     rassert(ch_num < KQT_CHANNELS_MAX);
 
     voice->prio = VOICE_PRIO_NEW;
     voice->proc = NULL;
     voice->group_id = group_id;
     voice->ch_num = ch_num;
+    voice->is_external = is_external;
 
     return;
 }
@@ -211,6 +220,7 @@ void Voice_reset(Voice* voice)
 
     voice->group_id = 0;
     voice->ch_num = -1;
+    voice->is_external = false;
     voice->prio = VOICE_PRIO_INACTIVE;
     voice->frame_offset = 0;
     Voice_state_clear(voice->state);

@@ -144,6 +144,15 @@ int Voice_group_get_ch_num(const Voice_group* vg)
 }
 
 
+bool Voice_group_is_external(const Voice_group* vg)
+{
+    rassert(vg != NULL);
+    rassert(vg->size > 0);
+
+    return Voice_is_external(vg->voices[0]);
+}
+
+
 void Voice_group_deactivate_all(Voice_group* vg)
 {
     rassert(vg != NULL);

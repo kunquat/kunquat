@@ -43,7 +43,7 @@ static bool reserve_voice(
 
     Voice* voice = Voice_pool_get_voice(ch->pool, group_id);
     rassert(voice != NULL);
-    Voice_reserve(voice, group_id, is_external ? -1 : ch->num);
+    Voice_reserve(voice, group_id, ch->num, is_external);
 
     //fprintf(stderr, "reserved Voice %p\n", (void*)voice);
 
