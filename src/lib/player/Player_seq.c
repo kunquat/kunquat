@@ -211,6 +211,8 @@ void Player_process_event(
                             type,
                             arg,
                             external);
+
+                    Voice_pool_sort_groups(player->channels[ch_num]->pool);
                 }
             }
 
