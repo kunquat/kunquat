@@ -1099,26 +1099,12 @@ static void Player_process_voices_single_threaded(
                 Voice* first_voice = Voice_group_get_voice(vg, 0);
                 const int ch_num = first_voice->ch_num;
 
-                if (!first_voice->is_external)
+                Channel* ch = player->channels[ch_num];
+                if (ch->fg_group_id == first_voice->group_id)
                 {
-                    Channel* ch = player->channels[ch_num];
-                    if (ch->fg_group_id == first_voice->group_id)
-                    {
-                        rassert(player->channels[ch_num]->fg_group_temp.size == 0);
-                        Voice_group_copy(&player->channels[ch_num]->fg_group_temp, vg);
-                    }
-                }
-                else
-                {
-                    // Process externally started notes first
-                    Player_process_voice_group(
-                            player,
-                            &player->thread_params[0],
-                            vg,
-                            frame_count,
-                            0,
-                            frame_count,
-                            stats);
+                    // Use the currently active Voice group
+                    rassert(ch->fg_group_temp.size == 0);
+                    Voice_group_copy(&ch->fg_group_temp, vg);
                 }
 
                 vg = Voice_pool_get_next_fg_group(player->voices, vgroup);
