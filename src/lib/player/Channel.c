@@ -59,6 +59,7 @@ static bool Channel_init(Channel* ch, int num, Env_state* estate, const Module* 
 
     ch->event_cache = NULL;
     ch->num = num;
+    ch->fg_group_id = 0;
     ch->fg_group_temp = *VOICE_GROUP_AUTO;
     ch->frame_offset_temp = 0;
     ch->mute = false;
