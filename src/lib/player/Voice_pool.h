@@ -117,12 +117,6 @@ Voice* Voice_pool_allocate_voice(
         Voice_pool* pool, int ch_num, uint64_t group_id, bool is_external);
 
 
-//void Voice_pool_free_inactive(Voice_pool* pool);
-
-
-//void Voice_pool_sort_groups(Voice_pool* pool);
-
-
 void Voice_pool_sort_fg_groups(Voice_pool* pool);
 
 
@@ -177,44 +171,6 @@ void Voice_pool_clean_up_fg_voices(Voice_pool* pool);
 
 
 void Voice_pool_finish_group_iteration(Voice_pool* pool);
-
-
-/**
- * Get the next Voice group.
- *
- * \param pool     The Voice pool -- must not be \c NULL.
- * \param vgroup   Destination for the Voice group data -- must not be \c NULL.
- *
- * \return   The parameter \a vgroup, or \c NULL if there are no groups left to
- *           be processed.
- */
-//Voice_group* Voice_pool_get_next_group(Voice_pool* pool, Voice_group* vgroup);
-
-
-//Voice_group* Voice_pool_get_next_fg_group(Voice_pool* pool, Voice_group* vgroup);
-
-
-//Voice_group* Voice_pool_get_next_bg_group(Voice_pool* pool, Voice_group* vgroup);
-
-
-#ifdef ENABLE_THREADS
-/**
- * Get the next Voice group in a thread-safe way.
- *
- * \param pool     The Voice pool -- must not be \c NULL.
- * \param vgroup   Destination for the Voice group data -- must not be \c NULL.
- *
- * \return   The parameter \a vgroup, or \c NULL if there are no groups left to
- *           be processed.
- */
-//Voice_group* Voice_pool_get_next_group_synced(Voice_pool* pool, Voice_group* vgroup);
-
-
-//Voice_group* Voice_pool_get_next_fg_group_synced(Voice_pool* pool, Voice_group* vgroup);
-
-
-//Voice_group* Voice_pool_get_next_bg_group_synced(Voice_pool* pool, Voice_group* vgroup);
-#endif
 
 
 /**

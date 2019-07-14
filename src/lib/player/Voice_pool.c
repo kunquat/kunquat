@@ -287,85 +287,8 @@ Voice* Voice_pool_allocate_voice(
 
     rassert(false); // Couldn't find a location for the new voice in foreground array
 
-#if 0
-    // Find a voice of lowest priority available
-    unsigned int new_prio = VOICE_PRIO_NEW + 1;
-    Voice* new_voice = NULL;
-    for (uint16_t i = 0; i < pool->size; ++i)
-    {
-        Voice* voice = pool->voices[i];
-        if ((voice->prio < new_prio) && (voice->group_id != group_id))
-        {
-            new_voice = voice;
-            new_prio = voice->prio;
-        }
-    }
-
-    rassert(new_voice != NULL);
-    rassert(new_voice->group_id != group_id);
-
-    if (new_voice->group_id != 0)
-        Voice_pool_reset_group(pool, new_voice->group_id);
-
-#endif
-
     return NULL;
 }
-
-
-#if 0
-static uint64_t get_voice_group_prio(const Voice* voice)
-{
-    dassert(voice != NULL);
-    // Overflow group ID 0 to maximum so that inactive voices are placed last
-    return Voice_get_group_id(voice) - 1;
-}
-#endif
-
-
-#if 0
-void Voice_pool_free_inactive(Voice_pool* pool)
-{
-    rassert(pool != NULL);
-
-    for (uint16_t i = 0; i < pool->size; ++i)
-    {
-        Voice* current = pool->voices[i];
-        if (current->prio == VOICE_PRIO_INACTIVE)
-            Voice_reset(current);
-    }
-
-    return;
-}
-#endif
-
-
-#if 0
-void Voice_pool_sort_groups(Voice_pool* pool)
-{
-    rassert(pool != NULL);
-
-    // Simple insertion sort based on group IDs
-    for (uint16_t i = 1; i < pool->size; ++i)
-    {
-        Voice* current = pool->voices[i];
-        uint16_t target_index = i;
-
-        for (; target_index > 0; --target_index)
-        {
-            Voice* prev = pool->voices[target_index - 1];
-            if (get_voice_group_prio(prev) <= get_voice_group_prio(current))
-                break;
-
-            pool->voices[target_index] = prev;
-        }
-
-        pool->voices[target_index] = current;
-    }
-
-    return;
-}
-#endif
 
 
 static void reset_voices_in_array(Voice_pool* pool, Voice* voices[], uint64_t group_id)
@@ -444,17 +367,6 @@ Voice_group* Voice_pool_get_fg_group(
             return vgroup;
         }
     }
-
-#if 0
-    for (int i = 0; i < pool->size; ++i)
-    {
-        if (pool->voices[i]->group_id == group_id)
-        {
-            Voice_group_init(vgroup, pool->voices, i, pool->size);
-            return vgroup;
-        }
-    }
-#endif
 
     return NULL;
 }
@@ -881,111 +793,6 @@ void Voice_pool_finish_group_iteration(Voice_pool* pool)
 
     return;
 }
-
-
-#if 0
-Voice_group* Voice_pool_get_next_group(Voice_pool* pool, Voice_group* vgroup)
-{
-    rassert(pool != NULL);
-    rassert(vgroup != NULL);
-
-    if (pool->group_iter_offset >= pool->size)
-        return NULL;
-
-    Voice_group_init(vgroup, pool->voices, pool->group_iter_offset, pool->size);
-    pool->group_iter_offset += Voice_group_get_size(vgroup);
-
-    if (Voice_group_get_size(vgroup) == 0)
-        return NULL;
-
-    return vgroup;
-}
-
-
-Voice_group* Voice_pool_get_next_fg_group(Voice_pool* pool, Voice_group* vgroup)
-{
-    rassert(pool != NULL);
-    rassert(vgroup != NULL);
-
-    Voice_group* vg = Voice_pool_get_next_group(pool, vgroup);
-    while ((vg != NULL) && Voice_group_is_bg(vg))
-        vg = Voice_pool_get_next_group(pool, vgroup);
-
-    return vg;
-}
-
-
-Voice_group* Voice_pool_get_next_bg_group(Voice_pool* pool, Voice_group* vgroup)
-{
-    rassert(pool != NULL);
-    rassert(vgroup != NULL);
-
-    Voice_group* vg = Voice_pool_get_next_group(pool, vgroup);
-    while ((vg != NULL) && !Voice_group_is_bg(vg))
-        vg = Voice_pool_get_next_group(pool, vgroup);
-
-    return vg;
-}
-#endif
-
-
-#if 0
-Voice_group* Voice_pool_get_next_group_synced(Voice_pool* pool, Voice_group* vgroup)
-{
-    rassert(pool != NULL);
-    rassert(vgroup != NULL);
-
-    Mutex_lock(&pool->group_iter_lock);
-
-    if (pool->group_iter_offset >= pool->size)
-    {
-        Mutex_unlock(&pool->group_iter_lock);
-        return NULL;
-    }
-
-    Voice_group_init(vgroup, pool->voices, pool->group_iter_offset, pool->size);
-    pool->group_iter_offset += Voice_group_get_size(vgroup);
-
-    const bool is_group_empty = (Voice_group_get_size(vgroup) == 0);
-
-    Mutex_unlock(&pool->group_iter_lock);
-
-    if (is_group_empty)
-        return NULL;
-
-    return vgroup;
-}
-
-
-Voice_group* Voice_pool_get_next_fg_group_synced(Voice_pool* pool, Voice_group* vgroup)
-{
-    rassert(pool != NULL);
-    rassert(vgroup != NULL);
-
-    Mutex_lock(&pool->group_iter_lock);
-
-    Voice_group* vg = Voice_pool_get_next_fg_group(pool, vgroup);
-
-    Mutex_unlock(&pool->group_iter_lock);
-
-    return vg;
-}
-
-
-Voice_group* Voice_pool_get_next_bg_group_synced(Voice_pool* pool, Voice_group* vgroup)
-{
-    rassert(pool != NULL);
-    rassert(vgroup != NULL);
-
-    Mutex_lock(&pool->group_iter_lock);
-
-    Voice_group* vg = Voice_pool_get_next_bg_group(pool, vgroup);
-
-    Mutex_unlock(&pool->group_iter_lock);
-
-    return vg;
-}
-#endif
 
 
 void Voice_pool_reset(Voice_pool* pool)
