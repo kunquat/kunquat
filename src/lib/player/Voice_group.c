@@ -46,14 +46,10 @@ Voice_group* Voice_group_init(
 
     for (int i = offset + 1; i < vp_size; ++i)
     {
-        rassert(voices[i] != NULL);
-        if (Voice_get_group_id(voices[i]) != group_id)
+        if ((voices[i] == NULL) || (Voice_get_group_id(voices[i]) != group_id))
             break;
         ++vg->size;
     }
-
-    for (int i = 0; i < vg->size; ++i)
-        vg->voices[i]->updated = false;
 
     return vg;
 }

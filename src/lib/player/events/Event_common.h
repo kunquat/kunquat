@@ -22,9 +22,10 @@
 #include <stdlib.h>
 
 
-#define Event_get_voice_group(ch)                                           \
-    ((ch)->fg_group_id != 0                                                 \
-    ? Voice_pool_get_group((ch)->pool, (ch)->fg_group_id, VOICE_GROUP_AUTO) \
+#define Event_get_voice_group(ch)                                   \
+    ((ch)->fg_group_id != 0                                         \
+    ? Voice_pool_get_fg_group(                                      \
+        (ch)->pool, (ch)->num, (ch)->fg_group_id, VOICE_GROUP_AUTO) \
     : NULL)
 
 

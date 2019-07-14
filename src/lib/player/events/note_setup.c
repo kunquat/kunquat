@@ -41,10 +41,8 @@ static bool reserve_voice(
     if (!Proc_state_needs_vstate(proc_state))
         return false;
 
-    Voice* voice = Voice_pool_get_voice(ch->pool, group_id);
-    rassert(voice != NULL);
-    Voice_reserve(voice, group_id, ch->num, is_external);
-
+    Voice* voice = Voice_pool_allocate_voice(ch->pool, ch->num, group_id, is_external);
+    ignore(voice);
     //fprintf(stderr, "reserved Voice %p\n", (void*)voice);
 
     return true;
