@@ -171,7 +171,7 @@ bool init_voice(
     rassert(strlen(ch_expr) <= KQT_VAR_NAME_MAX);
     rassert(strlen(note_expr) <= KQT_VAR_NAME_MAX);
 
-    Voice_init(
+    Voice_start(
             voice,
             Audio_unit_get_proc(au, proc_num),
             proc_state,

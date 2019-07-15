@@ -28,11 +28,23 @@
 #include <string.h>
 
 
-Voice* new_Voice(void)
+void Voice_preinit(Voice* voice)
 {
-    Voice* voice = memory_alloc_item(Voice);
-    if (voice == NULL)
-        return NULL;
+    rassert(voice != NULL);
+
+    voice->group_id = 0;
+    voice->proc = NULL;
+    voice->state_size = 0;
+    voice->state = NULL;
+    voice->wb = NULL;
+
+    return;
+}
+
+
+Voice* Voice_init(Voice* voice)
+{
+    rassert(voice != NULL);
 
     voice->group_id = 0;
     voice->ch_num = -1;
@@ -51,7 +63,7 @@ Voice* new_Voice(void)
     voice->state = memory_alloc_item(Voice_state);
     if (voice->state == NULL)
     {
-        del_Voice(voice);
+        Voice_deinit(voice);
         return NULL;
     }
 
@@ -144,7 +156,7 @@ void Voice_reserve(Voice* voice, uint64_t group_id, int ch_num, bool is_external
 }
 
 
-void Voice_init(
+void Voice_start(
         Voice* voice,
         const Processor* proc,
         const Proc_state* proc_state,
@@ -298,13 +310,11 @@ int32_t Voice_render(
 }
 
 
-void del_Voice(Voice* voice)
+void Voice_deinit(Voice* voice)
 {
-    if (voice == NULL)
-        return;
+    rassert(voice != NULL);
 
     memory_free(voice->state);
-    memory_free(voice);
 
     return;
 }

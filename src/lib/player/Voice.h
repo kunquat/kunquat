@@ -62,12 +62,21 @@ struct Voice
 
 
 /**
- * Create a new Voice.
+ * Preinitialise the Voice.
  *
- * \return   The new Voice if successful, or \c NULL if memory allocation
- *           failed.
+ * \param voice   The Voice -- must not be \c NULL.
  */
-Voice* new_Voice(void);
+void Voice_preinit(Voice* voice);
+
+
+/**
+ * Initialise the Voice.
+ *
+ * \param voice   The Voice -- must not be \c NULL.
+ *
+ * \return   \a voice if successful, or \c NULL if memory allocation failed.
+ */
+Voice* Voice_init(Voice* voice);
 
 
 /**
@@ -160,14 +169,14 @@ void Voice_reserve(Voice* voice, uint64_t group_id, int ch_num, bool is_external
 
 
 /**
- * Initialise the Voice for mixing.
+ * Prepare the Voice for mixing.
  *
  * \param voice        The Voice -- must not be \c NULL.
  * \param proc         The Processor used -- must not be \c NULL.
  * \param proc_state   The Processor state -- must not be \c NULL.
  * \param seed         The random seed.
  */
-void Voice_init(
+void Voice_start(
         Voice* voice,
         const Processor* proc,
         const Proc_state* proc_state,
@@ -251,11 +260,11 @@ int32_t Voice_render(
 
 
 /**
- * Destroy an existing Voice.
+ * Deinitialise the Voice.
  *
- * \param voice   The Voice, or \c NULL.
+ * \param voice   The Voice -- must not be \c NULL.
  */
-void del_Voice(Voice* voice);
+void Voice_deinit(Voice* voice);
 
 
 #endif // KQT_VOICE_H

@@ -40,7 +40,7 @@ struct Voice_pool
     int32_t state_size;
     uint64_t new_group_id;
 
-    Voice* voices[KQT_VOICES_MAX];
+    Voice voices[KQT_VOICES_MAX];
 
     int free_voice_count;
     Voice* free_voices[KQT_VOICES_MAX];
@@ -84,7 +84,7 @@ Voice_pool* new_Voice_pool(int size)
 
     for (int i = 0; i < KQT_VOICES_MAX; ++i)
     {
-        pool->voices[i] = NULL;
+        Voice_preinit(&pool->voices[i]);
         pool->free_voices[i] = NULL;
         pool->foreground_voices[i] = NULL;
         pool->background_voices[i] = NULL;
@@ -108,8 +108,7 @@ Voice_pool* new_Voice_pool(int size)
     {
         for (int i = 0; i < size; ++i)
         {
-            pool->voices[i] = new_Voice();
-            if (pool->voices[i] == NULL)
+            if (Voice_init(&pool->voices[i]) == NULL)
             {
                 del_Voice_pool(pool);
                 return NULL;
@@ -117,7 +116,7 @@ Voice_pool* new_Voice_pool(int size)
         }
 
         for (int i = 0; i < size; ++i)
-            pool->free_voices[i] = pool->voices[i];
+            pool->free_voices[i] = &pool->voices[i];
 
         pool->free_voice_count = size;
     }
@@ -136,7 +135,7 @@ bool Voice_pool_reserve_state_space(Voice_pool* pool, int32_t state_size)
 
     for (int i = 0; i < pool->size; ++i)
     {
-        if (!Voice_reserve_state_space(pool->voices[i], state_size))
+        if (!Voice_reserve_state_space(&pool->voices[i], state_size))
             return false;
     }
 
@@ -164,7 +163,7 @@ bool Voice_pool_reserve_work_buffers(Voice_pool* pool, int32_t buf_size)
     for (int i = 0; i < pool->size; ++i)
     {
         Voice_set_work_buffer(
-                pool->voices[i], Voice_work_buffers_get_buffer_mut(pool->voice_wbs, i));
+                &pool->voices[i], Voice_work_buffers_get_buffer_mut(pool->voice_wbs, i));
     }
 
     return true;
@@ -821,10 +820,10 @@ void Voice_pool_reset(Voice_pool* pool)
     rassert(pool != NULL);
 
     for (int i = 0; i < pool->size; ++i)
-        Voice_reset(pool->voices[i]);
+        Voice_reset(&pool->voices[i]);
 
     for (int i = 0; i < pool->size; ++i)
-        pool->free_voices[i] = pool->voices[i];
+        pool->free_voices[i] = &pool->voices[i];
     pool->free_voice_count = pool->size;
 
     for (int i = 0; i < KQT_VOICES_MAX; ++i)
@@ -845,7 +844,7 @@ void del_Voice_pool(Voice_pool* pool)
         return;
 
     for (int i = 0; i < pool->size; ++i)
-        del_Voice(pool->voices[i]);
+        Voice_deinit(&pool->voices[i]);
 
     del_Voice_work_buffers(pool->voice_wbs);
     memory_free(pool);
