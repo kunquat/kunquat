@@ -71,7 +71,7 @@ Voice_pool* new_Voice_pool(int size)
         return NULL;
 
 #if ENABLE_THREADS
-    pool->atomic_bg_iter_index = -1;
+    pool->atomic_bg_iter_index = 0;
 #endif
 
     pool->size = size;
@@ -504,7 +504,7 @@ void Voice_pool_start_group_iteration(Voice_pool* pool)
     // Initialise background iteration info
     {
 #if ENABLE_THREADS
-        pool->atomic_bg_iter_index = -1;
+        pool->atomic_bg_iter_index = 0;
 #endif
         pool->bg_iter_index = 0;
         pool->bg_group_count = 0;
@@ -595,19 +595,8 @@ Voice_group* Voice_pool_get_next_bg_group_synced(Voice_pool* pool, Voice_group* 
     rassert(pool != NULL);
     rassert(vgroup != NULL);
 
-    bool success = false;
-    int_least16_t iter_index = 0;
-    int_least16_t old_iter_index = pool->atomic_bg_iter_index;
-    for (int i = 0; i < pool->bg_group_count; ++i)
-    {
-        iter_index = (int_least16_t)(old_iter_index + 1);
-        success = atomic_compare_exchange_strong(
-                &pool->atomic_bg_iter_index, &old_iter_index, iter_index);
-        if (success)
-            break;
-    }
-
-    if (!success || (iter_index >= pool->bg_group_count))
+    int_least16_t iter_index = pool->atomic_bg_iter_index++;
+    if (iter_index >= pool->bg_group_count)
         return NULL;
 
     const int iter_offset = pool->bg_group_offsets[iter_index];
@@ -802,7 +791,7 @@ void Voice_pool_finish_group_iteration(Voice_pool* pool)
     }
 
 #if ENABLE_THREADS
-    pool->atomic_bg_iter_index = -1;
+    pool->atomic_bg_iter_index = 0;
 #endif
     pool->bg_iter_index = 0;
     pool->bg_group_count = 0;
