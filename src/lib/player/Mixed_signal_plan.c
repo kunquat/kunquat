@@ -30,7 +30,6 @@
 #include <player/devices/Device_thread_state.h>
 #include <player/Mixed_signal_plan.h>
 #include <player/Work_buffer.h>
-#include <threads/Mutex.h>
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -38,7 +37,6 @@
 #include <stdlib.h>
 
 
-#define MAX_TASKS_PER_LEVEL 1024
 #define MAX_LEVELS 1024
 
 
@@ -52,15 +50,12 @@ struct Mixed_signal_plan
 
     int iter_level_index;
     int iter_task_index;
-
-    Mutex iter_lock;
 };
 
 
 typedef struct Level
 {
-    int task_count;
-    Etable* tasks;
+    Vector* tasks;
 } Level;
 
 
@@ -97,29 +92,38 @@ typedef struct Mixed_signal_task_info
     })
 
 
+static void Mixed_signal_task_info_deinit(Mixed_signal_task_info* task_info)
+{
+    rassert(task_info != NULL);
+
+    // NOTE: We don't own the Device states referenced
+    del_Vector(task_info->bypass_conns);
+    task_info->bypass_conns = NULL;
+    del_Vector(task_info->conns);
+    task_info->conns = NULL;
+
+    return;
+}
+
+
 static void del_Mixed_signal_task_info(Mixed_signal_task_info* task_info)
 {
     if (task_info == NULL)
         return;
 
-    // NOTE: We don't own the Device states referenced
-    del_Vector(task_info->bypass_conns);
-    del_Vector(task_info->conns);
+    Mixed_signal_task_info_deinit(task_info);
     memory_free(task_info);
 
     return;
 }
 
 
-static Mixed_signal_task_info* new_Mixed_signal_task_info(
-        uint32_t device_id, int level_index)
+static bool Mixed_signal_task_info_init(
+        Mixed_signal_task_info* task_info, uint32_t device_id, int level_index)
 {
+    rassert(task_info != NULL);
     rassert(level_index >= 0);
     rassert(level_index < MAX_LEVELS);
-
-    Mixed_signal_task_info* task_info = memory_alloc_item(Mixed_signal_task_info);
-    if (task_info == NULL)
-        return NULL;
 
     task_info->is_input_required = true;
     task_info->level_index = level_index;
@@ -130,12 +134,20 @@ static Mixed_signal_task_info* new_Mixed_signal_task_info(
 
     task_info->conns = new_Vector(sizeof(Buffer_connection));
     if (task_info->conns == NULL)
-    {
-        del_Mixed_signal_task_info(task_info);
-        return NULL;
-    }
+        return false;
 
-    return task_info;
+    return true;
+}
+
+
+static void Mixed_signal_task_info_clear(Mixed_signal_task_info* task_info)
+{
+    rassert(task_info != NULL);
+
+    task_info->conns = NULL;
+    task_info->bypass_conns = NULL;
+
+    return;
 }
 
 
@@ -249,7 +261,11 @@ static void del_Level(Level* level)
     if (level == NULL)
         return;
 
-    del_Etable(level->tasks);
+    const int64_t task_count = Vector_size(level->tasks);
+    for (int64_t i = 0; i < task_count; ++i)
+        Mixed_signal_task_info_deinit(Vector_get_ref(level->tasks, i));
+
+    del_Vector(level->tasks);
     memory_free(level);
 
     return;
@@ -262,11 +278,9 @@ static Level* new_Level(void)
     if (level == NULL)
         return NULL;
 
-    level->task_count = 0;
     level->tasks = NULL;
 
-    level->tasks =
-        new_Etable(MAX_TASKS_PER_LEVEL, (void(*)(void*))del_Mixed_signal_task_info);
+    level->tasks = new_Vector(sizeof(Mixed_signal_task_info));
     if (level->tasks == NULL)
     {
         del_Level(level);
@@ -282,12 +296,10 @@ static bool Level_add_task_info(Level* level, Mixed_signal_task_info* task_info)
     rassert(level != NULL);
     rassert(task_info != NULL);
 
-    rassert(level->task_count < MAX_TASKS_PER_LEVEL);
-
-    if (!Etable_set(level->tasks, level->task_count, task_info))
+    if (!Vector_append(level->tasks, task_info))
         return false;
 
-    ++level->task_count;
+    Mixed_signal_task_info_clear(task_info);
 
     return true;
 }
@@ -310,10 +322,15 @@ static Mixed_signal_task_info* Mixed_signal_create_or_get_task_info(
         return task_info;
     }
 
-    task_info = new_Mixed_signal_task_info(device_id, level_index);
-    if ((task_info == NULL) || !AAtree_ins(plan->build_task_infos, task_info))
+    task_info = memory_alloc_item(Mixed_signal_task_info);
+    if (task_info == NULL)
+        return NULL;
+
+    if (!Mixed_signal_task_info_init(task_info, device_id, level_index) ||
+            !AAtree_ins(plan->build_task_infos, task_info))
     {
-        del_Mixed_signal_task_info(task_info);
+        Mixed_signal_task_info_deinit(task_info);
+        memory_free(task_info);
         return NULL;
     }
 
@@ -556,12 +573,7 @@ static bool Mixed_signal_plan_finalise(Mixed_signal_plan* plan)
         Mixed_signal_task_info* task_info = AAiter_get_at_least(iter, key);
         while (task_info != NULL)
         {
-            if (Mixed_signal_task_info_is_empty(task_info))
-            {
-                AAtree_remove(plan->build_task_infos, task_info);
-                del_Mixed_signal_task_info(task_info);
-            }
-            else
+            if (!Mixed_signal_task_info_is_empty(task_info))
             {
                 Level* level = Etable_get(plan->levels, task_info->level_index);
                 if (level == NULL)
@@ -579,9 +591,10 @@ static bool Mixed_signal_plan_finalise(Mixed_signal_plan* plan)
 
                 if (!Level_add_task_info(level, task_info))
                     return false;
-
-                AAtree_remove(plan->build_task_infos, task_info);
             }
+
+            AAtree_remove(plan->build_task_infos, task_info);
+            del_Mixed_signal_task_info(task_info);
 
             // Reinitialise iterator as it is no longer valid
             AAiter_init(iter, plan->build_task_infos);
@@ -686,7 +699,6 @@ Mixed_signal_plan* new_Mixed_signal_plan(
     plan->dstates = dstates;
     plan->iter_level_index = -1;
     plan->iter_task_index = 0;
-    plan->iter_lock = *MUTEX_AUTO;
 
     // Initialise
     plan->levels = new_Etable(MAX_LEVELS, (void(*)(void*))del_Level);
@@ -700,10 +712,6 @@ Mixed_signal_plan* new_Mixed_signal_plan(
         del_Mixed_signal_plan(plan);
         return NULL;
     }
-
-#ifdef ENABLE_THREADS
-    Mutex_init(&plan->iter_lock);
-#endif
 
     return plan;
 }
@@ -727,62 +735,6 @@ void Mixed_signal_plan_reset(Mixed_signal_plan* plan)
 }
 
 
-#ifdef ENABLE_THREADS
-bool Mixed_signal_plan_execute_next_task(
-        Mixed_signal_plan* plan,
-        int level_index,
-        Work_buffers* wbs,
-        int32_t frame_count,
-        double tempo)
-{
-    rassert(plan != NULL);
-    rassert(level_index >= 0);
-    rassert(level_index < plan->level_count);
-    rassert(frame_count >= 0);
-    rassert(tempo > 0);
-
-    Mutex_lock(&plan->iter_lock);
-
-    if (plan->iter_level_index < 0)
-    {
-        Mutex_unlock(&plan->iter_lock);
-        return false;
-    }
-
-    if (level_index < plan->iter_level_index)
-    {
-        // Move iteration to the next level
-        rassert(level_index + 1 == plan->iter_level_index);
-        plan->iter_level_index = level_index;
-        plan->iter_task_index = 0;
-    }
-
-    const Level* level = Etable_get(plan->levels, plan->iter_level_index);
-    rassert(level != NULL);
-
-    if (plan->iter_task_index >= level->task_count)
-    {
-        Mutex_unlock(&plan->iter_lock);
-        return false;
-    }
-
-    const Mixed_signal_task_info* task_info =
-        Etable_get(level->tasks, plan->iter_task_index);
-    rassert(task_info != NULL);
-
-    ++plan->iter_task_index;
-    const bool any_tasks_left_this_level = (plan->iter_task_index < level->task_count);
-
-    // Iterators are now updated for the next caller
-    Mutex_unlock(&plan->iter_lock);
-
-    Mixed_signal_task_info_execute(task_info, plan->dstates, wbs, frame_count, tempo);
-
-    return any_tasks_left_this_level;
-}
-#endif
-
-
 void Mixed_signal_plan_execute_all_tasks(
         Mixed_signal_plan* plan,
         Work_buffers* wbs,
@@ -799,12 +751,11 @@ void Mixed_signal_plan_execute_all_tasks(
         const Level* level = Etable_get(plan->levels, level_index);
         rassert(level != NULL);
 
-        for (int task_index = 0; task_index < level->task_count; ++task_index)
+        int64_t task_count = Vector_size(level->tasks);
+        for (int64_t task_index = 0; task_index < task_count; ++task_index)
         {
             const Mixed_signal_task_info* task_info =
-                Etable_get(level->tasks, task_index);
-            rassert(task_info != NULL);
-
+                Vector_get_ref(level->tasks, task_index);
             Mixed_signal_task_info_execute(
                     task_info, plan->dstates, wbs, frame_count, tempo);
         }
@@ -818,8 +769,6 @@ void del_Mixed_signal_plan(Mixed_signal_plan* plan)
 {
     if (plan == NULL)
         return;
-
-    Mutex_deinit(&plan->iter_lock);
 
     del_AAtree(plan->build_task_infos);
     del_Etable(plan->levels);
