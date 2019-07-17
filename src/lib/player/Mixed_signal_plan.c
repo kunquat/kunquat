@@ -13,7 +13,6 @@
 
 
 #include <containers/AAtree.h>
-#include <containers/Etable.h>
 #include <containers/Vector.h>
 #include <debug/assert.h>
 #include <init/Connections.h>
@@ -42,8 +41,7 @@
 
 struct Mixed_signal_plan
 {
-    int level_count;
-    Etable* levels;
+    Vector* levels;
     AAtree* build_task_infos; // TODO: remove; this is only used during initialisation
 
     Device_states* dstates;
@@ -256,9 +254,11 @@ static int Mixed_signal_task_info_cmp(
 }
 
 
-static void del_Level(Level* level)
+static void Level_deinit(Level* level)
 {
-    if (level == NULL)
+    rassert(level != NULL);
+
+    if (level->tasks == NULL)
         return;
 
     const int64_t task_count = Vector_size(level->tasks);
@@ -266,28 +266,30 @@ static void del_Level(Level* level)
         Mixed_signal_task_info_deinit(Vector_get_ref(level->tasks, i));
 
     del_Vector(level->tasks);
-    memory_free(level);
+    level->tasks = NULL;
 
     return;
 }
 
 
-static Level* new_Level(void)
+static bool Level_init(Level* level)
 {
-    Level* level = memory_alloc_item(Level);
-    if (level == NULL)
-        return NULL;
+    rassert(level != NULL);
 
     level->tasks = NULL;
 
     level->tasks = new_Vector(sizeof(Mixed_signal_task_info));
     if (level->tasks == NULL)
-    {
-        del_Level(level);
-        return NULL;
-    }
+        return false;
 
-    return level;
+    return true;
+}
+
+
+static bool Level_is_empty(const Level* level)
+{
+    rassert(level != NULL);
+    return (Vector_size(level->tasks) == 0);
 }
 
 
@@ -575,19 +577,17 @@ static bool Mixed_signal_plan_finalise(Mixed_signal_plan* plan)
         {
             if (!Mixed_signal_task_info_is_empty(task_info))
             {
-                Level* level = Etable_get(plan->levels, task_info->level_index);
-                if (level == NULL)
+                while (task_info->level_index >= Vector_size(plan->levels))
                 {
-                    level = new_Level();
-                    if ((level == NULL) ||
-                            !Etable_set(plan->levels, task_info->level_index, level))
+                    Level* level = &(Level){ .tasks = NULL };
+                    if (!Level_init(level) || !Vector_append(plan->levels, level))
                     {
-                        del_Level(level);
+                        Level_deinit(level);
                         return false;
                     }
-
-                    plan->level_count = max(plan->level_count, task_info->level_index + 1);
                 }
+
+                Level* level = Vector_get_ref(plan->levels, task_info->level_index);
 
                 if (!Level_add_task_info(level, task_info))
                     return false;
@@ -606,39 +606,32 @@ static bool Mixed_signal_plan_finalise(Mixed_signal_plan* plan)
     plan->build_task_infos = NULL;
 
     // Remove empty levels
-    int read_pos = 0;
-    int write_pos = 0;
-    while (read_pos < plan->level_count)
+    int64_t level_index = 0;
+    while (level_index < Vector_size(plan->levels))
     {
-        Level* level = Etable_get(plan->levels, read_pos);
-        if (level != NULL)
+        Level* level = Vector_get_ref(plan->levels, level_index);
+        if (Level_is_empty(level))
         {
-            if (write_pos < read_pos)
-            {
-                rassert(Etable_get(plan->levels, write_pos) == NULL);
-                Etable_pop(plan->levels, read_pos);
-                Etable_set(plan->levels, write_pos, level);
-            }
-
-            ++write_pos;
+            Level_deinit(Vector_get_ref(plan->levels, level_index));
+            Vector_remove_at(plan->levels, level_index);
         }
-
-        ++read_pos;
+        else
+        {
+            ++level_index;
+        }
     }
 
-    plan->level_count = write_pos;
-
 #if 0
-    for (int li = plan->level_count - 1; li >= 0; --li)
+    for (int li = Vector_size(plan->levels) - 1; li >= 0; --li)
     {
-        const Level* level = Etable_get(plan->levels, li);
+        const Level* level = Vector_get_ref(plan->levels, li);
         if (level == NULL)
             continue;
 
         fprintf(stdout, "Level %d:\n", li);
-        for (int ti = 0; ti < level->task_count; ++ti)
+        for (int ti = 0; ti < Vector_size(level->tasks); ++ti)
         {
-            const Mixed_signal_task_info* tinfo = Etable_get(level->tasks, ti);
+            const Mixed_signal_task_info* tinfo = Vector_get_ref(level->tasks, ti);
             rassert(tinfo != NULL);
 
             fprintf(stdout, " Task %d", ti);
@@ -693,7 +686,6 @@ Mixed_signal_plan* new_Mixed_signal_plan(
         return NULL;
 
     // Sanitise fields
-    plan->level_count = 0;
     plan->levels = NULL;
     plan->build_task_infos = NULL;
     plan->dstates = dstates;
@@ -701,7 +693,7 @@ Mixed_signal_plan* new_Mixed_signal_plan(
     plan->iter_task_index = 0;
 
     // Initialise
-    plan->levels = new_Etable(MAX_LEVELS, (void(*)(void*))del_Level);
+    plan->levels = new_Vector(sizeof(Level));
     plan->build_task_infos = new_AAtree(
             (AAtree_item_cmp*)Mixed_signal_task_info_cmp,
             (AAtree_item_destroy*)del_Mixed_signal_task_info);
@@ -720,7 +712,7 @@ Mixed_signal_plan* new_Mixed_signal_plan(
 int Mixed_signal_plan_get_level_count(const Mixed_signal_plan* plan)
 {
     rassert(plan != NULL);
-    return plan->level_count;
+    return (int)Vector_size(plan->levels);
 }
 
 
@@ -728,7 +720,7 @@ void Mixed_signal_plan_reset(Mixed_signal_plan* plan)
 {
     rassert(plan != NULL);
 
-    plan->iter_level_index = plan->level_count - 1;
+    plan->iter_level_index = (int)Vector_size(plan->levels) - 1;
     plan->iter_task_index = 0;
 
     return;
@@ -746,12 +738,12 @@ void Mixed_signal_plan_execute_all_tasks(
     rassert(frame_count >= 0);
     rassert(tempo > 0);
 
-    for (int level_index = plan->level_count - 1; level_index >= 0; --level_index)
+    const int64_t level_count = Vector_size(plan->levels);
+    for (int64_t level_index = level_count - 1; level_index >= 0; --level_index)
     {
-        const Level* level = Etable_get(plan->levels, level_index);
-        rassert(level != NULL);
+        const Level* level = Vector_get_ref(plan->levels, level_index);
 
-        int64_t task_count = Vector_size(level->tasks);
+        const int64_t task_count = Vector_size(level->tasks);
         for (int64_t task_index = 0; task_index < task_count; ++task_index)
         {
             const Mixed_signal_task_info* task_info =
@@ -770,8 +762,14 @@ void del_Mixed_signal_plan(Mixed_signal_plan* plan)
     if (plan == NULL)
         return;
 
+    if (plan->levels != NULL)
+    {
+        for (int64_t i = 0; i < Vector_size(plan->levels); ++i)
+            Level_deinit(Vector_get_ref(plan->levels, i));
+    }
+
+    del_Vector(plan->levels);
     del_AAtree(plan->build_task_infos);
-    del_Etable(plan->levels);
     memory_free(plan);
 
     return;
