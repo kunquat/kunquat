@@ -2,7 +2,7 @@
 # coding=utf-8
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2012-2017
+# Author: Tomi Jylhä-Ollila, Finland 2012-2019
 #
 # This file is part of Kunquat.
 #
@@ -73,7 +73,7 @@ def run_test(program):
     name = os.path.basename(program)
     beater = threading.Thread(target=show_beat, args=(q, name, 4, 10))
 
-    command = 'valgrind --leak-check=full --show-reachable=yes ' + program
+    command = 'valgrind --leak-check=full --show-leak-kinds=all ' + program
     try:
         beater.start()
         output = str(
