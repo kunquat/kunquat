@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2017
+ * Author: Tomi Jylhä-Ollila, Finland 2017-2019
  *
  * This file is part of Kunquat.
  *
@@ -34,16 +34,6 @@
  */
 Mixed_signal_plan* new_Mixed_signal_plan(
         Device_states* dstates, const Connections* conns);
-
-
-/**
- * Get the number of levels in the Mixed signal plan.
- *
- * \param plan   The Mixed signal plan -- must not be \c NULL.
- *
- * \return   The number of levels in \a plan.
- */
-int Mixed_signal_plan_get_level_count(const Mixed_signal_plan* plan);
 
 
 /**
