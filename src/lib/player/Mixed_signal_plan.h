@@ -37,43 +37,7 @@ Mixed_signal_plan* new_Mixed_signal_plan(
 
 
 /**
- * Reset the Mixed signal plan.
- *
- * \param plan   The Mixed signal plan -- must not be \c NULL.
- */
-void Mixed_signal_plan_reset(Mixed_signal_plan* plan);
-
-
-#ifdef ENABLE_THREADS
-/**
- * Execute a task in the Mixed signal plan.
- *
- * \param plan          The Mixed signal plan -- must not be \c NULL.
- * \param level_index   The level index of execution -- must be >= \c 0 and
- *                      < Mixed_signal_plan_get_level_count(\a plan). Additionally,
- *                      the first level to be executed must be exactly
- *                      Mixed_signal_plan_get_level_count(\a plan) - 1, and
- *                      \a level must decrease by \c 1 after each time this function
- *                      returns \c false.
- * \param wbs           The Work buffers -- must not be \c NULL.
- * \param frame_count   Number of frames to be processed -- must not be greater than
- *                      the buffer size.
- * \param tempo         The current tempo -- must be > \c 0.
- *
- * \return   \c true if there may be more tasks left to be executed in
- *           \a level, otherwise \c false.
- */
-bool Mixed_signal_plan_execute_next_task(
-        Mixed_signal_plan* plan,
-        int level_index,
-        Work_buffers* wbs,
-        int32_t frame_count,
-        double tempo);
-#endif
-
-
-/**
- * Execute all tasks in the Mixed signal plan using a single thread.
+ * Execute all tasks in the Mixed signal plan.
  *
  * \param plan          The Mixed signal plan -- must not be \c NULL.
  * \param wbs           The Work buffers -- must not be \c NULL.

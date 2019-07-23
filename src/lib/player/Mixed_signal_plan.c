@@ -657,45 +657,6 @@ static bool Mixed_signal_plan_finalise(Mixed_signal_plan* plan)
         }
     }
 
-    // Replace device IDs of sender tasks with task info array indices
-    {
-        int64_t task_count = Vector_size(plan->tasks);
-        for (int64_t ti = 0; ti < task_count; ++ti)
-        {
-            Mixed_signal_task_info* task_info = Vector_get_ref(plan->tasks, ti);
-
-            int64_t sender_index = 0;
-            while (sender_index < Vector_size(task_info->sender_tasks))
-            {
-                uint32_t* sender_id =
-                    Vector_get_ref(task_info->sender_tasks, sender_index);
-
-                int64_t sender_ti = ti - 1;
-                while (sender_ti >= 0)
-                {
-                    const Mixed_signal_task_info* sender_task =
-                        Vector_get_ref(plan->tasks, sender_ti);
-                    if (sender_task->device_id == *sender_id)
-                        break;
-                    --sender_ti;
-                }
-
-                if (sender_ti >= 0)
-                {
-                    *sender_id = (uint32_t)sender_ti;
-                    ++sender_index;
-                }
-                else
-                {
-                    // Sender is a voice signal processor, so exclude from dependencies
-                    Vector_remove_at(task_info->sender_tasks, sender_index);
-                }
-            }
-        }
-    }
-
-    Mixed_signal_plan_reset(plan);
-
     return true;
 }
 
@@ -742,48 +703,6 @@ Mixed_signal_plan* new_Mixed_signal_plan(
 
     return plan;
 }
-
-
-void Mixed_signal_plan_reset(Mixed_signal_plan* plan)
-{
-    rassert(plan != NULL);
-
-    return;
-}
-
-
-#if 0
-void Mixed_signal_plan_execute_all_tasks_parallel(
-        Mixed_signal_plan* plan,
-        Work_buffers* wbs,
-        int32_t frame_count,
-        double tempo)
-{
-    rassert(plan != NULL);
-    rassert(wbs != NULL);
-    rassert(frame_count >= 0);
-    rassert(tempo > 0);
-
-    while (true)
-    {
-        // TODO: Find tasks that can be added to our work queue
-
-        bool any_tasks_left = false;
-        if (!any_tasks_left)
-            break;
-
-        // TODO: What if we couldn't add new tasks for execution yet?
-
-        // TODO: Notify workers that there are more tasks
-
-        // TODO: Wait for one of the workers to finish
-    }
-
-    // TODO: Wait until all workers have finished
-
-    return;
-}
-#endif
 
 
 void Mixed_signal_plan_execute_all_tasks(
