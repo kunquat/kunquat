@@ -46,7 +46,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
 
 
 #ifdef ENABLE_THREADS
@@ -1199,18 +1198,6 @@ static void Player_process_voice_groups_synced(
         }
     }
 
-#if 0
-    Voice_group* vgroup = VOICE_GROUP_AUTO;
-
-    Voice_group* vg = Voice_pool_get_next_group_synced(player->voices, vgroup);
-    while (vg != NULL)
-    {
-        Player_process_voice_group(player, tparams, vg, frame_count, stats);
-
-        vg = Voice_pool_get_next_group_synced(player->voices, vgroup);
-    }
-#endif
-
     tparams->active_voices = stats->voice_count;
     tparams->active_vgroups = stats->vgroup_count;
 
@@ -1689,19 +1676,8 @@ static void Player_init_final(Player* player)
 }
 
 
-static clock_t voice_time = 0;
-static clock_t mixed_time = 0;
-static clock_t total_time = 0;
-
-static clock_t total_time_at_voice_max = 0;
-static clock_t voice_time_max = 0;
-
-
 void Player_play(Player* player, int32_t nframes)
 {
-    clock_t cur_voice_time = 0;
-    const clock_t total_start_time = clock();
-
     rassert(player != NULL);
     rassert(player->audio_buffer_size > 0);
     rassert(nframes >= 0);
@@ -1753,24 +1729,14 @@ void Player_play(Player* player, int32_t nframes)
         }
 
         // Process voices
-        const clock_t voice_start_time = clock();
         Player_process_voices(player, to_be_rendered);
-        const clock_t voice_end_time = clock();
-        rassert(voice_start_time <= voice_end_time);
-        const clock_t this_voice_time = (voice_end_time - voice_start_time);
-        cur_voice_time += this_voice_time;
-        voice_time += this_voice_time;
 
         if (!Event_buffer_is_skipping(player->event_buffer))
             Voice_group_reservations_init(&player->voice_group_res);
 
         // Process mixed signals in the connection graph
         {
-            const clock_t mixed_start_time = clock();
             Player_process_mixed_signals(player, to_be_rendered);
-            const clock_t mixed_end_time = clock();
-            rassert(mixed_start_time <= mixed_end_time);
-            mixed_time += (mixed_end_time - mixed_start_time);
 
             Player_apply_master_volume(player, to_be_rendered);
 
@@ -1831,16 +1797,6 @@ void Player_play(Player* player, int32_t nframes)
     player->audio_frames_processed += rendered;
 
     player->events_returned = false;
-
-    const clock_t total_end_time = clock();
-    rassert(total_start_time <= total_end_time);
-    total_time += (total_end_time - total_start_time);
-
-    if (cur_voice_time > voice_time_max)
-    {
-        voice_time_max = cur_voice_time;
-        total_time_at_voice_max = total_end_time - total_start_time;
-    }
 
     return;
 }
@@ -2118,24 +2074,6 @@ void del_Player(Player* player)
     del_Event_buffer(player->event_buffer);
     del_Env_state(player->estate);
     del_Device_states(player->device_states);
-
-    /*
-    {
-        const double voice_time_s = (double)voice_time / (double)CLOCKS_PER_SEC;
-        const double mixed_time_s = (double)mixed_time / (double)CLOCKS_PER_SEC;
-        const double total_time_s = (double)total_time / (double)CLOCKS_PER_SEC;
-
-        fprintf(stderr, "Voice time: %.2f seconds (%.1f%% of total)\n",
-                voice_time_s, 100 * voice_time_s / total_time_s);
-        fprintf(stderr, "Mixed time: %.2f seconds (%.1f%% ot total)\n",
-                mixed_time_s, 100 * mixed_time_s / total_time_s);
-        fprintf(stderr, "Total time: %.2f seconds (%.1f%% signal processing time)\n",
-                total_time_s, 100 * (voice_time_s + mixed_time_s) / total_time_s);
-
-        fprintf(stderr, "Peak voice utilisation: %.1f%%\n",
-                100.0 * (double)voice_time_max / (double)total_time_at_voice_max);
-    }
-    */
 
     memory_free(player->audio_buffer);
 
