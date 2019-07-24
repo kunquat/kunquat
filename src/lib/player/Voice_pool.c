@@ -20,7 +20,7 @@
 #include <player/Voice_work_buffers.h>
 #include <threads/Mutex.h>
 
-#if ENABLE_THREADS
+#ifdef ENABLE_THREADS
 #include <stdatomic.h>
 #endif
 
@@ -32,7 +32,7 @@
 
 struct Voice_pool
 {
-#if ENABLE_THREADS
+#ifdef ENABLE_THREADS
     atomic_int_least16_t atomic_bg_iter_index;
 #endif
 
@@ -70,7 +70,7 @@ Voice_pool* new_Voice_pool(int size)
     if (pool == NULL)
         return NULL;
 
-#if ENABLE_THREADS
+#ifdef ENABLE_THREADS
     pool->atomic_bg_iter_index = 0;
 #endif
 
@@ -503,7 +503,7 @@ void Voice_pool_start_group_iteration(Voice_pool* pool)
 
     // Initialise background iteration info
     {
-#if ENABLE_THREADS
+#ifdef ENABLE_THREADS
         pool->atomic_bg_iter_index = 0;
 #endif
         pool->bg_iter_index = 0;
@@ -589,7 +589,7 @@ Voice_group* Voice_pool_get_next_bg_group(Voice_pool* pool, Voice_group* vgroup)
 }
 
 
-#if ENABLE_THREADS
+#ifdef ENABLE_THREADS
 Voice_group* Voice_pool_get_next_bg_group_synced(Voice_pool* pool, Voice_group* vgroup)
 {
     rassert(pool != NULL);
@@ -790,7 +790,7 @@ void Voice_pool_finish_group_iteration(Voice_pool* pool)
         }
     }
 
-#if ENABLE_THREADS
+#ifdef ENABLE_THREADS
     pool->atomic_bg_iter_index = 0;
 #endif
     pool->bg_iter_index = 0;
