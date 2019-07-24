@@ -19,7 +19,6 @@ from itertools import cycle, chain
 import json
 import locale
 import math
-import multiprocessing
 import os.path
 import random
 import string
@@ -29,7 +28,7 @@ import time
 
 from kunquat.kunquat.file import KqtFile
 from kunquat.kunquat.kunquat import Kunquat, KunquatError
-from kunquat.extras import pulseaudio
+from kunquat.extras import pulseaudio, processors
 
 
 PROGRAM_NAME = 'kunquat-player'
@@ -370,13 +369,7 @@ def option_error(msg):
 
 
 def get_default_thread_count():
-    try:
-        cpus = multiprocessing.cpu_count()
-    except NotImplementedError:
-        cpus = 1
-    if cpus <= 2:
-        return max(1, cpus)
-    return min(max(2, math.ceil(cpus / 2)), 32)
+    return processors.get_core_count()
 
 
 def main():
