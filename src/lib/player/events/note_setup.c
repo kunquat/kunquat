@@ -41,10 +41,8 @@ static bool reserve_voice(
     if (!Proc_state_needs_vstate(proc_state))
         return false;
 
-    Voice* voice = Voice_pool_get_voice(ch->pool, group_id);
-    rassert(voice != NULL);
-    Voice_reserve(voice, group_id, is_external ? -1 : ch->num);
-
+    Voice* voice = Voice_pool_allocate_voice(ch->pool, ch->num, group_id, is_external);
+    ignore(voice);
     //fprintf(stderr, "reserved Voice %p\n", (void*)voice);
 
     return true;
@@ -92,8 +90,6 @@ bool reserve_voices(
 
             Voice_group_reservations_add_entry(
                     ch->voice_group_res, ch->num, new_group_id);
-
-            Voice_pool_sort_groups(ch->pool); // TODO: don't do this for every note
         }
     }
     else if (event_type == Event_channel_hit)
@@ -132,8 +128,6 @@ bool reserve_voices(
 
                 Voice_group_reservations_add_entry(
                         ch->voice_group_res, ch->num, new_group_id);
-
-                Voice_pool_sort_groups(ch->pool); // TODO: don't do this for every note
             }
         }
     }
@@ -177,7 +171,7 @@ bool init_voice(
     rassert(strlen(ch_expr) <= KQT_VAR_NAME_MAX);
     rassert(strlen(note_expr) <= KQT_VAR_NAME_MAX);
 
-    Voice_init(
+    Voice_start(
             voice,
             Audio_unit_get_proc(au, proc_num),
             proc_state,

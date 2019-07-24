@@ -64,8 +64,6 @@ struct Player
     Condition start_cond;
     Barrier vgroups_start_barrier;
     Barrier vgroups_finished_barrier;
-    Barrier mixed_start_barrier;
-    Barrier mixed_level_finished_barrier;
     Thread threads[KQT_THREADS_MAX];
     bool ok_to_start;
     bool early_exit_threads;

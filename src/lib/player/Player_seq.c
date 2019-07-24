@@ -211,11 +211,23 @@ void Player_process_event(
                             type,
                             arg,
                             external);
+
+                    Voice_pool_sort_fg_groups(player->channels[ch_num]->pool);
                 }
             }
 
             Event_handler_trigger(
                 player->event_handler, ch_num, event_name, arg, external);
+
+            if (!skip)
+            {
+                if ((type == Event_channel_note_on) ||
+                        (type == Event_channel_hit) ||
+                        (type == Event_channel_note_off))
+                {
+                    Voice_pool_clean_up_fg_voices(player->channels[ch_num]->pool);
+                }
+            }
         }
         else
         {
@@ -602,7 +614,7 @@ bool Player_check_perform_goto(Player* player)
 }
 
 
-void Player_process_cgiters(Player* player, Tstamp* limit, bool skip)
+static void Player_process_cgiters(Player* player, Tstamp* limit, bool skip)
 {
     rassert(player != NULL);
     rassert(!Player_has_stopped(player));

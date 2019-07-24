@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2018
+# Author: Tomi Jylhä-Ollila, Finland 2014-2019
 #
 # This file is part of Kunquat.
 #
@@ -48,6 +48,10 @@ def test_add_libkunquat_external_deps(builder, options, cc):
     conf_errors = []
 
     if options.enable_threads:
+        if not _test_header(builder, cc, 'stdatomic.h'):
+            conf_errors.append('Multithreading support was requested'
+                    ' but stdatomic.h was not found.')
+
         if options.with_pthread:
             if _test_header(builder, cc, 'pthread.h'):
                 cc.add_compile_flag('-pthread')

@@ -51,9 +51,6 @@ bool Player_check_perform_goto(Player* player);
 // TODO: Implement Player_check_perform_jump
 
 
-void Player_process_cgiters(Player* player, Tstamp* limit, bool skip);
-
-
 void Player_update_sliders_and_lfos_tempo(Player* player);
 
 

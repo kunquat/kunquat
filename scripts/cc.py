@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2018
+# Author: Tomi Jylhä-Ollila, Finland 2014-2019
 #
 # This file is part of Kunquat.
 #
@@ -70,7 +70,7 @@ class GccCommand():
     def __init__(self):
         self._cmd = 'gcc'
         self._compile_flags = [
-                '-std=c99',
+                '-std=c11',
                 '-pedantic',
                 '-Wall',
                 '-Wextra',
@@ -177,7 +177,7 @@ class ClangCommand():
     def __init__(self):
         self._cmd = 'clang'
         self._compile_flags = [
-            '-std=c99',
+            '-std=c11',
             '-Weverything',
             '-Werror',
             '-Wno-unknown-warning-option',

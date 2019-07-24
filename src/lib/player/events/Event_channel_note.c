@@ -206,7 +206,8 @@ bool Event_channel_note_on_process(
 
     if (!Voice_group_reservations_get_clear_entry(
                 ch->voice_group_res, ch->num, &ch->fg_group_id) ||
-            (Voice_pool_get_group(ch->pool, ch->fg_group_id, vgroup) == NULL))
+            (Voice_pool_get_fg_group(
+                    ch->pool, ch->num, ch->fg_group_id, vgroup) == NULL))
     {
         reset_channel_voices(ch);
         return true;
@@ -312,7 +313,8 @@ bool Event_channel_hit_process(
 
     if (!Voice_group_reservations_get_clear_entry(
                 ch->voice_group_res, ch->num, &ch->fg_group_id) ||
-            (Voice_pool_get_group(ch->pool, ch->fg_group_id, vgroup) == NULL))
+            (Voice_pool_get_fg_group(
+                    ch->pool, ch->num, ch->fg_group_id, vgroup) == NULL))
     {
         reset_channel_voices(ch);
         return true;

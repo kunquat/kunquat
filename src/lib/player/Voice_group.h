@@ -162,6 +162,16 @@ int Voice_group_get_ch_num(const Voice_group* vg);
 
 
 /**
+ * Find out if the Voice group was created via an external event.
+ *
+ * \param vg   The Voice group -- must not be \c NULL.
+ *
+ * \return   \c true if created in response an external event, otherwise \c false.
+ */
+bool Voice_group_is_external(const Voice_group* vg);
+
+
+/**
  * Add Voice signals to mixed signal input buffers.
  *
  * \param vgroup      The Voice group -- must not be \c NULL.

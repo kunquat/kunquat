@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2018
+# Author: Tomi Jylhä-Ollila, Finland 2014-2019
 #
 # This file is part of Kunquat.
 #
@@ -11,6 +11,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+from kunquat.extras import processors
 from kunquat.kunquat.limits import *
 
 import argparse
@@ -99,12 +100,6 @@ def _rindex(ls, elem):
     return -1 - list(reversed(ls)).index(elem)
 
 def get_default_thread_count():
-    try:
-        cpus = multiprocessing.cpu_count()
-    except NotImplementedError:
-        cpus = 1
-    if cpus <= 2:
-        return max(1, cpus)
-    return min(max(2, math.ceil(cpus / 2)), THREADS_MAX)
+    return processors.get_core_count()
 
 
