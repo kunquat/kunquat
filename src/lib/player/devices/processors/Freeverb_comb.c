@@ -81,9 +81,14 @@ void Freeverb_comb_process(
     const float* in = in_buf;
     float* out = out_buf;
 
+    float* c_buffer = comb->buffer;
+    int32_t c_buffer_pos = comb->buffer_pos;
+    const int32_t c_buffer_size = comb->buffer_size;
+    float c_filter_store = comb->filter_store;
+
     for (int32_t i = 0; i < frame_count; ++i)
     {
-        float output = comb->buffer[comb->buffer_pos];
+        float output = c_buffer[c_buffer_pos];
 #if !KQT_SSE
         output = undenormalise(output);
 #endif
@@ -92,20 +97,23 @@ void Freeverb_comb_process(
 
         const float refl = refls[i];
 
-        comb->filter_store = (output * damp2) + (comb->filter_store * damp1);
+        c_filter_store = (output * damp2) + (c_filter_store * damp1);
 #if !KQT_SSE
-        comb->filter_store = undenormalise(comb->filter_store);
+        c_filter_store = undenormalise(c_filter_store);
 #endif
-        comb->buffer[comb->buffer_pos] = *in + (comb->filter_store * refl);
+        c_buffer[c_buffer_pos] = *in + (c_filter_store * refl);
 
         ++in;
 
         *out++ += output;
 
-        ++comb->buffer_pos;
-        if (comb->buffer_pos >= comb->buffer_size)
-            comb->buffer_pos = 0;
+        ++c_buffer_pos;
+        if (c_buffer_pos >= c_buffer_size)
+            c_buffer_pos = 0;
     }
+
+    comb->buffer_pos = c_buffer_pos;
+    comb->filter_store = c_filter_store;
 
     return;
 }
