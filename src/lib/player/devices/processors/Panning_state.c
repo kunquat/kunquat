@@ -105,8 +105,8 @@ static void apply_panning(
             if (!Work_buffer_is_valid(in_wbs[ch]) || (out_wbs[ch] == NULL))
                 continue;
 
-            const float* in = Work_buffer_get_contents(in_wbs[ch]);
-            float* out = Work_buffer_get_contents_mut(out_wbs[ch]);
+            const float* in = Work_buffer_get_contents(in_wbs[ch]) + pan_const_start;
+            float* out = Work_buffer_get_contents_mut(out_wbs[ch]) + pan_const_start;
             const float pan = pans[ch];
 
             for (int32_t i = pan_const_start; i < frame_count; ++i)
