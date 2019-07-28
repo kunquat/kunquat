@@ -266,6 +266,91 @@ static const int KS_WB_FIXED_EXCITATION  = WORK_BUFFER_IMPL_3;
 static const int KS_WB_FIXED_DAMP        = WORK_BUFFER_IMPL_4;
 
 
+static int32_t get_next_xfade_start_index(
+        const Work_buffer* pitches_wb,
+        const float damps[],
+        const Read_state* read_state,
+        int32_t search_start_index,
+        int32_t frame_count,
+        float* next_pitch,
+        float* next_damp)
+{
+    rassert(pitches_wb != NULL);
+    rassert(damps != NULL);
+    rassert(read_state != NULL);
+    rassert(search_start_index >= 0);
+    rassert(frame_count > 0);
+    rassert(next_pitch != NULL);
+    rassert(next_damp != NULL);
+
+    if (search_start_index >= frame_count)
+    {
+        rassert(search_start_index == frame_count);
+        return frame_count;
+    }
+
+    const int32_t const_pitch_start = Work_buffer_get_const_start(pitches_wb);
+    const float* pitches = Work_buffer_get_contents(pitches_wb);
+
+    const int32_t pitch_var_stop = min(const_pitch_start, frame_count);
+
+    const float cur_pitch = read_state->pitch;
+    const float cur_damp = read_state->damp;
+
+    {
+        const float max_pitch_diff = 0.1f;
+        const float max_damp_diff = 0.001f;
+
+        for (int32_t i = search_start_index; i < pitch_var_stop; ++i)
+        {
+            const float pitch = pitches[i];
+            const float damp = damps[i];
+            const float clamped_damp = clamp(damp, KS_MIN_DAMP, KS_MAX_DAMP);
+
+            if ((fabs(pitch - cur_pitch) > max_pitch_diff) ||
+                    (fabs(clamped_damp - cur_damp) > max_damp_diff))
+            {
+                *next_pitch = pitch;
+                *next_damp = clamped_damp;
+                return i;
+            }
+        }
+    }
+
+    if (pitch_var_stop < frame_count)
+    {
+        const float pitch = pitches[pitch_var_stop];
+
+        const float max_pitch_diff = 0.001f;
+        if (fabs(pitch - cur_pitch) > max_pitch_diff)
+        {
+            const int32_t index = max(pitch_var_stop, search_start_index);
+            *next_pitch = pitch;
+            const float damp = damps[index];
+            *next_damp = clamp(damp, KS_MIN_DAMP, KS_MAX_DAMP);
+            return index;
+        }
+
+        const float max_damp_diff = 0.001f;
+
+        for (int32_t i = max(pitch_var_stop, search_start_index); i < frame_count; ++i)
+        {
+            const float damp = damps[i];
+            const float clamped_damp = clamp(damp, KS_MIN_DAMP, KS_MAX_DAMP);
+
+            if (fabs(clamped_damp - cur_damp) > max_damp_diff)
+            {
+                *next_pitch = pitch;
+                *next_damp = clamped_damp;
+                return i;
+            }
+        }
+    }
+
+    return frame_count;
+}
+
+
 int32_t Ks_vstate_render_voice(
         Voice_state* vstate,
         Proc_state* proc_state,
@@ -286,7 +371,14 @@ int32_t Ks_vstate_render_voice(
     const Device_state* dstate = &proc_state->parent;
     const Proc_ks* ks = (const Proc_ks*)proc_state->parent.device->dimpl;
 
-    const int32_t audio_rate = dstate->audio_rate;
+    const int32_t system_audio_rate = dstate->audio_rate;
+    int32_t ks_audio_rate = system_audio_rate;
+    if (ks->audio_rate_range_enabled)
+    {
+        const int32_t max_rate = max(ks->audio_rate_range_min, ks->audio_rate_range_max);
+        ks_audio_rate = clamp(system_audio_rate, ks->audio_rate_range_min, max_rate);
+    }
+    //const bool resampling_needed = (ks_audio_rate != system_audio_rate);
 
     Ks_vstate* ks_vstate = (Ks_vstate*)vstate;
 
@@ -296,18 +388,6 @@ int32_t Ks_vstate_render_voice(
     if (out_wb == NULL)
         return 0;
     float* out_buf = Work_buffer_get_contents_mut(out_wb);
-
-    // Get frequencies
-    const Work_buffer* pitches_wb = Device_thread_state_get_voice_buffer(
-            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_PITCH);
-    if (!Work_buffer_is_valid(pitches_wb))
-    {
-        Work_buffer* fixed_pitches_wb =
-            Work_buffers_get_buffer_mut(wbs, KS_WB_FIXED_PITCH);
-        Work_buffer_clear(fixed_pitches_wb, 0, frame_count);
-        pitches_wb = fixed_pitches_wb;
-    }
-    const float* pitches = Work_buffer_get_contents(pitches_wb);
 
     // Get volume scales
     Work_buffer* scales_wb = Device_thread_state_get_voice_buffer(
@@ -322,6 +402,18 @@ int32_t Ks_vstate_render_voice(
         vstate->active = false;
         return 0;
     }
+
+    // Get frequencies
+    const Work_buffer* pitches_wb = Device_thread_state_get_voice_buffer(
+            proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_PITCH);
+    if (!Work_buffer_is_valid(pitches_wb))
+    {
+        Work_buffer* fixed_pitches_wb =
+            Work_buffers_get_buffer_mut(wbs, KS_WB_FIXED_PITCH);
+        Work_buffer_clear(fixed_pitches_wb, 0, frame_count);
+        pitches_wb = fixed_pitches_wb;
+    }
+    const float* pitches = Work_buffer_get_contents(pitches_wb);
 
     if (!Work_buffer_is_valid(scales_wb))
         scales_wb = Work_buffers_get_buffer_mut(wbs, KS_WB_FIXED_FORCE);
@@ -375,52 +467,62 @@ int32_t Ks_vstate_render_voice(
                 pitches[0],
                 ks_vstate->write_pos,
                 delay_wb_size,
-                audio_rate);
+                ks_audio_rate);
     }
 
     int32_t write_pos = ks_vstate->write_pos;
     float* delay_buf = Work_buffer_get_contents_mut(delay_wb);
 
     const double xfade_speed = 1000.0;
-    const double xfade_step = xfade_speed / audio_rate;
+    const double xfade_step = xfade_speed / ks_audio_rate;
+
+    int32_t next_xfade_start_index = 0;
+    float next_pitch = ks_vstate->read_states[ks_vstate->primary_read_state].pitch;
+    float next_damp = ks_vstate->read_states[ks_vstate->primary_read_state].damp;
+    if (!ks_vstate->is_xfading)
+    {
+        Read_state* primary_rs =
+            &ks_vstate->read_states[ks_vstate->primary_read_state];
+
+        next_xfade_start_index = get_next_xfade_start_index(
+                pitches_wb, damps, primary_rs, 0, frame_count, &next_pitch, &next_damp);
+    }
 
     for (int32_t i = 0; i < frame_count; ++i)
     {
-        const float pitch = pitches[i];
-        const float scale = scales[i];
         const float excitation = excits[i];
-        const float damp = damps[i];
 
         if (!ks_vstate->is_xfading)
         {
-            const int32_t const_pitch_start = Work_buffer_get_const_start(pitches_wb);
-            const float max_pitch_diff = (i < const_pitch_start) ? 0.1f : 0.001f;
-
-            const float max_damp_diff = 0.001f;
-
-            const float clamped_damp = clamp(damp, KS_MIN_DAMP, KS_MAX_DAMP);
-
-            Read_state* primary_rs =
-                &ks_vstate->read_states[ks_vstate->primary_read_state];
-            if (fabs(pitch - primary_rs->pitch) > max_pitch_diff ||
-                    fabs(clamped_damp - primary_rs->damp) > max_damp_diff)
+            if (i >= next_xfade_start_index)
             {
+                rassert(i == next_xfade_start_index);
+
+                /*
+                const float pitch = pitches[i];
+                const float damp = damps[i];
+                const float clamped_damp = clamp(damp, KS_MIN_DAMP, KS_MAX_DAMP);
+                */
+
+                Read_state* primary_rs =
+                    &ks_vstate->read_states[ks_vstate->primary_read_state];
+
                 Read_state* other_rs =
                     &ks_vstate->read_states[1 - ks_vstate->primary_read_state];
 
                 // Instantaneous slides to lower pitches don't work very well,
                 // so limit the step length when sliding downwards
                 const float min_pitch = primary_rs->pitch - 200.0f;
-                const float cur_target_pitch = max(min_pitch, pitch);
+                const float cur_target_pitch = max(min_pitch, next_pitch);
 
                 Read_state_copy(other_rs, primary_rs);
                 Read_state_modify(
                         other_rs,
                         cur_target_pitch,
-                        clamped_damp,
+                        next_damp,
                         write_pos,
                         delay_wb_size,
-                        audio_rate);
+                        ks_audio_rate);
 
                 ks_vstate->primary_read_state = 1 - ks_vstate->primary_read_state;
                 ks_vstate->is_xfading = true;
@@ -454,10 +556,23 @@ int32_t Ks_vstate_render_voice(
 
             ks_vstate->xfade_progress += xfade_step;
             if (ks_vstate->xfade_progress >= 1.0)
+            {
                 ks_vstate->is_xfading = false;
+
+                Read_state* primary_rs =
+                    &ks_vstate->read_states[ks_vstate->primary_read_state];
+                next_xfade_start_index = get_next_xfade_start_index(
+                        pitches_wb,
+                        damps,
+                        primary_rs,
+                        i + 1,
+                        frame_count,
+                        &next_pitch,
+                        &next_damp);
+            }
         }
 
-        out_buf[i] = value * scale;
+        out_buf[i] = value;
 
         delay_buf[write_pos] = value;
 
@@ -465,6 +580,9 @@ int32_t Ks_vstate_render_voice(
         if (write_pos >= delay_wb_size)
             write_pos = 0;
     }
+
+    for (int32_t i = 0; i < frame_count; ++i)
+        out_buf[i] *= scales[i];
 
     ks_vstate->write_pos = write_pos;
 
