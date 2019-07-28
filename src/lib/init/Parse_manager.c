@@ -1108,6 +1108,30 @@ static bool read_any_proc_out_port_manifest(
 }
 
 
+static bool allocate_voice_work_buffers(Reader_params* params, Device_impl* proc_impl)
+{
+    rassert(params != NULL);
+    rassert(proc_impl != NULL);
+
+    const int32_t audio_rate = Player_get_audio_rate(params->handle->player);
+    const int32_t cur_size =
+        Player_get_voice_work_buffer_size(params->handle->player);
+    const int32_t req_size = Device_impl_get_voice_wb_size(proc_impl, audio_rate);
+    if (req_size > cur_size)
+    {
+        if (!Player_reserve_voice_work_buffer_space(
+                    params->handle->player, req_size))
+        {
+            Handle_set_error(params->handle, ERROR_MEMORY,
+                    "Could not allocate memory for voice work buffers");
+            return false;
+        }
+    }
+
+    return true;
+}
+
+
 typedef struct pmdata
 {
     Handle* handle;
@@ -1229,22 +1253,8 @@ static bool read_any_proc_manifest(Reader_params* params, Au_table* au_table, in
     }
 
     // Allocate Voice work buffers
-    {
-        const int32_t audio_rate = Player_get_audio_rate(params->handle->player);
-        const int32_t cur_size =
-            Player_get_voice_work_buffer_size(params->handle->player);
-        const int32_t req_size = Device_impl_get_voice_wb_size(proc_impl, audio_rate);
-        if (req_size > cur_size)
-        {
-            if (!Player_reserve_voice_work_buffer_space(
-                        params->handle->player, req_size))
-            {
-                Handle_set_error(params->handle, ERROR_MEMORY,
-                        "Could not allocate memory for voice work buffers");
-                return false;
-            }
-        }
-    }
+    if (!allocate_voice_work_buffers(params, proc_impl))
+        return false;
 
     // Allocate Device state(s) for this Processor
     Device_state* ds = Device_create_state(
@@ -1372,6 +1382,10 @@ static bool read_any_proc_impl_conf_key(
             (Device*)proc,
             Player_get_device_states(params->handle->player),
             params->subkey);
+
+    Device_impl* dimpl = ((Device*)proc)->dimpl;
+    if ((dimpl != NULL) && !allocate_voice_work_buffers(params, dimpl))
+        return false;
 
     return true;
 }
