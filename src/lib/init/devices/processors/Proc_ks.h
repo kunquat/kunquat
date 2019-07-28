@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2019
  *
  * This file is part of Kunquat.
  *
@@ -23,12 +23,20 @@
 #define KS_MAX_DAMP 100
 #define KS_DEFAULT_DAMP 100
 
+#define KS_MIN_AUDIO_RATE_RANGE 1000
+#define KS_MAX_AUDIO_RATE_RANGE 384000
+#define KS_DEFAULT_AUDIO_RATE_RANGE_MIN 48000
+#define KS_DEFAULT_AUDIO_RATE_RANGE_MAX 48000
+
 
 typedef struct Proc_ks
 {
     Device_impl parent;
 
     double damp;
+    bool audio_rate_range_enabled;
+    int32_t audio_rate_range_min;
+    int32_t audio_rate_range_max;
 } Proc_ks;
 
 
