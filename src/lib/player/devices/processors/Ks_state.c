@@ -225,6 +225,136 @@ static void Read_state_copy(Read_state* restrict dest, const Read_state* restric
 }
 
 
+typedef struct Resample_state
+{
+    // Configuration
+    const Work_buffer* from_wb;
+    Work_buffer* to_wb;
+    int32_t from_rate;
+    int32_t to_rate;
+
+    // State
+    float in_history[2];
+    int32_t from_index;
+    int32_t sub_phase;
+    int32_t to_index;
+} Resample_state;
+
+
+static void Resample_state_init(
+        Resample_state* state, int32_t from_rate, int32_t to_rate)
+{
+    rassert(state != NULL);
+    rassert(from_rate > 0);
+    rassert(to_rate > 0);
+
+    state->from_wb = NULL;
+    state->to_wb = NULL;
+    state->from_rate = from_rate;
+    state->to_rate = to_rate;
+
+    state->in_history[0] = state->in_history[1] = 0;
+
+    state->from_index = 0;
+    state->sub_phase = 0;
+    state->to_index = 0;
+
+    return;
+}
+
+
+static int32_t Resample_state_process(Resample_state* state, int32_t req_process_count)
+{
+    rassert(state != NULL);
+    rassert(state->from_wb != NULL);
+    rassert(state->to_wb != NULL);
+    rassert(state->from_rate > 0);
+    rassert(state->to_rate > 0);
+    rassert(state->from_rate != state->to_rate);
+    rassert(req_process_count > 0);
+
+    const int32_t sub_phase_div = max(state->from_rate, state->to_rate);
+    const int32_t sub_phase_add = min(state->from_rate, state->to_rate);
+
+    int32_t from_index = state->from_index;
+    const int32_t from_size = Work_buffer_get_size(state->from_wb);
+
+    int32_t sub_phase = state->sub_phase;
+
+    int32_t to_index = state->to_index;
+    const int32_t to_size = Work_buffer_get_size(state->to_wb);
+
+    const float* from = Work_buffer_get_contents(state->from_wb);
+    float* to = Work_buffer_get_contents_mut(state->to_wb);
+
+    float* in_history = state->in_history;
+
+    // TODO: Implement sinc interpolation
+
+    int32_t processed_count = 0;
+
+    if (state->to_rate < state->from_rate)
+    {
+        // Downsample
+        rassert(from_index + req_process_count <= from_size);
+
+        for (int32_t i = 0; i < req_process_count; ++i)
+        {
+            in_history[0] = in_history[1];
+            in_history[1] = from[from_index];
+
+            ++from_index;
+
+            sub_phase += sub_phase_add;
+            if (sub_phase >= sub_phase_div)
+            {
+                sub_phase -= sub_phase_div;
+                const float lerp_t = 1.0f - ((float)sub_phase / (float)sub_phase_div);
+                to[to_index] = lerp(in_history[0], in_history[1], lerp_t);
+
+                ++to_index;
+            }
+        }
+
+        processed_count = req_process_count;
+    }
+    else
+    {
+        // Upsample
+        const int32_t max_process_count = to_size - to_index;
+        rassert(max_process_count > 0);
+        const int32_t actual_process_count = min(req_process_count, max_process_count);
+
+        for (int32_t i = 0; i < actual_process_count; ++i)
+        {
+            sub_phase += sub_phase_add;
+            if (sub_phase >= sub_phase_div)
+            {
+                sub_phase -= sub_phase_div;
+
+                in_history[0] = in_history[1];
+                in_history[1] = from[from_index];
+
+                ++from_index;
+            }
+
+            const float lerp_t = (float)sub_phase / (float)sub_phase_div;
+            to[to_index] = lerp(in_history[0], in_history[1], lerp_t);
+
+            ++to_index;
+        }
+
+        processed_count = actual_process_count;
+    }
+
+    state->from_index = from_index;
+    state->sub_phase = sub_phase;
+    state->to_index = to_index;
+
+    return processed_count;
+}
+
+
 typedef struct Ks_vstate
 {
     Voice_state parent;
@@ -234,6 +364,8 @@ typedef struct Ks_vstate
     bool is_xfading;
     double xfade_progress;
     Read_state read_states[2];
+    Resample_state excit_resample_state;
+    Resample_state output_resample_state;
 } Ks_vstate;
 
 
@@ -241,29 +373,6 @@ int32_t Ks_vstate_get_size(void)
 {
     return sizeof(Ks_vstate);
 }
-
-
-enum
-{
-    PORT_IN_PITCH = 0,
-    PORT_IN_FORCE,
-    PORT_IN_EXCITATION,
-    PORT_IN_DAMP,
-    PORT_IN_COUNT
-};
-
-
-enum
-{
-    PORT_OUT_AUDIO = 0,
-    PORT_OUT_COUNT
-};
-
-
-static const int KS_WB_FIXED_PITCH       = WORK_BUFFER_IMPL_1;
-static const int KS_WB_FIXED_FORCE       = WORK_BUFFER_IMPL_2;
-static const int KS_WB_FIXED_EXCITATION  = WORK_BUFFER_IMPL_3;
-static const int KS_WB_FIXED_DAMP        = WORK_BUFFER_IMPL_4;
 
 
 static int32_t get_next_xfade_start_index(
@@ -351,6 +460,31 @@ static int32_t get_next_xfade_start_index(
 }
 
 
+enum
+{
+    PORT_IN_PITCH = 0,
+    PORT_IN_FORCE,
+    PORT_IN_EXCITATION,
+    PORT_IN_DAMP,
+    PORT_IN_COUNT
+};
+
+
+enum
+{
+    PORT_OUT_AUDIO = 0,
+    PORT_OUT_COUNT
+};
+
+
+static const int KS_WB_FIXED_PITCH      = WORK_BUFFER_IMPL_1;
+static const int KS_WB_FIXED_FORCE      = WORK_BUFFER_IMPL_2;
+static const int KS_WB_FIXED_EXCITATION = WORK_BUFFER_IMPL_3;
+static const int KS_WB_FIXED_DAMP       = WORK_BUFFER_IMPL_4;
+static const int KS_WB_RES_EXCITATION   = WORK_BUFFER_IMPL_5;
+static const int KS_WB_RES_OUTPUT       = WORK_BUFFER_IMPL_6;
+
+
 int32_t Ks_vstate_render_voice(
         Voice_state* vstate,
         Proc_state* proc_state,
@@ -368,26 +502,21 @@ int32_t Ks_vstate_render_voice(
     rassert(frame_count > 0);
     rassert(tempo > 0);
 
-    const Device_state* dstate = &proc_state->parent;
     const Proc_ks* ks = (const Proc_ks*)proc_state->parent.device->dimpl;
-
-    const int32_t system_audio_rate = dstate->audio_rate;
-    int32_t ks_audio_rate = system_audio_rate;
-    if (ks->audio_rate_range_enabled)
-    {
-        const int32_t max_rate = max(ks->audio_rate_range_min, ks->audio_rate_range_max);
-        ks_audio_rate = clamp(system_audio_rate, ks->audio_rate_range_min, max_rate);
-    }
-    //const bool resampling_needed = (ks_audio_rate != system_audio_rate);
 
     Ks_vstate* ks_vstate = (Ks_vstate*)vstate;
 
+    const int32_t system_audio_rate = ks_vstate->excit_resample_state.from_rate;
+    const int32_t ks_audio_rate = ks_vstate->excit_resample_state.to_rate;
+    const bool resampling_needed = (system_audio_rate != ks_audio_rate);
+
     // Get output buffer for writing
-    Work_buffer* out_wb = Device_thread_state_get_voice_buffer(
+    Work_buffer* final_out_wb = Device_thread_state_get_voice_buffer(
             proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO);
-    if (out_wb == NULL)
+    if (final_out_wb == NULL)
         return 0;
-    float* out_buf = Work_buffer_get_contents_mut(out_wb);
+    float* final_out_buf = Work_buffer_get_contents_mut(final_out_wb);
+    float* out_buf = final_out_buf;
 
     // Get volume scales
     Work_buffer* scales_wb = Device_thread_state_get_voice_buffer(
@@ -421,16 +550,29 @@ int32_t Ks_vstate_render_voice(
     const float* scales = Work_buffer_get_contents(scales_wb);
 
     // Get excitation signal
-    Work_buffer* excit_wb = Device_thread_state_get_voice_buffer(
+    Work_buffer* src_excit_wb = Device_thread_state_get_voice_buffer(
             proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_EXCITATION);
-    if (!Work_buffer_is_valid(excit_wb))
+    if (!Work_buffer_is_valid(src_excit_wb))
     {
         Work_buffer* fixed_excit_wb =
             Work_buffers_get_buffer_mut(wbs, KS_WB_FIXED_EXCITATION);
         Work_buffer_clear(fixed_excit_wb, 0, frame_count);
-        excit_wb = fixed_excit_wb;
+        src_excit_wb = fixed_excit_wb;
     }
-    float* excits = Work_buffer_get_contents_mut(excit_wb);
+    const float* src_excits = Work_buffer_get_contents(src_excit_wb);
+    const float* excits = src_excits;
+
+    // Get resampling buffers if needed
+    Work_buffer* res_excit_wb = NULL;
+    Work_buffer* res_out_wb = NULL;
+    if (resampling_needed)
+    {
+        res_excit_wb = Work_buffers_get_buffer_mut(wbs, KS_WB_RES_EXCITATION);
+        res_out_wb = Work_buffers_get_buffer_mut(wbs, KS_WB_RES_OUTPUT);
+
+        excits = Work_buffer_get_contents(res_excit_wb);
+        out_buf = Work_buffer_get_contents_mut(res_out_wb);
+    }
 
     // Get damp signal
     const Work_buffer* damps_wb = Device_thread_state_get_voice_buffer(
@@ -449,142 +591,171 @@ int32_t Ks_vstate_render_voice(
     }
     const float* damps = Work_buffer_get_contents(damps_wb);
 
+    int32_t write_pos = ks_vstate->write_pos;
+    int primary_index = ks_vstate->primary_read_state;
+    bool is_xfading = ks_vstate->is_xfading;
+    double xfade_progress = ks_vstate->xfade_progress;
+
+    Read_state* primary_rs = &ks_vstate->read_states[primary_index];
+    Read_state* other_rs = &ks_vstate->read_states[1 - primary_index];
+
     // Get delay buffer
     Work_buffer* delay_wb = ks_vstate->parent.wb;
     rassert(delay_wb != NULL);
     const int32_t delay_wb_size = Work_buffer_get_size(delay_wb);
 
-    const bool need_init =
-        isnan(ks_vstate->read_states[ks_vstate->primary_read_state].pitch);
+    const bool need_init = isnan(primary_rs->pitch);
 
     if (need_init)
     {
-        ks_vstate->write_pos = 0;
+        write_pos = 0;
 
         Read_state_init(
-                &ks_vstate->read_states[ks_vstate->primary_read_state],
+                primary_rs,
                 clamp(damps[0], KS_MIN_DAMP, KS_MAX_DAMP),
                 pitches[0],
-                ks_vstate->write_pos,
+                write_pos,
                 delay_wb_size,
                 ks_audio_rate);
     }
 
-    int32_t write_pos = ks_vstate->write_pos;
     float* delay_buf = Work_buffer_get_contents_mut(delay_wb);
 
     const double xfade_speed = 1000.0;
     const double xfade_step = xfade_speed / ks_audio_rate;
 
     int32_t next_xfade_start_index = 0;
-    float next_pitch = ks_vstate->read_states[ks_vstate->primary_read_state].pitch;
-    float next_damp = ks_vstate->read_states[ks_vstate->primary_read_state].damp;
-    if (!ks_vstate->is_xfading)
+    float next_pitch = primary_rs->pitch;
+    float next_damp = primary_rs->damp;
+    if (!is_xfading)
     {
-        Read_state* primary_rs =
-            &ks_vstate->read_states[ks_vstate->primary_read_state];
-
         next_xfade_start_index = get_next_xfade_start_index(
                 pitches_wb, damps, primary_rs, 0, frame_count, &next_pitch, &next_damp);
     }
 
-    for (int32_t i = 0; i < frame_count; ++i)
+    int32_t sys_frames_processed = 0;
+    if (resampling_needed)
     {
-        const float excitation = excits[i];
+        ks_vstate->excit_resample_state.from_wb = src_excit_wb;
+        ks_vstate->excit_resample_state.to_wb = res_excit_wb;
 
-        if (!ks_vstate->is_xfading)
+        ks_vstate->output_resample_state.from_wb = res_out_wb;
+        ks_vstate->output_resample_state.to_wb = final_out_wb;
+    }
+
+    while (sys_frames_processed < frame_count)
+    {
+        int32_t cur_sys_frame_count = frame_count - sys_frames_processed;
+        int32_t cur_ks_frame_count = cur_sys_frame_count;
+        if (resampling_needed)
         {
-            if (i >= next_xfade_start_index)
+            // TODO: Filter input if downsampling
+
+            const int32_t prev_to_index = ks_vstate->excit_resample_state.to_index;
+
+            cur_sys_frame_count = Resample_state_process(
+                    &ks_vstate->excit_resample_state, cur_sys_frame_count);
+
+            const int32_t cur_to_index = ks_vstate->excit_resample_state.to_index;
+            cur_ks_frame_count = cur_to_index - prev_to_index;
+        }
+
+        for (int32_t i = 0; i < cur_ks_frame_count; ++i)
+        {
+            const float excitation = excits[i];
+
+            if (!is_xfading)
             {
-                rassert(i == next_xfade_start_index);
+                if (i >= next_xfade_start_index)
+                {
+                    rassert(i == next_xfade_start_index);
 
-                /*
-                const float pitch = pitches[i];
-                const float damp = damps[i];
-                const float clamped_damp = clamp(damp, KS_MIN_DAMP, KS_MAX_DAMP);
-                */
+                    // Instantaneous slides to lower pitches don't work very well,
+                    // so limit the step length when sliding downwards
+                    const float min_pitch = primary_rs->pitch - 200.0f;
+                    const float cur_target_pitch = max(min_pitch, next_pitch);
 
-                Read_state* primary_rs =
-                    &ks_vstate->read_states[ks_vstate->primary_read_state];
+                    Read_state_copy(other_rs, primary_rs);
+                    Read_state_modify(
+                            other_rs,
+                            cur_target_pitch,
+                            next_damp,
+                            write_pos,
+                            delay_wb_size,
+                            ks_audio_rate);
 
-                Read_state* other_rs =
-                    &ks_vstate->read_states[1 - ks_vstate->primary_read_state];
+                    primary_index = 1 - primary_index;
+                    primary_rs = &ks_vstate->read_states[primary_index];
+                    other_rs = &ks_vstate->read_states[1 - primary_index];
 
-                // Instantaneous slides to lower pitches don't work very well,
-                // so limit the step length when sliding downwards
-                const float min_pitch = primary_rs->pitch - 200.0f;
-                const float cur_target_pitch = max(min_pitch, next_pitch);
-
-                Read_state_copy(other_rs, primary_rs);
-                Read_state_modify(
-                        other_rs,
-                        cur_target_pitch,
-                        next_damp,
-                        write_pos,
-                        delay_wb_size,
-                        ks_audio_rate);
-
-                ks_vstate->primary_read_state = 1 - ks_vstate->primary_read_state;
-                ks_vstate->is_xfading = true;
-                ks_vstate->xfade_progress = 0.0;
+                    is_xfading = true;
+                    xfade_progress = 0.0;
+                }
             }
-        }
 
-        float value = 0.0f;
-        if (!ks_vstate->is_xfading)
-        {
-            value = Read_state_update(
-                    &ks_vstate->read_states[ks_vstate->primary_read_state],
-                    excitation,
-                    delay_wb_size,
-                    delay_buf);
-        }
-        else
-        {
-            const float out_value = Read_state_update(
-                    &ks_vstate->read_states[1 - ks_vstate->primary_read_state],
-                    excitation,
-                    delay_wb_size,
-                    delay_buf);
-            const float in_value = Read_state_update(
-                    &ks_vstate->read_states[ks_vstate->primary_read_state],
-                    excitation,
-                    delay_wb_size,
-                    delay_buf);
-
-            value = lerp(out_value, in_value, (float)ks_vstate->xfade_progress);
-
-            ks_vstate->xfade_progress += xfade_step;
-            if (ks_vstate->xfade_progress >= 1.0)
+            float value = 0.0f;
+            if (!is_xfading)
             {
-                ks_vstate->is_xfading = false;
-
-                Read_state* primary_rs =
-                    &ks_vstate->read_states[ks_vstate->primary_read_state];
-                next_xfade_start_index = get_next_xfade_start_index(
-                        pitches_wb,
-                        damps,
-                        primary_rs,
-                        i + 1,
-                        frame_count,
-                        &next_pitch,
-                        &next_damp);
+                value = Read_state_update(
+                        primary_rs, excitation, delay_wb_size, delay_buf);
             }
+            else
+            {
+                const float out_value =
+                    Read_state_update(other_rs, excitation, delay_wb_size, delay_buf);
+
+                const float in_value =
+                    Read_state_update(primary_rs, excitation, delay_wb_size, delay_buf);
+
+                value = lerp(out_value, in_value, (float)xfade_progress);
+
+                xfade_progress += xfade_step;
+                if (xfade_progress >= 1.0)
+                {
+                    is_xfading = false;
+
+                    next_xfade_start_index = get_next_xfade_start_index(
+                            pitches_wb,
+                            damps,
+                            primary_rs,
+                            i + 1,
+                            frame_count,
+                            &next_pitch,
+                            &next_damp);
+
+                    if (resampling_needed)
+                        next_xfade_start_index = (int32_t)(
+                                next_xfade_start_index *
+                                ks_audio_rate /
+                                (double)system_audio_rate);
+                }
+            }
+
+            out_buf[i] = value;
+
+            delay_buf[write_pos] = value;
+
+            ++write_pos;
+            if (write_pos >= delay_wb_size)
+                write_pos = 0;
         }
 
-        out_buf[i] = value;
+        if (resampling_needed)
+        {
+            Resample_state_process(
+                    &ks_vstate->output_resample_state, cur_sys_frame_count);
+        }
 
-        delay_buf[write_pos] = value;
-
-        ++write_pos;
-        if (write_pos >= delay_wb_size)
-            write_pos = 0;
+        sys_frames_processed += cur_sys_frame_count;
     }
 
     for (int32_t i = 0; i < frame_count; ++i)
-        out_buf[i] *= scales[i];
+        final_out_buf[i] *= scales[i];
 
     ks_vstate->write_pos = write_pos;
+    ks_vstate->primary_read_state = primary_index;
+    ks_vstate->is_xfading = is_xfading;
+    ks_vstate->xfade_progress = xfade_progress;
 
     return frame_count;
 }
@@ -604,6 +775,25 @@ void Ks_vstate_init(Voice_state* vstate, const Proc_state* proc_state)
 
     Read_state_clear(&ks_vstate->read_states[0]);
     Read_state_clear(&ks_vstate->read_states[1]);
+
+    // Init resampling
+    {
+        const Proc_ks* ks = (const Proc_ks*)proc_state->parent.device->dimpl;
+
+        const int32_t system_audio_rate = proc_state->parent.audio_rate;
+        int32_t ks_audio_rate = system_audio_rate;
+        if (ks->audio_rate_range_enabled)
+        {
+            const int32_t max_rate =
+                max(ks->audio_rate_range_min, ks->audio_rate_range_max);
+            ks_audio_rate = clamp(system_audio_rate, ks->audio_rate_range_min, max_rate);
+        }
+
+        Resample_state_init(
+                &ks_vstate->excit_resample_state, system_audio_rate, ks_audio_rate);
+        Resample_state_init(
+                &ks_vstate->output_resample_state, ks_audio_rate, system_audio_rate);
+    }
 
     Work_buffer* delay_wb = ks_vstate->parent.wb;
     rassert(delay_wb != NULL);
