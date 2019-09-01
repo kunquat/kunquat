@@ -263,7 +263,22 @@ static void Resample_state_init(
 }
 
 
-static int32_t Resample_state_process(Resample_state* state, int32_t req_process_count)
+static void Resample_state_prepare_render(
+        Resample_state* state, const Work_buffer* from_wb, Work_buffer* to_wb)
+{
+    rassert(state != NULL);
+
+    state->from_wb = from_wb;
+    state->to_wb = to_wb;
+    state->from_index = 0;
+    state->to_index = 0;
+
+    return;
+}
+
+
+static void Resample_state_process(
+        Resample_state* state, int32_t req_input_count, int32_t req_output_count)
 {
     rassert(state != NULL);
     rassert(state->from_wb != NULL);
@@ -271,7 +286,8 @@ static int32_t Resample_state_process(Resample_state* state, int32_t req_process
     rassert(state->from_rate > 0);
     rassert(state->to_rate > 0);
     rassert(state->from_rate != state->to_rate);
-    rassert(req_process_count > 0);
+    rassert(req_input_count > 0);
+    rassert(req_output_count > 0);
 
     const int32_t sub_phase_div = max(state->from_rate, state->to_rate);
     const int32_t sub_phase_add = min(state->from_rate, state->to_rate);
@@ -291,14 +307,16 @@ static int32_t Resample_state_process(Resample_state* state, int32_t req_process
 
     // TODO: Implement sinc interpolation
 
-    int32_t processed_count = 0;
-
     if (state->to_rate < state->from_rate)
     {
         // Downsample
-        rassert(from_index + req_process_count <= from_size);
+        const int32_t max_input_count = from_size - from_index;
+        rassert(max_input_count > 0);
+        const int32_t actual_input_count = min(req_input_count, max_input_count);
+        const int32_t output_stop = (req_output_count < INT32_MAX - to_index)
+            ? to_index + req_output_count : INT32_MAX;
 
-        for (int32_t i = 0; i < req_process_count; ++i)
+        for (int32_t i = 0; i < actual_input_count; ++i)
         {
             in_history[0] = in_history[1];
             in_history[1] = from[from_index];
@@ -308,6 +326,12 @@ static int32_t Resample_state_process(Resample_state* state, int32_t req_process
             sub_phase += sub_phase_add;
             if (sub_phase >= sub_phase_div)
             {
+                if (to_index >= output_stop)
+                {
+                    sub_phase -= sub_phase_add;
+                    break;
+                }
+
                 sub_phase -= sub_phase_div;
                 const float lerp_t = 1.0f - ((float)sub_phase / (float)sub_phase_div);
                 to[to_index] = lerp(in_history[0], in_history[1], lerp_t);
@@ -315,21 +339,27 @@ static int32_t Resample_state_process(Resample_state* state, int32_t req_process
                 ++to_index;
             }
         }
-
-        processed_count = req_process_count;
     }
     else
     {
         // Upsample
-        const int32_t max_process_count = to_size - to_index;
-        rassert(max_process_count > 0);
-        const int32_t actual_process_count = min(req_process_count, max_process_count);
+        const int32_t max_output_count = to_size - to_index;
+        rassert(max_output_count > 0);
+        const int32_t actual_output_count = min(req_output_count, max_output_count);
+        const int32_t input_stop = (req_input_count < INT32_MAX - from_index)
+            ? from_index + req_input_count : INT32_MAX;
 
-        for (int32_t i = 0; i < actual_process_count; ++i)
+        for (int32_t i = 0; i < actual_output_count; ++i)
         {
             sub_phase += sub_phase_add;
             if (sub_phase >= sub_phase_div)
             {
+                if (from_index >= input_stop)
+                {
+                    sub_phase -= sub_phase_add;
+                    break;
+                }
+
                 sub_phase -= sub_phase_div;
 
                 in_history[0] = in_history[1];
@@ -343,15 +373,13 @@ static int32_t Resample_state_process(Resample_state* state, int32_t req_process
 
             ++to_index;
         }
-
-        processed_count = actual_process_count;
     }
 
     state->from_index = from_index;
     state->sub_phase = sub_phase;
     state->to_index = to_index;
 
-    return processed_count;
+    return;
 }
 
 
@@ -624,24 +652,33 @@ int32_t Ks_vstate_render_voice(
     const double xfade_speed = 1000.0;
     const double xfade_step = xfade_speed / ks_audio_rate;
 
-    int32_t next_xfade_start_index = 0;
+    int32_t next_sys_xfade_start_index = 0;
+    int32_t next_ks_xfade_start_index = 0;
     float next_pitch = primary_rs->pitch;
     float next_damp = primary_rs->damp;
     if (!is_xfading)
     {
-        next_xfade_start_index = get_next_xfade_start_index(
+        next_sys_xfade_start_index = get_next_xfade_start_index(
                 pitches_wb, damps, primary_rs, 0, frame_count, &next_pitch, &next_damp);
+
+        next_ks_xfade_start_index = next_sys_xfade_start_index;
+        if (resampling_needed)
+            next_ks_xfade_start_index = (int32_t)(
+                    next_sys_xfade_start_index *
+                    ks_audio_rate /
+                    (double)system_audio_rate);
+    }
+
+    if (resampling_needed)
+    {
+        Resample_state_prepare_render(
+                &ks_vstate->excit_resample_state, src_excit_wb, res_excit_wb);
+        Resample_state_prepare_render(
+                &ks_vstate->output_resample_state, res_out_wb, final_out_wb);
     }
 
     int32_t sys_frames_processed = 0;
-    if (resampling_needed)
-    {
-        ks_vstate->excit_resample_state.from_wb = src_excit_wb;
-        ks_vstate->excit_resample_state.to_wb = res_excit_wb;
-
-        ks_vstate->output_resample_state.from_wb = res_out_wb;
-        ks_vstate->output_resample_state.to_wb = final_out_wb;
-    }
+    int32_t ks_frames_processed = 0;
 
     while (sys_frames_processed < frame_count)
     {
@@ -651,14 +688,22 @@ int32_t Ks_vstate_render_voice(
         {
             // TODO: Filter input if downsampling
 
-            const int32_t prev_to_index = ks_vstate->excit_resample_state.to_index;
+            Resample_state* ers = &ks_vstate->excit_resample_state;
 
-            cur_sys_frame_count = Resample_state_process(
-                    &ks_vstate->excit_resample_state, cur_sys_frame_count);
+            // We need to write at the beginning of target buffer every time
+            ers->to_index = 0;
 
-            const int32_t cur_to_index = ks_vstate->excit_resample_state.to_index;
-            cur_ks_frame_count = cur_to_index - prev_to_index;
+            const int32_t prev_from = ers->from_index;
+
+            Resample_state_process(
+                    ers, cur_sys_frame_count, Work_buffer_get_size(res_excit_wb));
+
+            cur_sys_frame_count = ers->from_index - prev_from;
+            cur_ks_frame_count = ers->to_index;
         }
+
+        for (int32_t i = 0; i < cur_ks_frame_count; ++i)
+            out_buf[i] = excits[i];
 
         for (int32_t i = 0; i < cur_ks_frame_count; ++i)
         {
@@ -666,10 +711,8 @@ int32_t Ks_vstate_render_voice(
 
             if (!is_xfading)
             {
-                if (i >= next_xfade_start_index)
+                if (ks_frames_processed + i >= next_ks_xfade_start_index)
                 {
-                    rassert(i == next_xfade_start_index);
-
                     // Instantaneous slides to lower pitches don't work very well,
                     // so limit the step length when sliding downwards
                     const float min_pitch = primary_rs->pitch - 200.0f;
@@ -714,18 +757,19 @@ int32_t Ks_vstate_render_voice(
                 {
                     is_xfading = false;
 
-                    next_xfade_start_index = get_next_xfade_start_index(
+                    next_sys_xfade_start_index = get_next_xfade_start_index(
                             pitches_wb,
                             damps,
                             primary_rs,
-                            i + 1,
+                            next_sys_xfade_start_index + 1,
                             frame_count,
                             &next_pitch,
                             &next_damp);
 
+                    next_ks_xfade_start_index = next_sys_xfade_start_index;
                     if (resampling_needed)
-                        next_xfade_start_index = (int32_t)(
-                                next_xfade_start_index *
+                        next_ks_xfade_start_index = (int32_t)(
+                                next_sys_xfade_start_index *
                                 ks_audio_rate /
                                 (double)system_audio_rate);
                 }
@@ -742,11 +786,16 @@ int32_t Ks_vstate_render_voice(
 
         if (resampling_needed)
         {
-            Resample_state_process(
-                    &ks_vstate->output_resample_state, cur_sys_frame_count);
+            Resample_state* ors = &ks_vstate->output_resample_state;
+
+            // We need to read from the beginning of the source buffer every time
+            ors->from_index = 0;
+
+            Resample_state_process(ors, cur_ks_frame_count, cur_sys_frame_count);
         }
 
         sys_frames_processed += cur_sys_frame_count;
+        ks_frames_processed += cur_ks_frame_count;
     }
 
     for (int32_t i = 0; i < frame_count; ++i)
