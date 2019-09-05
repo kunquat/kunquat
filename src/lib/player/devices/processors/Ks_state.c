@@ -421,10 +421,7 @@ static int32_t get_next_xfade_start_index(
     rassert(next_damp != NULL);
 
     if (search_start_index >= frame_count)
-    {
-        rassert(search_start_index == frame_count);
         return frame_count;
-    }
 
     const int32_t const_pitch_start = Work_buffer_get_const_start(pitches_wb);
     const float* pitches = Work_buffer_get_contents(pitches_wb);
@@ -651,6 +648,7 @@ int32_t Ks_vstate_render_voice(
 
     const double xfade_speed = 1000.0;
     const double xfade_step = xfade_speed / ks_audio_rate;
+    const int32_t sys_xfade_time = (int32_t)ceil(system_audio_rate / xfade_speed);
 
     int32_t next_sys_xfade_start_index = 0;
     int32_t next_ks_xfade_start_index = 0;
@@ -701,9 +699,6 @@ int32_t Ks_vstate_render_voice(
             cur_sys_frame_count = ers->from_index - prev_from;
             cur_ks_frame_count = ers->to_index;
         }
-
-        for (int32_t i = 0; i < cur_ks_frame_count; ++i)
-            out_buf[i] = excits[i];
 
         for (int32_t i = 0; i < cur_ks_frame_count; ++i)
         {
@@ -761,7 +756,7 @@ int32_t Ks_vstate_render_voice(
                             pitches_wb,
                             damps,
                             primary_rs,
-                            next_sys_xfade_start_index + 1,
+                            next_sys_xfade_start_index + sys_xfade_time,
                             frame_count,
                             &next_pitch,
                             &next_damp);
