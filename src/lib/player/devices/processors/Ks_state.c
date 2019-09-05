@@ -286,7 +286,7 @@ static void Resample_state_process(
     rassert(state->from_rate > 0);
     rassert(state->to_rate > 0);
     rassert(state->from_rate != state->to_rate);
-    rassert(req_input_count > 0);
+    rassert(req_input_count >= 0);
     rassert(req_output_count > 0);
 
     const int32_t sub_phase_div = max(state->from_rate, state->to_rate);
@@ -310,6 +310,7 @@ static void Resample_state_process(
     if (state->to_rate < state->from_rate)
     {
         // Downsample
+        rassert(req_input_count > 0);
         const int32_t max_input_count = from_size - from_index;
         rassert(max_input_count > 0);
         const int32_t actual_input_count = min(req_input_count, max_input_count);
