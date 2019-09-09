@@ -655,10 +655,26 @@ int32_t Ks_vstate_render_voice(
     int32_t next_ks_xfade_start_index = 0;
     float next_pitch = primary_rs->pitch;
     float next_damp = primary_rs->damp;
-    if (!is_xfading)
+
+    int32_t xfade_check_start = 0;
+
+    if (is_xfading)
+    {
+        xfade_check_start =
+            (int32_t)ceil((1 - xfade_progress) * system_audio_rate / xfade_speed);
+    }
+    else
     {
         next_sys_xfade_start_index = get_next_xfade_start_index(
-                pitches_wb, damps, primary_rs, 0, frame_count, &next_pitch, &next_damp);
+                pitches_wb,
+                damps,
+                primary_rs,
+                xfade_check_start,
+                frame_count,
+                &next_pitch,
+                &next_damp);
+
+        xfade_check_start = next_sys_xfade_start_index + sys_xfade_time;
 
         next_ks_xfade_start_index = next_sys_xfade_start_index;
         if (resampling_needed)
@@ -753,14 +769,20 @@ int32_t Ks_vstate_render_voice(
                 {
                     is_xfading = false;
 
+                    // Preserve backwards compatibility
+                    if (!resampling_needed)
+                        xfade_check_start = i + 1;
+
                     next_sys_xfade_start_index = get_next_xfade_start_index(
                             pitches_wb,
                             damps,
                             primary_rs,
-                            next_sys_xfade_start_index + sys_xfade_time,
+                            xfade_check_start,
                             frame_count,
                             &next_pitch,
                             &next_damp);
+
+                    xfade_check_start = next_sys_xfade_start_index + sys_xfade_time;
 
                     next_ks_xfade_start_index = next_sys_xfade_start_index;
                     if (resampling_needed)
