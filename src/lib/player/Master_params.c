@@ -62,7 +62,7 @@ static void Master_params_clear(Master_params* params)
     }
 
     params->volume_log = 0.0;
-    Slider_init(&params->volume_log_slider, SLIDE_MODE_LINEAR);
+    Slider_init(&params->volume_log_slider);
 
     params->do_jump = false;
     params->jump_counter = 0;

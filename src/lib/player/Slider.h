@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2019
  *
  * This file is part of Kunquat.
  *
@@ -23,19 +23,11 @@
 #include <stdlib.h>
 
 
-typedef enum
-{
-    SLIDE_MODE_LINEAR = 0,
-    SLIDE_MODE_EXP
-} Slide_mode;
-
-
 /**
  * Slider performs a smooth transition of a value.
  */
 typedef struct Slider
 {
-    Slide_mode mode;
     int32_t audio_rate;
     double tempo;
 
@@ -47,8 +39,6 @@ typedef struct Slider
     //       internal slide progress should be a timestamp
     double progress;
     double progress_update;
-    double log2_from;
-    double log2_to;
 } Slider;
 
 
@@ -56,11 +46,10 @@ typedef struct Slider
  * Initialise a Slider.
  *
  * \param slider   The Slider -- must not be \c NULL.
- * \param mode     The Slide mode -- must be valid.
  *
  * \return   The parameter \a slider.
  */
-Slider* Slider_init(Slider* slider, Slide_mode mode);
+Slider* Slider_init(Slider* slider);
 
 
 /**

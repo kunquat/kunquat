@@ -33,7 +33,7 @@ void Linear_controls_init(Linear_controls* lc)
     lc->value = NAN;
     lc->min_value = -INFINITY;
     lc->max_value = INFINITY;
-    Slider_init(&lc->slider, SLIDE_MODE_LINEAR);
+    Slider_init(&lc->slider);
     LFO_init(&lc->lfo, LFO_MODE_LINEAR);
     lc->def_osc_speed = 0;
     lc->def_osc_depth = 0;

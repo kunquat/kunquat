@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2019
  *
  * This file is part of Kunquat.
  *
@@ -32,7 +32,7 @@ void Pitch_controls_init(Pitch_controls* pc, int32_t audio_rate, double tempo)
     pc->pitch = NAN;
     pc->orig_carried_pitch = NAN;
     pc->pitch_add = 0;
-    Slider_init(&pc->slider, SLIDE_MODE_LINEAR);
+    Slider_init(&pc->slider);
     LFO_init(&pc->vibrato, LFO_MODE_LINEAR);
     Pitch_controls_set_audio_rate(pc, audio_rate);
     Pitch_controls_set_tempo(pc, tempo);
@@ -72,7 +72,7 @@ void Pitch_controls_reset(Pitch_controls* pc)
     pc->pitch = NAN;
     pc->orig_carried_pitch = NAN;
     pc->pitch_add = 0;
-    Slider_init(&pc->slider, SLIDE_MODE_LINEAR);
+    Slider_init(&pc->slider);
     LFO_init(&pc->vibrato, LFO_MODE_LINEAR);
 
     return;

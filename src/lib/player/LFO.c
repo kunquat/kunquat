@@ -43,10 +43,10 @@ LFO* LFO_init(LFO* lfo, LFO_mode mode)
 
     lfo->target_speed = 0;
     lfo->prev_speed = 0;
-    Slider_init(&lfo->speed_slider, SLIDE_MODE_LINEAR);
+    Slider_init(&lfo->speed_slider);
     lfo->target_depth = 0;
     lfo->prev_depth = 0;
-    Slider_init(&lfo->depth_slider, SLIDE_MODE_LINEAR);
+    Slider_init(&lfo->depth_slider);
 
     lfo->offset = 0;
     lfo->phase = 0;

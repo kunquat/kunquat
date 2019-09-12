@@ -1617,7 +1617,7 @@ static void Player_apply_master_volume(Player* player, int32_t frame_count)
     }
 
     Slider slider;
-    Slider_init(&slider, SLIDE_MODE_LINEAR);
+    Slider_init(&slider);
 
     for (int ch = 0; ch < 2; ++ch)
     {

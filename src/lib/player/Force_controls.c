@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2019
  *
  * This file is part of Kunquat.
  *
@@ -28,7 +28,7 @@ void Force_controls_init(Force_controls* fc, int32_t audio_rate, double tempo)
     rassert(fc != NULL);
 
     fc->force = NAN;
-    Slider_init(&fc->slider, SLIDE_MODE_LINEAR);
+    Slider_init(&fc->slider);
     LFO_init(&fc->tremolo, LFO_MODE_LINEAR);
 
     Force_controls_set_audio_rate(fc, audio_rate);
@@ -67,7 +67,7 @@ void Force_controls_reset(Force_controls* fc)
     rassert(fc != NULL);
 
     fc->force = NAN;
-    Slider_init(&fc->slider, SLIDE_MODE_LINEAR);
+    Slider_init(&fc->slider);
     LFO_init(&fc->tremolo, LFO_MODE_LINEAR);
 
     return;
