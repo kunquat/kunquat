@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2019
  *
  * This file is part of Kunquat.
  *
@@ -24,19 +24,11 @@
 #include <stdlib.h>
 
 
-typedef enum
-{
-    LFO_MODE_LINEAR = 0,
-    LFO_MODE_EXP
-} LFO_mode;
-
-
 /**
  * LFO (= Low-Frequency Oscillator) is used for performing vibration effects.
  */
 typedef struct LFO
 {
-    LFO_mode mode;
     int32_t audio_rate;
     double tempo;
 
@@ -59,12 +51,11 @@ typedef struct LFO
 /**
  * Initialise a Low-Frequency Oscillator.
  *
- * \param lfo    The LFO -- must not be \c NULL.
- * \param mode   The LFO mode -- must be a valid mode.
+ * \param lfo   The LFO -- must not be \c NULL.
  *
  * \return   The parameter \a lfo.
  */
-LFO* LFO_init(LFO* lfo, LFO_mode mode);
+LFO* LFO_init(LFO* lfo);
 
 
 /**

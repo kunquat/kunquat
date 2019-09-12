@@ -29,7 +29,7 @@ void Force_controls_init(Force_controls* fc, int32_t audio_rate, double tempo)
 
     fc->force = NAN;
     Slider_init(&fc->slider);
-    LFO_init(&fc->tremolo, LFO_MODE_LINEAR);
+    LFO_init(&fc->tremolo);
 
     Force_controls_set_audio_rate(fc, audio_rate);
     Force_controls_set_tempo(fc, tempo);
@@ -68,7 +68,7 @@ void Force_controls_reset(Force_controls* fc)
 
     fc->force = NAN;
     Slider_init(&fc->slider);
-    LFO_init(&fc->tremolo, LFO_MODE_LINEAR);
+    LFO_init(&fc->tremolo);
 
     return;
 }

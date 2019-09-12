@@ -30,12 +30,10 @@
 static void LFO_update_time(LFO* lfo, int32_t audio_rate, double tempo);
 
 
-LFO* LFO_init(LFO* lfo, LFO_mode mode)
+LFO* LFO_init(LFO* lfo)
 {
     rassert(lfo != NULL);
-    rassert(mode == LFO_MODE_LINEAR || mode == LFO_MODE_EXP);
 
-    lfo->mode = mode;
     lfo->audio_rate = DEFAULT_AUDIO_RATE;
     lfo->tempo = DEFAULT_TEMPO;
 
@@ -285,17 +283,9 @@ double LFO_step(LFO* lfo)
     if (!LFO_active(lfo))
     {
         if (LFO_is_standing_by(lfo))
-        {
             LFO_start_with_init_values(lfo);
-        }
         else
-        {
-            if (lfo->mode == LFO_MODE_EXP)
-                return 1;
-
-            rassert(lfo->mode == LFO_MODE_LINEAR);
             return 0;
-        }
     }
 
     double cur_speed = lfo->target_speed;
@@ -342,10 +332,7 @@ double LFO_step(LFO* lfo)
     }
 
     const double value = fast_sin(lfo->phase) * cur_depth;
-    if (lfo->mode == LFO_MODE_EXP)
-        return exp2(value);
 
-    rassert(lfo->mode == LFO_MODE_LINEAR);
     return value;
 }
 
@@ -356,13 +343,7 @@ double LFO_skip(LFO* lfo, int64_t steps)
     rassert(steps >= 0);
 
     if (steps == 0)
-    {
-        if (lfo->mode == LFO_MODE_EXP)
-            return 1;
-
-        rassert(lfo->mode == LFO_MODE_LINEAR);
         return 0;
-    }
 
     if (steps == 1)
     {
@@ -425,10 +406,7 @@ double LFO_skip(LFO* lfo, int64_t steps)
     const double cur_depth = lerp(lfo->prev_depth, lfo->target_depth, depth_progress);
 
     const double value = fast_sin(lfo->phase) * cur_depth;
-    if (lfo->mode == LFO_MODE_EXP)
-        return exp2(value);
 
-    rassert(lfo->mode == LFO_MODE_LINEAR);
     return value;
 }
 

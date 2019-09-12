@@ -33,7 +33,7 @@ void Pitch_controls_init(Pitch_controls* pc, int32_t audio_rate, double tempo)
     pc->orig_carried_pitch = NAN;
     pc->pitch_add = 0;
     Slider_init(&pc->slider);
-    LFO_init(&pc->vibrato, LFO_MODE_LINEAR);
+    LFO_init(&pc->vibrato);
     Pitch_controls_set_audio_rate(pc, audio_rate);
     Pitch_controls_set_tempo(pc, tempo);
 
@@ -73,7 +73,7 @@ void Pitch_controls_reset(Pitch_controls* pc)
     pc->orig_carried_pitch = NAN;
     pc->pitch_add = 0;
     Slider_init(&pc->slider);
-    LFO_init(&pc->vibrato, LFO_MODE_LINEAR);
+    LFO_init(&pc->vibrato);
 
     return;
 }
