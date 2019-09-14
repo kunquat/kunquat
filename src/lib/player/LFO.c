@@ -35,22 +35,36 @@ LFO* LFO_init(LFO* lfo)
     rassert(lfo != NULL);
 
     lfo->audio_rate = DEFAULT_AUDIO_RATE;
+
+    Slider_init(&lfo->speed_slider);
+    Slider_init(&lfo->depth_slider);
+
+    LFO_reset(lfo);
+
+    return lfo;
+}
+
+
+void LFO_reset(LFO* lfo)
+{
+    rassert(lfo != NULL);
+
     lfo->tempo = DEFAULT_TEMPO;
 
     lfo->on = false;
 
     lfo->target_speed = 0;
     lfo->prev_speed = 0;
-    Slider_init(&lfo->speed_slider);
+    Slider_reset(&lfo->speed_slider);
     lfo->target_depth = 0;
     lfo->prev_depth = 0;
-    Slider_init(&lfo->depth_slider);
+    Slider_reset(&lfo->depth_slider);
 
     lfo->offset = 0;
     lfo->phase = 0;
     lfo->update = 0;
 
-    return lfo;
+    return;
 }
 
 

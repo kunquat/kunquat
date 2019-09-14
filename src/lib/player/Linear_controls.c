@@ -30,11 +30,24 @@ void Linear_controls_init(Linear_controls* lc)
 {
     rassert(lc != NULL);
 
+    Slider_init(&lc->slider);
+    LFO_init(&lc->lfo);
+
+    Linear_controls_reset(lc);
+
+    return;
+}
+
+
+void Linear_controls_reset(Linear_controls* lc)
+{
+    rassert(lc != NULL);
+
     lc->value = NAN;
     lc->min_value = -INFINITY;
     lc->max_value = INFINITY;
-    Slider_init(&lc->slider);
-    LFO_init(&lc->lfo);
+    Slider_reset(&lc->slider);
+    LFO_reset(&lc->lfo);
     lc->def_osc_speed = 0;
     lc->def_osc_depth = 0;
 

@@ -67,8 +67,8 @@ void Force_controls_reset(Force_controls* fc)
     rassert(fc != NULL);
 
     fc->force = NAN;
-    Slider_init(&fc->slider);
-    LFO_init(&fc->tremolo);
+    Slider_reset(&fc->slider);
+    LFO_reset(&fc->tremolo);
 
     return;
 }

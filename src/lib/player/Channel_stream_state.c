@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2019
  *
  * This file is part of Kunquat.
  *
@@ -402,7 +402,7 @@ void Channel_stream_state_reset(Channel_stream_state* state)
     Entry* entry = AAiter_get_at_least(iter, "");
     while (entry != NULL)
     {
-        Linear_controls_init(&entry->controls);
+        Linear_controls_reset(&entry->controls);
         entry->is_set = false;
 
         Tstamp_set(&entry->slide_length, -1, 0);

@@ -72,8 +72,8 @@ void Pitch_controls_reset(Pitch_controls* pc)
     pc->pitch = NAN;
     pc->orig_carried_pitch = NAN;
     pc->pitch_add = 0;
-    Slider_init(&pc->slider);
-    LFO_init(&pc->vibrato);
+    Slider_reset(&pc->slider);
+    LFO_reset(&pc->vibrato);
 
     return;
 }

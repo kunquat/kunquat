@@ -53,6 +53,14 @@ Slider* Slider_init(Slider* slider);
 
 
 /**
+ * Reset the Slider.
+ *
+ * \param slider   The Slider -- must not be \c NULL.
+ */
+void Slider_reset(Slider* slider);
+
+
+/**
  * Copy a Slider.
  *
  * \param dest   The destination Slider -- must not be \c NULL.

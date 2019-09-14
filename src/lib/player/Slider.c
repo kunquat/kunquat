@@ -33,6 +33,17 @@ Slider* Slider_init(Slider* slider)
     rassert(slider != NULL);
 
     slider->audio_rate = DEFAULT_AUDIO_RATE;
+
+    Slider_reset(slider);
+
+    return slider;
+}
+
+
+void Slider_reset(Slider* slider)
+{
+    rassert(slider != NULL);
+
     slider->tempo = DEFAULT_TEMPO;
 
     Tstamp_init(&slider->length);
@@ -42,7 +53,7 @@ Slider* Slider_init(Slider* slider)
     slider->progress = 1;
     slider->progress_update = 0;
 
-    return slider;
+    return;
 }
 
 

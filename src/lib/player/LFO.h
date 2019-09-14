@@ -59,6 +59,14 @@ LFO* LFO_init(LFO* lfo);
 
 
 /**
+ * Reset the Low-Frequency Oscillator.
+ *
+ * \param lfo   The LFO -- must not be \c NULL.
+ */
+void LFO_reset(LFO* lfo);
+
+
+/**
  * Copy a Low-Frequency Oscillator.
  *
  * \param dest   The destination LFO -- must not be \c NULL.
