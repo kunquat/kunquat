@@ -28,6 +28,7 @@
 #include <player/Work_buffers.h>
 
 #include <math.h>
+#include <stdalign.h>
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -225,6 +226,10 @@ static void Read_state_copy(Read_state* restrict dest, const Read_state* restric
 }
 
 
+#define SINC_WINDOW_EXTENT 8
+#define RESAMPLE_HISTORY_SIZE (SINC_WINDOW_EXTENT * 2)
+
+
 typedef struct Resample_state
 {
     // Configuration
@@ -234,7 +239,7 @@ typedef struct Resample_state
     int32_t to_rate;
 
     // State
-    float in_history[2];
+    _Alignas(64) float in_history[RESAMPLE_HISTORY_SIZE];
     int32_t from_index;
     int32_t sub_phase;
     int32_t to_index;
@@ -253,7 +258,8 @@ static void Resample_state_init(
     state->from_rate = from_rate;
     state->to_rate = to_rate;
 
-    state->in_history[0] = state->in_history[1] = 0;
+    for (int i = 0; i < RESAMPLE_HISTORY_SIZE; ++i)
+        state->in_history[i] = 0;
 
     state->from_index = 0;
     state->sub_phase = 0;
@@ -275,6 +281,39 @@ static void Resample_state_prepare_render(
 
     return;
 }
+
+
+#define USE_SINC 0
+#if USE_SINC
+static float sinc_norm(float x)
+{
+    dassert(x != 0);
+    const float scaled_x = x * (float)PI;
+    return sinf(scaled_x) / scaled_x;
+}
+
+
+static float make_sinc_item(float history[RESAMPLE_HISTORY_SIZE], float shift_rem)
+{
+    dassert(history != NULL);
+    dassert(shift_rem > 0);
+
+    int8_t shift_floor = -SINC_WINDOW_EXTENT + 1;
+
+    float result = 0;
+    for (int k = 0; k < RESAMPLE_HISTORY_SIZE; ++k)
+    {
+        const float shift = shift_floor - shift_rem;
+        //const float window = 1 - (fabsf(shift) / SINC_WINDOW_EXTENT);
+        const float window = sinc_norm(shift / SINC_WINDOW_EXTENT);
+        const float add = sinc_norm(shift) * window * history[k];
+        result += add;
+        ++shift_floor;
+    }
+
+    return result;
+}
+#endif
 
 
 static void Resample_state_process(
@@ -307,6 +346,87 @@ static void Resample_state_process(
 
     // TODO: Implement sinc interpolation
 
+#if USE_SINC
+    if (state->to_rate < state->from_rate)
+    {
+        // Downsample
+        rassert(req_input_count > 0);
+        const int32_t max_input_count = from_size - from_index;
+        rassert(max_input_count > 0);
+        const int32_t actual_input_count = min(req_input_count, max_input_count);
+        const int32_t output_stop = (req_output_count < INT32_MAX - to_index)
+            ? to_index + req_output_count : INT32_MAX;
+
+        for (int32_t i = 0; i < actual_input_count; ++i)
+        {
+            const int last_history_index = RESAMPLE_HISTORY_SIZE - 1;
+            for (int k = 0; k < last_history_index; ++k)
+                in_history[k] = in_history[k + 1];
+            in_history[last_history_index] = from[from_index];
+
+            ++from_index;
+
+            sub_phase += sub_phase_add;
+            if (sub_phase >= sub_phase_div)
+            {
+                if (to_index >= output_stop)
+                {
+                    sub_phase -= sub_phase_add;
+                    break;
+                }
+
+                sub_phase -= sub_phase_div;
+
+                if (sub_phase > 0)
+                    to[to_index] = make_sinc_item(
+                            in_history, (float)sub_phase / (float)sub_phase_div);
+                else
+                    to[to_index] = in_history[SINC_WINDOW_EXTENT - 1];
+
+                ++to_index;
+            }
+        }
+    }
+    else
+    {
+        // Upsample
+        const int32_t max_output_count = to_size - to_index;
+        rassert(max_output_count > 0);
+        const int32_t actual_output_count = min(req_output_count, max_output_count);
+        const int32_t input_stop = (req_input_count < INT32_MAX - from_index)
+            ? from_index + req_input_count : INT32_MAX;
+
+        for (int32_t i = 0; i < actual_output_count; ++i)
+        {
+            sub_phase += sub_phase_add;
+            if (sub_phase >= sub_phase_div)
+            {
+                if (from_index >= input_stop)
+                {
+                    sub_phase -= sub_phase_add;
+                    break;
+                }
+
+                sub_phase -= sub_phase_div;
+
+                const int last_history_index = RESAMPLE_HISTORY_SIZE - 1;
+                for (int k = 0; k < last_history_index; ++k)
+                    in_history[k] = in_history[k + 1];
+                in_history[last_history_index] = from[from_index];
+
+                ++from_index;
+            }
+
+            if (sub_phase > 0)
+                to[to_index] = make_sinc_item(
+                        in_history, (float)sub_phase / (float)sub_phase_div);
+            else
+                to[to_index] = in_history[SINC_WINDOW_EXTENT - 1];
+
+            ++to_index;
+        }
+    }
+#else
     if (state->to_rate < state->from_rate)
     {
         // Downsample
@@ -375,6 +495,7 @@ static void Resample_state_process(
             ++to_index;
         }
     }
+#endif
 
     state->from_index = from_index;
     state->sub_phase = sub_phase;
