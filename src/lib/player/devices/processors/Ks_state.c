@@ -283,7 +283,7 @@ static void Resample_state_prepare_render(
 }
 
 
-#define USE_SINC 0
+#define USE_SINC 1
 #if USE_SINC
 static float sinc_norm(float x)
 {
@@ -304,7 +304,6 @@ static float make_sinc_item(float history[RESAMPLE_HISTORY_SIZE], float shift_re
     for (int k = 0; k < RESAMPLE_HISTORY_SIZE; ++k)
     {
         const float shift = shift_floor - shift_rem;
-        //const float window = 1 - (fabsf(shift) / SINC_WINDOW_EXTENT);
         const float window = sinc_norm(shift / SINC_WINDOW_EXTENT);
         const float add = sinc_norm(shift) * window * history[k];
         result += add;
@@ -505,6 +504,18 @@ static void Resample_state_process(
 }
 
 
+#define RESAMPLE_LP_ORDER 16
+
+
+typedef struct Resample_lp_state
+{
+    double coeffs[RESAMPLE_LP_ORDER];
+    double mul;
+    double history1[RESAMPLE_LP_ORDER];
+    double history2[RESAMPLE_LP_ORDER];
+} Resample_lp_state;
+
+
 typedef struct Ks_vstate
 {
     Voice_state parent;
@@ -514,6 +525,7 @@ typedef struct Ks_vstate
     bool is_xfading;
     double xfade_progress;
     Read_state read_states[2];
+    Resample_lp_state resample_lp_state;
     Resample_state excit_resample_state;
     Resample_state output_resample_state;
 } Ks_vstate;
@@ -624,12 +636,13 @@ enum
 };
 
 
-static const int KS_WB_FIXED_PITCH      = WORK_BUFFER_IMPL_1;
-static const int KS_WB_FIXED_FORCE      = WORK_BUFFER_IMPL_2;
-static const int KS_WB_FIXED_EXCITATION = WORK_BUFFER_IMPL_3;
-static const int KS_WB_FIXED_DAMP       = WORK_BUFFER_IMPL_4;
-static const int KS_WB_RES_EXCITATION   = WORK_BUFFER_IMPL_5;
-static const int KS_WB_RES_OUTPUT       = WORK_BUFFER_IMPL_6;
+static const int KS_WB_FIXED_PITCH          = WORK_BUFFER_IMPL_1;
+static const int KS_WB_FIXED_FORCE          = WORK_BUFFER_IMPL_2;
+static const int KS_WB_FIXED_EXCITATION     = WORK_BUFFER_IMPL_3;
+static const int KS_WB_FIXED_DAMP           = WORK_BUFFER_IMPL_4;
+static const int KS_WB_FILTERED_EXCITATION  = WORK_BUFFER_IMPL_5;
+static const int KS_WB_RES_EXCITATION       = WORK_BUFFER_IMPL_6;
+static const int KS_WB_RES_OUTPUT           = WORK_BUFFER_IMPL_7;
 
 
 int32_t Ks_vstate_render_voice(
@@ -710,13 +723,14 @@ int32_t Ks_vstate_render_voice(
     const float* excits = src_excits;
 
     // Get resampling buffers if needed
+    Work_buffer* filtered_excit_wb = NULL;
     Work_buffer* res_excit_wb = NULL;
     Work_buffer* res_out_wb = NULL;
     if (resampling_needed)
     {
+        filtered_excit_wb = Work_buffers_get_buffer_mut(wbs, KS_WB_FILTERED_EXCITATION);
         res_excit_wb = Work_buffers_get_buffer_mut(wbs, KS_WB_RES_EXCITATION);
         res_out_wb = Work_buffers_get_buffer_mut(wbs, KS_WB_RES_OUTPUT);
-
         excits = Work_buffer_get_contents(res_excit_wb);
         out_buf = Work_buffer_get_contents_mut(res_out_wb);
     }
@@ -807,8 +821,10 @@ int32_t Ks_vstate_render_voice(
 
     if (resampling_needed)
     {
+        const Work_buffer* excit_wb =
+            (ks_audio_rate < system_audio_rate) ? filtered_excit_wb : src_excit_wb;
         Resample_state_prepare_render(
-                &ks_vstate->excit_resample_state, src_excit_wb, res_excit_wb);
+                &ks_vstate->excit_resample_state, excit_wb, res_excit_wb);
         Resample_state_prepare_render(
                 &ks_vstate->output_resample_state, res_out_wb, final_out_wb);
     }
@@ -822,7 +838,26 @@ int32_t Ks_vstate_render_voice(
         int32_t cur_ks_frame_count = cur_sys_frame_count;
         if (resampling_needed)
         {
-            // TODO: Filter input if downsampling
+            // Filter input if downsampling
+            if (ks_audio_rate < system_audio_rate)
+            {
+                const float* orig_excits = Work_buffer_get_contents(src_excit_wb);
+                float* filtered_excits = Work_buffer_get_contents_mut(filtered_excit_wb);
+                Resample_lp_state* rls = &ks_vstate->resample_lp_state;
+
+                for (int32_t i = 0; i < cur_sys_frame_count; ++i)
+                {
+                    const float orig_value = orig_excits[i];
+
+                    double result =
+                        nq_zero_filter(RESAMPLE_LP_ORDER, rls->history1, orig_value);
+                    result = iir_filter_strict_cascade_even_order(
+                            RESAMPLE_LP_ORDER, rls->coeffs, rls->history2, result);
+                    result *= rls->mul;
+
+                    filtered_excits[i] = (float)result;
+                }
+            }
 
             Resample_state* ers = &ks_vstate->excit_resample_state;
 
@@ -975,6 +1010,22 @@ void Ks_vstate_init(Voice_state* vstate, const Proc_state* proc_state)
             const int32_t max_rate =
                 max(ks->audio_rate_range_min, ks->audio_rate_range_max);
             ks_audio_rate = clamp(system_audio_rate, ks->audio_rate_range_min, max_rate);
+        }
+
+        if (ks_audio_rate < system_audio_rate)
+        {
+            Resample_lp_state* rls = &ks_vstate->resample_lp_state;
+
+            const double lp_freq = ks_audio_rate * 0.42 / (double)system_audio_rate;
+            butterworth_filter_create(
+                    RESAMPLE_LP_ORDER, lp_freq, 0, rls->coeffs, &rls->mul);
+            //two_pole_filter_create(lp_freq, 0.5, 0, rls->coeffs, &rls->mul);
+
+            for (int i = 0; i < RESAMPLE_LP_ORDER; ++i)
+            {
+                rls->history1[i] = 0;
+                rls->history2[i] = 0;
+            }
         }
 
         Resample_state_init(
