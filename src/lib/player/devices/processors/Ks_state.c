@@ -242,6 +242,7 @@ typedef struct Resample_state
     _Alignas(64) float in_history[RESAMPLE_HISTORY_SIZE];
     int32_t from_index;
     int32_t sub_phase;
+    int32_t ds_sub_phase;
     int32_t to_index;
 } Resample_state;
 
@@ -263,6 +264,7 @@ static void Resample_state_init(
 
     state->from_index = 0;
     state->sub_phase = 0;
+    state->ds_sub_phase = 0;
     state->to_index = 0;
 
     return;
@@ -306,6 +308,7 @@ static float make_sinc_item(float history[RESAMPLE_HISTORY_SIZE], float shift_re
         const float shift = shift_floor - shift_rem;
         const float window = sinc_norm(shift / SINC_WINDOW_EXTENT);
         const float add = sinc_norm(shift) * window * history[k];
+
         result += add;
         ++shift_floor;
     }
@@ -348,6 +351,10 @@ static void Resample_state_process(
 #if USE_SINC
     if (state->to_rate < state->from_rate)
     {
+        int32_t ds_sub_phase = state->ds_sub_phase;
+        const int32_t ds_sub_phase_div = min(state->from_rate, state->to_rate);
+        const int32_t ds_sub_phase_add = max(state->from_rate, state->to_rate);
+
         // Downsample
         rassert(req_input_count > 0);
         const int32_t max_input_count = from_size - from_index;
@@ -368,9 +375,13 @@ static void Resample_state_process(
             sub_phase += sub_phase_add;
             if (sub_phase >= sub_phase_div)
             {
+                ds_sub_phase = (ds_sub_phase + ds_sub_phase_add) % ds_sub_phase_div;
+
                 if (to_index >= output_stop)
                 {
                     sub_phase -= sub_phase_add;
+                    ds_sub_phase = (ds_sub_phase + ds_sub_phase_div - ds_sub_phase_add) %
+                        ds_sub_phase_div;
                     break;
                 }
 
@@ -378,13 +389,15 @@ static void Resample_state_process(
 
                 if (sub_phase > 0)
                     to[to_index] = make_sinc_item(
-                            in_history, (float)sub_phase / (float)sub_phase_div);
+                            in_history, ((float)ds_sub_phase / (float)ds_sub_phase_div));
                 else
-                    to[to_index] = in_history[SINC_WINDOW_EXTENT - 1];
+                    to[to_index] = in_history[SINC_WINDOW_EXTENT];
 
                 ++to_index;
             }
         }
+
+        state->ds_sub_phase = ds_sub_phase;
     }
     else
     {
