@@ -40,6 +40,7 @@ struct Voice_pool
     int32_t state_size;
     uint64_t new_group_id;
 
+    char* voice_state_memory;
     Voice voices[KQT_VOICES_MAX];
 
     int free_voice_count;
@@ -77,6 +78,7 @@ Voice_pool* new_Voice_pool(int size)
     pool->size = size;
     pool->state_size = 0;
     pool->new_group_id = 0;
+    pool->voice_state_memory = NULL;
     pool->free_voice_count = 0;
     pool->bg_iter_index = 0;
     pool->bg_group_count = 0;
@@ -106,9 +108,20 @@ Voice_pool* new_Voice_pool(int size)
 
     if (size > 0)
     {
+        pool->state_size = (sizeof(Voice_state) | (VOICE_STATE_ALIGNMENT - 1)) + 1;
+        pool->voice_state_memory = memory_alloc_aligned(
+                pool->state_size * KQT_VOICES_MAX, VOICE_STATE_ALIGNMENT);
+        if (pool->voice_state_memory == NULL)
+        {
+            del_Voice_pool(pool);
+            return NULL;
+        }
+
         for (int i = 0; i < size; ++i)
         {
-            if (Voice_init(&pool->voices[i]) == NULL)
+            Voice_state* state =
+                (Voice_state*)(pool->voice_state_memory + (pool->state_size * i));
+            if (Voice_init(&pool->voices[i], state) == NULL)
             {
                 del_Voice_pool(pool);
                 return NULL;
@@ -130,16 +143,27 @@ bool Voice_pool_reserve_state_space(Voice_pool* pool, int32_t state_size)
     rassert(pool != NULL);
     rassert(state_size >= 0);
 
-    if (state_size <= pool->state_size)
+    int32_t actual_state_size = (state_size | (VOICE_STATE_ALIGNMENT - 1)) + 1;
+    if (actual_state_size <= pool->state_size)
         return true;
+
+    char* new_voice_state_memory = memory_alloc_aligned(
+            actual_state_size * KQT_VOICES_MAX, VOICE_STATE_ALIGNMENT);
+    if (new_voice_state_memory == NULL)
+        return false;
+
+    memory_free_aligned(pool->voice_state_memory);
+    pool->voice_state_memory = new_voice_state_memory;
+    pool->state_size = actual_state_size;
 
     for (int i = 0; i < pool->size; ++i)
     {
-        if (!Voice_reserve_state_space(&pool->voices[i], state_size))
+        Voice_state* state =
+            (Voice_state*)(pool->voice_state_memory + (pool->state_size * i));
+        if (Voice_init(&pool->voices[i], state) == NULL)
             return false;
     }
 
-    pool->state_size = state_size;
     return true;
 }
 
@@ -836,6 +860,7 @@ void del_Voice_pool(Voice_pool* pool)
         Voice_deinit(&pool->voices[i]);
 
     del_Voice_work_buffers(pool->voice_wbs);
+    memory_free_aligned(pool->voice_state_memory);
     memory_free(pool);
 
     return;

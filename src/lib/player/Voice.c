@@ -34,7 +34,6 @@ void Voice_preinit(Voice* voice)
 
     voice->group_id = 0;
     voice->proc = NULL;
-    voice->state_size = 0;
     voice->state = NULL;
     voice->wb = NULL;
 
@@ -42,9 +41,10 @@ void Voice_preinit(Voice* voice)
 }
 
 
-Voice* Voice_init(Voice* voice)
+Voice* Voice_init(Voice* voice, Voice_state* state)
 {
     rassert(voice != NULL);
+    rassert(state != NULL);
 
     voice->group_id = 0;
     voice->ch_num = -1;
@@ -55,42 +55,16 @@ Voice* Voice_init(Voice* voice)
     voice->use_test_output = false;
     voice->test_proc_index = -1;
     voice->proc = NULL;
-    voice->state_size = 0;
     voice->state = NULL;
     voice->wb = NULL;
 
-    voice->state_size = sizeof(Voice_state);
-    voice->state = memory_alloc_item(Voice_state);
-    if (voice->state == NULL)
-    {
-        Voice_deinit(voice);
-        return NULL;
-    }
+    voice->state = state;
 
     Random_init(&voice->rand_p, "vp");
     Random_init(&voice->rand_s, "vs");
     Voice_state_clear(voice->state);
 
     return voice;
-}
-
-
-bool Voice_reserve_state_space(Voice* voice, int32_t state_size)
-{
-    rassert(voice != NULL);
-    rassert(state_size >= 0);
-
-    if (state_size <= voice->state_size)
-        return true;
-
-    Voice_state* new_state = memory_realloc_items(char, state_size, voice->state);
-    if (new_state == NULL)
-        return false;
-
-    voice->state_size = state_size;
-    voice->state = new_state;
-
-    return true;
 }
 
 
@@ -314,7 +288,7 @@ void Voice_deinit(Voice* voice)
 {
     rassert(voice != NULL);
 
-    memory_free(voice->state);
+    voice->state = NULL;
 
     return;
 }
