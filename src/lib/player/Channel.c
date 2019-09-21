@@ -64,6 +64,9 @@ static bool Channel_init(Channel* ch, int num, Env_state* estate, const Module* 
     ch->frame_offset_temp = 0;
     ch->mute = false;
 
+    Force_controls_init(&ch->force_controls, ch->audio_rate, ch->tempo);
+    Pitch_controls_init(&ch->pitch_controls, ch->audio_rate, ch->tempo);
+
     Channel_reset(ch);
 
     return true;
@@ -94,17 +97,17 @@ Channel* new_Channel(
     if (ch == NULL)
         return NULL;
 
-    if (!Channel_init(ch, num, estate, module))
-    {
-        memory_free(ch);
-        return NULL;
-    }
-
     ch->au_table = au_table;
     ch->pool = voices;
     ch->voice_group_res = voice_group_res;
     ch->tempo = tempo;
     ch->audio_rate = audio_rate;
+
+    if (!Channel_init(ch, num, estate, module))
+    {
+        memory_free(ch);
+        return NULL;
+    }
 
     return ch;
 }
