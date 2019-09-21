@@ -287,12 +287,16 @@ static void Resample_state_prepare_render(
 
 #define USE_SINC 1
 #if USE_SINC
+
+#if 0
 static float sinc_norm(float x)
 {
     dassert(x != 0);
     const float scaled_x = x * (float)PI;
     return sinf(scaled_x) / scaled_x;
 }
+#endif
+
 
 static float make_sinc_item(float history[RESAMPLE_HISTORY_SIZE], float shift_rem)
 {
@@ -306,7 +310,11 @@ static float make_sinc_item(float history[RESAMPLE_HISTORY_SIZE], float shift_re
     for (int i = 0; i < RESAMPLE_HISTORY_SIZE; ++i)
     {
         const float shift = shift_floor - shift_rem;
-        const float window = sinc_norm(shift / SINC_WINDOW_EXTENT);
+        const float w = shift / SINC_WINDOW_EXTENT;
+        const float w2 = w * w;
+        const float w4 = w2 * w2;
+        const float window = 0.5f * w4 + 1.5f * (1 - w2) - 0.5f;
+        //const float window = sinc_norm(shift / SINC_WINDOW_EXTENT);
         const float add = (rep_sin_shift / (shift * (float)PI)) * window * history[i];
 
         rep_sin_shift = -rep_sin_shift;
