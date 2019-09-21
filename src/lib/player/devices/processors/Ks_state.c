@@ -294,21 +294,22 @@ static float sinc_norm(float x)
     return sinf(scaled_x) / scaled_x;
 }
 
-
 static float make_sinc_item(float history[RESAMPLE_HISTORY_SIZE], float shift_rem)
 {
     dassert(history != NULL);
     dassert(shift_rem > 0);
 
     int8_t shift_floor = -SINC_WINDOW_EXTENT + 1;
+    float rep_sin_shift = sinf((shift_floor - shift_rem) * (float)PI);
 
     float result = 0;
-    for (int k = 0; k < RESAMPLE_HISTORY_SIZE; ++k)
+    for (int i = 0; i < RESAMPLE_HISTORY_SIZE; ++i)
     {
         const float shift = shift_floor - shift_rem;
         const float window = sinc_norm(shift / SINC_WINDOW_EXTENT);
-        const float add = sinc_norm(shift) * window * history[k];
+        const float add = (rep_sin_shift / (shift * (float)PI)) * window * history[i];
 
+        rep_sin_shift = -rep_sin_shift;
         result += add;
         ++shift_floor;
     }
@@ -345,8 +346,6 @@ static void Resample_state_process(
     float* to = Work_buffer_get_contents_mut(state->to_wb);
 
     float* in_history = state->in_history;
-
-    // TODO: Implement sinc interpolation
 
 #if USE_SINC
     if (state->to_rate < state->from_rate)
@@ -441,6 +440,10 @@ static void Resample_state_process(
 #else
     if (state->to_rate < state->from_rate)
     {
+        int32_t ds_sub_phase = state->ds_sub_phase;
+        const int32_t ds_sub_phase_div = min(state->from_rate, state->to_rate);
+        const int32_t ds_sub_phase_add = max(state->from_rate, state->to_rate);
+
         // Downsample
         rassert(req_input_count > 0);
         const int32_t max_input_count = from_size - from_index;
@@ -459,19 +462,25 @@ static void Resample_state_process(
             sub_phase += sub_phase_add;
             if (sub_phase >= sub_phase_div)
             {
+                ds_sub_phase = (ds_sub_phase + ds_sub_phase_add) % ds_sub_phase_div;
+
                 if (to_index >= output_stop)
                 {
                     sub_phase -= sub_phase_add;
+                    ds_sub_phase = (ds_sub_phase + ds_sub_phase_div - ds_sub_phase_add) %
+                        ds_sub_phase_div;
                     break;
                 }
 
                 sub_phase -= sub_phase_div;
-                const float lerp_t = 1.0f - ((float)sub_phase / (float)sub_phase_div);
+                const float lerp_t = ((float)ds_sub_phase / (float)ds_sub_phase_div);
                 to[to_index] = lerp(in_history[0], in_history[1], lerp_t);
 
                 ++to_index;
             }
         }
+
+        state->ds_sub_phase = ds_sub_phase;
     }
     else
     {
@@ -1032,7 +1041,6 @@ void Ks_vstate_init(Voice_state* vstate, const Proc_state* proc_state)
             const double lp_freq = ks_audio_rate * 0.42 / (double)system_audio_rate;
             butterworth_filter_create(
                     RESAMPLE_LP_ORDER, lp_freq, 0, rls->coeffs, &rls->mul);
-            //two_pole_filter_create(lp_freq, 0.5, 0, rls->coeffs, &rls->mul);
 
             for (int i = 0; i < RESAMPLE_LP_ORDER; ++i)
             {
