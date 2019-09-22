@@ -17,6 +17,7 @@
 #include <debug/assert.h>
 #include <init/devices/Device.h>
 #include <init/devices/processors/Proc_ks.h>
+#include <intrinsics.h>
 #include <mathnum/common.h>
 #include <mathnum/conversions.h>
 #include <mathnum/Random.h>
@@ -288,6 +289,61 @@ static void Resample_state_prepare_render(
 #define USE_SINC 1
 #if USE_SINC
 
+#define USE_SSE_SINC KQT_SSE
+
+#if USE_SSE_SINC
+
+static_assert(RESAMPLE_HISTORY_SIZE % 4 == 0,
+        "RESAMPLE_HISTORY_SIZE is incompatible with the SSE sinc implementation.");
+
+static float make_sinc_item(float history[RESAMPLE_HISTORY_SIZE], float shift_rem)
+{
+    dassert(history != NULL);
+    dassert(shift_rem > 0);
+
+    const __m128 shift_rem_adds =
+        _mm_set_ps(3 - shift_rem, 2 - shift_rem, 1 - shift_rem, -shift_rem);
+    int shift_floor = -SINC_WINDOW_EXTENT + 1;
+    float rep_sin_shift = sinf(((float)shift_floor - shift_rem) * (float)PI);
+    const __m128 rep_sin_shifts =
+        _mm_set_ps(-rep_sin_shift, rep_sin_shift, -rep_sin_shift, rep_sin_shift);
+
+    const __m128 window_scale = _mm_set1_ps(1.0f / (float)SINC_WINDOW_EXTENT);
+    const __m128 pi = _mm_set1_ps((float)PI);
+
+    __m128 results = _mm_set1_ps(0);
+
+    for (int i = 0; i < RESAMPLE_HISTORY_SIZE; i += 4)
+    {
+        const __m128 shifts =
+            _mm_add_ps(_mm_set1_ps((float)shift_floor), shift_rem_adds);
+
+        const __m128 w = _mm_mul_ps(shifts, window_scale);
+        const __m128 w2 = _mm_mul_ps(w, w);
+        const __m128 w4 = _mm_mul_ps(w2, w2);
+        const __m128 part4 = _mm_mul_ps(_mm_set1_ps(0.5f), w4);
+        const __m128 part2 =
+            _mm_mul_ps(_mm_set1_ps(1.5f), _mm_sub_ps(_mm_set1_ps(1.0f), w2));
+        const __m128 window = _mm_add_ps(_mm_add_ps(part4, part2), _mm_set1_ps(-0.5f));
+
+        const __m128 items = _mm_load_ps(history + i);
+        const __m128 add = _mm_mul_ps(
+                _mm_mul_ps(_mm_div_ps(rep_sin_shifts, _mm_mul_ps(shifts, pi)), window),
+                items);
+
+        results = _mm_add_ps(results, add);
+
+        shift_floor += 4;
+    }
+
+    float ra[4];
+    _mm_store_ps(ra, results);
+    const float result = ra[0] + ra[1] + ra[2] + ra[3];
+    return result;
+}
+
+#else
+
 #if 0
 static float sinc_norm(float x)
 {
@@ -296,7 +352,6 @@ static float sinc_norm(float x)
     return sinf(scaled_x) / scaled_x;
 }
 #endif
-
 
 static float make_sinc_item(float history[RESAMPLE_HISTORY_SIZE], float shift_rem)
 {
@@ -324,7 +379,10 @@ static float make_sinc_item(float history[RESAMPLE_HISTORY_SIZE], float shift_re
 
     return result;
 }
-#endif
+
+#endif // USE_SSE_SINC
+
+#endif // USE_SINC
 
 
 static void Resample_state_process(
