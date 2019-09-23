@@ -752,7 +752,15 @@ int32_t Ks_vstate_render_voice(
 
     const Proc_ks* ks = (const Proc_ks*)proc_state->parent.device->dimpl;
 
-    Ks_vstate* ks_vstate = (Ks_vstate*)vstate;
+    Ks_vstate* ks_vstate = (Ks_vstate*)
+#ifdef __GNUC__
+        __builtin_assume_aligned(
+#endif
+        vstate
+#ifdef __GNUC__
+        , VOICE_STATE_ALIGNMENT)
+#endif
+        ;
 
     const int32_t system_audio_rate = ks_vstate->excit_resample_state.from_rate;
     const int32_t ks_audio_rate = ks_vstate->excit_resample_state.to_rate;
@@ -1077,7 +1085,15 @@ void Ks_vstate_init(Voice_state* vstate, const Proc_state* proc_state)
     rassert(vstate != NULL);
     rassert(proc_state != NULL);
 
-    Ks_vstate* ks_vstate = (Ks_vstate*)vstate;
+    Ks_vstate* ks_vstate = (Ks_vstate*)
+#ifdef __GNUC__
+        __builtin_assume_aligned(
+#endif
+        vstate
+#ifdef __GNUC__
+        , VOICE_STATE_ALIGNMENT)
+#endif
+        ;
 
     ks_vstate->write_pos = 0;
     ks_vstate->primary_read_state = 0;

@@ -120,7 +120,15 @@ Voice_pool* new_Voice_pool(int size)
         for (int i = 0; i < size; ++i)
         {
             Voice_state* state =
-                (Voice_state*)(pool->voice_state_memory + (pool->state_size * i));
+                (Voice_state*)
+#ifdef __GNUC__
+                __builtin_assume_aligned(
+#endif
+                (pool->voice_state_memory + (pool->state_size * i))
+#ifdef __GNUC__
+                , VOICE_STATE_ALIGNMENT)
+#endif
+                ;
             if (Voice_init(&pool->voices[i], state) == NULL)
             {
                 del_Voice_pool(pool);
@@ -159,7 +167,15 @@ bool Voice_pool_reserve_state_space(Voice_pool* pool, int32_t state_size)
     for (int i = 0; i < pool->size; ++i)
     {
         Voice_state* state =
-            (Voice_state*)(pool->voice_state_memory + (pool->state_size * i));
+            (Voice_state*)
+#ifdef __GNUC__
+                __builtin_assume_aligned(
+#endif
+            (pool->voice_state_memory + (pool->state_size * i))
+#ifdef __GNUC__
+                , VOICE_STATE_ALIGNMENT)
+#endif
+            ;
         if (Voice_init(&pool->voices[i], state) == NULL)
             return false;
     }
