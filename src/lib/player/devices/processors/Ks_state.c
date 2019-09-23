@@ -1104,7 +1104,7 @@ void Ks_vstate_init(Voice_state* vstate, const Proc_state* proc_state)
         {
             Resample_lp_state* rls = &ks_vstate->resample_lp_state;
 
-            const double lp_freq = ks_audio_rate * 0.42 / (double)system_audio_rate;
+            const double lp_freq = ks_audio_rate * 0.47 / (double)system_audio_rate;
             butterworth_filter_create(
                     RESAMPLE_LP_ORDER, lp_freq, 0, rls->coeffs, &rls->mul);
 
