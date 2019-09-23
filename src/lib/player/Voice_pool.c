@@ -108,7 +108,7 @@ Voice_pool* new_Voice_pool(int size)
 
     if (size > 0)
     {
-        pool->state_size = (sizeof(Voice_state) | (VOICE_STATE_ALIGNMENT - 1)) + 1;
+        pool->state_size = ((sizeof(Voice_state) - 1) | (VOICE_STATE_ALIGNMENT - 1)) + 1;
         pool->voice_state_memory = memory_alloc_aligned(
                 pool->state_size * KQT_VOICES_MAX, VOICE_STATE_ALIGNMENT);
         if (pool->voice_state_memory == NULL)
@@ -151,7 +151,7 @@ bool Voice_pool_reserve_state_space(Voice_pool* pool, int32_t state_size)
     rassert(pool != NULL);
     rassert(state_size >= 0);
 
-    int32_t actual_state_size = (state_size | (VOICE_STATE_ALIGNMENT - 1)) + 1;
+    int32_t actual_state_size = ((state_size - 1) | (VOICE_STATE_ALIGNMENT - 1)) + 1;
     if (actual_state_size <= pool->state_size)
         return true;
 
