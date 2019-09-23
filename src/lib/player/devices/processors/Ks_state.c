@@ -592,7 +592,7 @@ static void Resample_state_process(
 }
 
 
-#define RESAMPLE_LP_ORDER 16
+#define RESAMPLE_LP_ORDER 6
 
 
 typedef struct Resample_lp_state
