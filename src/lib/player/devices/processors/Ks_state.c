@@ -286,9 +286,6 @@ static void Resample_state_prepare_render(
 }
 
 
-#define USE_SINC 1
-#if USE_SINC
-
 #define USE_SSE_SINC KQT_SSE
 
 #if USE_SSE_SINC
@@ -382,8 +379,6 @@ static float make_sinc_item(float history[RESAMPLE_HISTORY_SIZE], float shift_re
 
 #endif // USE_SSE_SINC
 
-#endif // USE_SINC
-
 
 static void Resample_state_process(
         Resample_state* state, int32_t req_input_count, int32_t req_output_count)
@@ -413,7 +408,6 @@ static void Resample_state_process(
 
     float* in_history = state->in_history;
 
-#if USE_SINC
     if (state->to_rate < state->from_rate)
     {
         int32_t ds_sub_phase = state->ds_sub_phase;
@@ -503,86 +497,6 @@ static void Resample_state_process(
             ++to_index;
         }
     }
-#else
-    if (state->to_rate < state->from_rate)
-    {
-        int32_t ds_sub_phase = state->ds_sub_phase;
-        const int32_t ds_sub_phase_div = min(state->from_rate, state->to_rate);
-        const int32_t ds_sub_phase_add = max(state->from_rate, state->to_rate);
-
-        // Downsample
-        rassert(req_input_count > 0);
-        const int32_t max_input_count = from_size - from_index;
-        rassert(max_input_count > 0);
-        const int32_t actual_input_count = min(req_input_count, max_input_count);
-        const int32_t output_stop = (req_output_count < INT32_MAX - to_index)
-            ? to_index + req_output_count : INT32_MAX;
-
-        for (int32_t i = 0; i < actual_input_count; ++i)
-        {
-            in_history[0] = in_history[1];
-            in_history[1] = from[from_index];
-
-            ++from_index;
-
-            sub_phase += sub_phase_add;
-            if (sub_phase >= sub_phase_div)
-            {
-                ds_sub_phase = (ds_sub_phase + ds_sub_phase_add) % ds_sub_phase_div;
-
-                if (to_index >= output_stop)
-                {
-                    sub_phase -= sub_phase_add;
-                    ds_sub_phase = (ds_sub_phase + ds_sub_phase_div - ds_sub_phase_add) %
-                        ds_sub_phase_div;
-                    break;
-                }
-
-                sub_phase -= sub_phase_div;
-                const float lerp_t = ((float)ds_sub_phase / (float)ds_sub_phase_div);
-                to[to_index] = lerp(in_history[0], in_history[1], lerp_t);
-
-                ++to_index;
-            }
-        }
-
-        state->ds_sub_phase = ds_sub_phase;
-    }
-    else
-    {
-        // Upsample
-        const int32_t max_output_count = to_size - to_index;
-        rassert(max_output_count > 0);
-        const int32_t actual_output_count = min(req_output_count, max_output_count);
-        const int32_t input_stop = (req_input_count < INT32_MAX - from_index)
-            ? from_index + req_input_count : INT32_MAX;
-
-        for (int32_t i = 0; i < actual_output_count; ++i)
-        {
-            sub_phase += sub_phase_add;
-            if (sub_phase >= sub_phase_div)
-            {
-                if (from_index >= input_stop)
-                {
-                    sub_phase -= sub_phase_add;
-                    break;
-                }
-
-                sub_phase -= sub_phase_div;
-
-                in_history[0] = in_history[1];
-                in_history[1] = from[from_index];
-
-                ++from_index;
-            }
-
-            const float lerp_t = (float)sub_phase / (float)sub_phase_div;
-            to[to_index] = lerp(in_history[0], in_history[1], lerp_t);
-
-            ++to_index;
-        }
-    }
-#endif
 
     state->from_index = from_index;
     state->sub_phase = sub_phase;
