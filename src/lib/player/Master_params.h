@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2019
  *
  * This file is part of Kunquat.
  *
@@ -79,8 +79,9 @@ struct Master_params
         float feedback;
     } dc_block_state[KQT_DEVICE_PORTS_MAX];
 
-    double volume;
-    Slider volume_slider;
+    // Note: exceptional log scale where +1 => double
+    double volume_log;
+    Slider volume_log_slider;
 
     bool          do_jump;
     int16_t       jump_counter;

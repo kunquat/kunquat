@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2019
  *
  * This file is part of Kunquat.
  *
@@ -61,8 +61,8 @@ static void Master_params_clear(Master_params* params)
         params->dc_block_state[port].feedback = 0;
     }
 
-    params->volume = 1.0;
-    Slider_init(&params->volume_slider, SLIDE_MODE_EXP);
+    params->volume_log = 0.0;
+    Slider_init(&params->volume_log_slider);
 
     params->do_jump = false;
     params->jump_counter = 0;

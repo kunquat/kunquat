@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2019
  *
  * This file is part of Kunquat.
  *
@@ -28,13 +28,22 @@
 static void Slider_update_time(Slider* slider, int32_t audio_rate, double tempo);
 
 
-Slider* Slider_init(Slider* slider, Slide_mode mode)
+Slider* Slider_init(Slider* slider)
 {
     rassert(slider != NULL);
-    rassert(mode == SLIDE_MODE_LINEAR || mode == SLIDE_MODE_EXP);
 
-    slider->mode = mode;
     slider->audio_rate = DEFAULT_AUDIO_RATE;
+
+    Slider_reset(slider);
+
+    return slider;
+}
+
+
+void Slider_reset(Slider* slider)
+{
+    rassert(slider != NULL);
+
     slider->tempo = DEFAULT_TEMPO;
 
     Tstamp_init(&slider->length);
@@ -43,10 +52,8 @@ Slider* Slider_init(Slider* slider, Slide_mode mode)
 
     slider->progress = 1;
     slider->progress_update = 0;
-    slider->log2_from = 0;
-    slider->log2_to = 0;
 
-    return slider;
+    return;
 }
 
 
@@ -71,12 +78,6 @@ void Slider_start(Slider* slider, double target, double start)
     slider->from = start;
     slider->to = target;
 
-    if (slider->mode == SLIDE_MODE_EXP)
-    {
-        slider->log2_from = log2(slider->from);
-        slider->log2_to = log2(slider->to);
-    }
-
     slider->progress = 0;
     slider->progress_update = 1;
     if (Tstamp_cmp(&slider->length, TSTAMP_AUTO) > 0)
@@ -93,9 +94,6 @@ double Slider_get_value(const Slider* slider)
 
     if (slider->progress >= 1)
         return slider->to;
-
-    if (slider->mode == SLIDE_MODE_EXP)
-        return exp2(lerp(slider->log2_from, slider->log2_to, slider->progress));
 
     return lerp(slider->from, slider->to, slider->progress);
 }
@@ -240,12 +238,6 @@ void Slider_change_range(
 
     slider->from = lerp(to_start, to_end, start_norm);
     slider->to = lerp(to_start, to_end, target_norm);
-
-    if (slider->mode == SLIDE_MODE_EXP)
-    {
-        slider->log2_from = log2(slider->from);
-        slider->log2_to = log2(slider->to);
-    }
 
     return;
 }

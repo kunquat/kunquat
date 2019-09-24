@@ -53,7 +53,6 @@ struct Voice
     bool use_test_output;
     int test_proc_index;
     const Processor* proc;   ///< The Processor.
-    int32_t state_size;      ///< The amount bytes allocated for the Voice state.
     Voice_state* state;      ///< The current playback state.
     Work_buffer* wb;         ///< The Work buffer associated with this Voice.
     Random rand_p;           ///< Parameter random source.
@@ -73,22 +72,11 @@ void Voice_preinit(Voice* voice);
  * Initialise the Voice.
  *
  * \param voice   The Voice -- must not be \c NULL.
+ * \param state   The Voice state -- must not be \c NULL.
  *
  * \return   \a voice if successful, or \c NULL if memory allocation failed.
  */
-Voice* Voice_init(Voice* voice);
-
-
-/**
- * Reserve space for the Voice state.
- *
- * \param voice        The Voice -- must not be \c NULL.
- * \param state_size   The amount of bytes to reserve for the Voice state
- *                     -- must be >= \c 0.
- *
- * \return   \c true if successful, or \c false if memory allocation failed.
- */
-bool Voice_reserve_state_space(Voice* voice, int32_t state_size);
+Voice* Voice_init(Voice* voice, Voice_state* state);
 
 
 /**

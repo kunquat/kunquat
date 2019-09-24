@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2019
  *
  * This file is part of Kunquat.
  *
@@ -33,8 +33,8 @@ bool Event_master_set_volume_process(
     rassert(params->arg != NULL);
     rassert(params->arg->type == VALUE_TYPE_FLOAT);
 
-    master_params->volume = exp2(params->arg->value.float_type / 6);
-    Slider_break(&master_params->volume_slider);
+    master_params->volume_log = params->arg->value.float_type / 6;
+    Slider_break(&master_params->volume_log_slider);
 
     return true;
 }
@@ -48,12 +48,13 @@ bool Event_master_slide_volume_process(
     rassert(params->arg != NULL);
     rassert(params->arg->type == VALUE_TYPE_FLOAT);
 
-    const double target = exp2(params->arg->value.float_type / 6);
+    const double target = params->arg->value.float_type / 6;
 
-    if (Slider_in_progress(&master_params->volume_slider))
-        Slider_change_target(&master_params->volume_slider, target);
+    if (Slider_in_progress(&master_params->volume_log_slider))
+        Slider_change_target(&master_params->volume_log_slider, target);
     else
-        Slider_start(&master_params->volume_slider, target, master_params->volume);
+        Slider_start(
+                &master_params->volume_log_slider, target, master_params->volume_log);
 
     return true;
 }
@@ -67,7 +68,8 @@ bool Event_master_slide_volume_length_process(
     rassert(params->arg != NULL);
     rassert(params->arg->type == VALUE_TYPE_TSTAMP);
 
-    Slider_set_length(&master_params->volume_slider, &params->arg->value.Tstamp_type);
+    Slider_set_length(
+            &master_params->volume_log_slider, &params->arg->value.Tstamp_type);
 
     return true;
 }

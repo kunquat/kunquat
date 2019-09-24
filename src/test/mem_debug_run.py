@@ -90,7 +90,14 @@ def run_test(program):
 
     leaks = not 'no leaks are possible' in output
 
-    if leaks:
+    errors = False
+    for line in reversed(output.splitlines()):
+        if 'ERROR SUMMARY:' in line:
+            if ' 0 errors' not in line:
+                errors = True
+            break
+
+    if leaks or errors:
         print(output)
         sys.exit(2)
     else:

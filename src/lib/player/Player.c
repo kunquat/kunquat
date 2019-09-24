@@ -105,7 +105,7 @@ static void Player_update_sliders_and_lfos_audio_rate(Player* player)
     }
 
     Master_params* mp = &player->master_params;
-    Slider_set_audio_rate(&mp->volume_slider, rate);
+    Slider_set_audio_rate(&mp->volume_log_slider, rate);
 
     return;
 }
@@ -1612,12 +1612,12 @@ static void Player_apply_master_volume(Player* player, int32_t frame_count)
 
     if (!Work_buffer_is_valid(master_wbs[0]) && !Work_buffer_is_valid(master_wbs[1]))
     {
-        Slider_skip(&player->master_params.volume_slider, frame_count);
+        Slider_skip(&player->master_params.volume_log_slider, frame_count);
         return;
     }
 
     Slider slider;
-    Slider_init(&slider, SLIDE_MODE_LINEAR);
+    Slider_init(&slider);
 
     for (int ch = 0; ch < 2; ++ch)
     {
@@ -1625,29 +1625,29 @@ static void Player_apply_master_volume(Player* player, int32_t frame_count)
         if (!Work_buffer_is_valid(wb))
             continue;
 
-        Slider_copy(&slider, &player->master_params.volume_slider);
+        Slider_copy(&slider, &player->master_params.volume_log_slider);
 
         float* buf = Work_buffer_get_contents_mut(wb);
 
         if (Slider_in_progress(&slider))
         {
-            double final_volume = player->master_params.volume;
+            double final_volume_log = player->master_params.volume_log;
             for (int32_t i = 0; i < frame_count; ++i)
             {
-                final_volume = Slider_step(&slider);
-                *buf++ *= (float)final_volume;
+                final_volume_log = Slider_step(&slider);
+                *buf++ *= (float)exp2(final_volume_log);
             }
-            player->master_params.volume = final_volume;
+            player->master_params.volume_log = final_volume_log;
         }
         else
         {
-            const float cur_volume = (float)player->master_params.volume;
+            const float cur_volume = (float)exp2(player->master_params.volume_log);
             for (int32_t i = 0; i < frame_count; ++i)
                 *buf++ *= cur_volume;
         }
     }
 
-    Slider_copy(&player->master_params.volume_slider, &slider);
+    Slider_copy(&player->master_params.volume_log_slider, &slider);
 
     return;
 }
@@ -1838,7 +1838,7 @@ void Player_skip(Player* player, int64_t nframes)
             nframes = skipped + to_be_skipped;
 
         // Update master volume slider
-        Slider_skip(&player->master_params.volume_slider, to_be_skipped);
+        Slider_skip(&player->master_params.volume_log_slider, to_be_skipped);
 
         skipped += to_be_skipped;
     }

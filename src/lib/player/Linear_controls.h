@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2017
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2019
  *
  * This file is part of Kunquat.
  *
@@ -45,6 +45,14 @@ struct Linear_controls
  * \param lc   The Linear controls -- must not be \c NULL.
  */
 void Linear_controls_init(Linear_controls* lc);
+
+
+/**
+ * Resets the Linear controls.
+ *
+ * \param lc   The Linear controls -- must not be \c NULL.
+ */
+void Linear_controls_reset(Linear_controls* lc);
 
 
 /**

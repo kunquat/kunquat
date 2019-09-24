@@ -996,7 +996,7 @@ void Player_update_sliders_and_lfos_tempo(Player* player)
     rassert(isfinite(tempo));
 
     Master_params* mp = &player->master_params;
-    Slider_set_tempo(&mp->volume_slider, tempo);
+    Slider_set_tempo(&mp->volume_log_slider, tempo);
 
     // Update channels
     for (int i = 0; i < KQT_CHANNELS_MAX; ++i)

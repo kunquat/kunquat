@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2019
  *
  * This file is part of Kunquat.
  *
@@ -31,6 +31,9 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
+
+
+#define VOICE_STATE_ALIGNMENT 64
 
 
 typedef int32_t Voice_state_get_size_func(void);
