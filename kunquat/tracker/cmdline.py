@@ -30,7 +30,7 @@ def parse_arguments():
             help=argparse.SUPPRESS)
     ap.add_argument('-r', '--rate', type=int, default=48000, metavar='r',
             help='Set audio rate to %(metavar)s frames/second (default: %(default)s)')
-    ap.add_argument('--audio-latency', type=float, default=60, metavar='t',
+    ap.add_argument('--audio-latency', type=float, default=32, metavar='t',
             help='Set audio latency to %(metavar)s milliseconds (default: %(default)s)')
     ap.add_argument(
             '--threads', type=int, default=get_default_thread_count(), metavar='n',
