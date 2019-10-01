@@ -32,7 +32,7 @@ from kunquat.extras import pulseaudio, processors
 
 
 PROGRAM_NAME = 'kunquat-player'
-PROGRAM_VERSION = '0.9.3'
+PROGRAM_VERSION = '0.9.4'
 AUTHORS = [ 'Tomi Jylhä-Ollila', 'Toni Ruottu' ]
 
 ENABLE_UNICODE_OUTPUT = (locale.getpreferredencoding().lower() == 'utf-8')
