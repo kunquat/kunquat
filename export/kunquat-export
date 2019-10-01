@@ -28,7 +28,7 @@ from kunquat.extras import sndfile, processors
 
 
 PROGRAM_NAME = 'kunquat-export'
-PROGRAM_VERSION = '0.9.3'
+PROGRAM_VERSION = '0.9.4'
 AUTHORS = [ 'Tomi Jylhä-Ollila' ]
 
 ENABLE_UNICODE_OUTPUT = (locale.getpreferredencoding().lower() == 'utf-8')
