@@ -1,5 +1,9 @@
-Kunquat is a music sequencer similar to tracker programs. Some of its distinctive features include high time resolution and flexible tuning configuration. Great care is also taken in designing a mixing infrastructure to allow mixing logical bodies instead of hardware forced channels.
 
-The design is partially motivated by the desire to compose interactive music, that reacts on changes in the environment where the music is played. Such factors might include the events in a video game, or the amount of customers in a restaurant where the music is played.
 
-Join the chat at https://gitter.im/kunquat/kunquat
+Kunquat is a tracker-like music sequencer with strong emphasis on accurate
+notation of musical performance and expression. The key features to support
+this goal are continuous time axis and flexible instrument interfaces.
+Additional goals include support for non-Western musical scales and interactive
+music composition.
+
+
