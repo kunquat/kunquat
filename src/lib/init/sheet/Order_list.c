@@ -119,7 +119,7 @@ Order_list* new_Order_list(Streader* sr)
     ol->pat_insts = NULL;
     ol->index_map = NULL;
 
-    // Create Pattern instance reference vector
+    // Create Pattern instance reference array
     ol->pat_insts = new_Array(sizeof(Pat_inst_ref));
     if (ol->pat_insts == NULL)
     {

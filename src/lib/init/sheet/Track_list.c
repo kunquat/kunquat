@@ -96,7 +96,7 @@ Track_list* new_Track_list(Streader* sr)
 
     tl->songs = NULL;
 
-    // Create song index vector
+    // Create song index array
     tl->songs = new_Array(sizeof(int16_t));
     if (tl->songs == NULL)
     {
