@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2018
+ * Author: Tomi Jylhä-Ollila, Finland 2018-2019
  *
  * This file is part of Kunquat.
  *
@@ -83,7 +83,7 @@ static bool Zip_state_init(Zip_state* zstate, const char* path)
 }
 
 
-typedef struct Vector
+typedef struct Array
 {
     size_t size;
     size_t capacity;
@@ -91,110 +91,108 @@ typedef struct Vector
     void (*destroy)(void* data);
 
     void* data;
-} Vector;
+} Array;
 
 
-static void Vector_deinit(Vector* vector)
+static void Array_deinit(Array* arr)
 {
-    assert(vector != NULL);
+    assert(arr != NULL);
 
-    char* data_bytes = vector->data;
+    char* data_bytes = arr->data;
 
-    if ((data_bytes != NULL) && (vector->destroy != NULL))
+    if ((data_bytes != NULL) && (arr->destroy != NULL))
     {
-        assert(sizeof(char*) == vector->elem_size);
+        assert(sizeof(char*) == arr->elem_size);
 
-        for (size_t i = 0; i < vector->size; ++i)
+        for (size_t i = 0; i < arr->size; ++i)
         {
             char* p = NULL;
-            memcpy(&p, &data_bytes[vector->elem_size * i], vector->elem_size);
+            memcpy(&p, &data_bytes[arr->elem_size * i], arr->elem_size);
 
-            vector->destroy(p);
+            arr->destroy(p);
         }
     }
 
-    free(vector->data);
-    vector->data = NULL;
+    free(arr->data);
+    arr->data = NULL;
 
-    vector->size = 0;
-    vector->capacity = 0;
-    vector->elem_size = 0;
-    vector->destroy = NULL;
+    arr->size = 0;
+    arr->capacity = 0;
+    arr->elem_size = 0;
+    arr->destroy = NULL;
 
     return;
 }
 
 
-static bool Vector_inc_capacity(Vector* vector)
+static bool Array_inc_capacity(Array* arr)
 {
-    assert(vector != NULL);
+    assert(arr != NULL);
 
-    const size_t new_cap = (vector->capacity == 0) ? 4 : vector->capacity * 2;
+    const size_t new_cap = (arr->capacity == 0) ? 4 : arr->capacity * 2;
 
-    void* new_data = realloc(vector->data, new_cap * vector->elem_size);
+    void* new_data = realloc(arr->data, new_cap * arr->elem_size);
     if (new_data == NULL)
         return false;
 
-    vector->data = new_data;
+    arr->data = new_data;
 
-    char* data_bytes = vector->data;
+    char* data_bytes = arr->data;
 
-    const size_t cap_inc = new_cap - vector->capacity;
-    memset(data_bytes + (vector->capacity * vector->elem_size),
-            0,
-            cap_inc * vector->elem_size);
+    const size_t cap_inc = new_cap - arr->capacity;
+    memset(data_bytes + (arr->capacity * arr->elem_size), 0, cap_inc * arr->elem_size);
 
-    vector->capacity = new_cap;
+    arr->capacity = new_cap;
 
     return true;
 }
 
 
-static bool Vector_add(Vector* vector, const void* elem)
+static bool Array_add(Array* arr, const void* elem)
 {
-    assert(vector != NULL);
+    assert(arr != NULL);
     assert(elem != NULL);
 
-    if (vector->size >= vector->capacity)
+    if (arr->size >= arr->capacity)
     {
-        assert(vector->size == vector->capacity);
-        if (!Vector_inc_capacity(vector))
+        assert(arr->size == arr->capacity);
+        if (!Array_inc_capacity(arr))
             return false;
     }
 
-    char* data_bytes = vector->data;
+    char* data_bytes = arr->data;
 
-    memcpy(&data_bytes[vector->size * vector->elem_size], elem, vector->elem_size);
-    ++vector->size;
+    memcpy(&data_bytes[arr->size * arr->elem_size], elem, arr->elem_size);
+    ++arr->size;
 
     return true;
 }
 
 
-static long Vector_get_size(const Vector* vector)
+static long Array_get_size(const Array* arr)
 {
-    assert(vector != NULL);
-    return (long)vector->size;
+    assert(arr != NULL);
+    return (long)arr->size;
 }
 
 
-static void* Vector_get_data(Vector* vector)
+static void* Array_get_data(Array* arr)
 {
-    assert(vector != NULL);
-    return vector->data;
+    assert(arr != NULL);
+    return arr->data;
 }
 
 
-static void Vector_init(Vector* vector, long elem_size, void (*destroy)(void*))
+static void Array_init(Array* arr, long elem_size, void (*destroy)(void*))
 {
-    assert(vector != NULL);
+    assert(arr != NULL);
     assert(elem_size > 0);
 
-    vector->size = 0;
-    vector->capacity = 0;
-    vector->elem_size = (size_t)elem_size;
-    vector->destroy = destroy;
-    vector->data = NULL;
+    arr->size = 0;
+    arr->capacity = 0;
+    arr->elem_size = (size_t)elem_size;
+    arr->destroy = destroy;
+    arr->data = NULL;
 
     return;
 }
@@ -202,9 +200,9 @@ static void Vector_init(Vector* vector, long elem_size, void (*destroy)(void*))
 
 typedef struct Kept_entries
 {
-    Vector keys;
-    Vector sizes;
-    Vector values;
+    Array keys;
+    Array sizes;
+    Array values;
 } Kept_entries;
 
 
@@ -212,9 +210,9 @@ static void Kept_entries_init(Kept_entries* entries)
 {
     assert(entries != NULL);
 
-    Vector_init(&entries->keys, sizeof(char*), free);
-    Vector_init(&entries->sizes, sizeof(long), NULL);
-    Vector_init(&entries->values, sizeof(char*), free);
+    Array_init(&entries->keys, sizeof(char*), free);
+    Array_init(&entries->sizes, sizeof(long), NULL);
+    Array_init(&entries->values, sizeof(char*), free);
 
     return;
 }
@@ -224,9 +222,9 @@ static void Kept_entries_deinit(Kept_entries* entries)
 {
     assert(entries != NULL);
 
-    Vector_deinit(&entries->keys);
-    Vector_deinit(&entries->sizes);
-    Vector_deinit(&entries->values);
+    Array_deinit(&entries->keys);
+    Array_deinit(&entries->sizes);
+    Array_deinit(&entries->values);
 
     return;
 }
@@ -252,14 +250,14 @@ static bool Kept_entries_add_entry(
     }
     strcpy(copied_key, key);
 
-    if (!Vector_add(&entries->keys, &copied_key))
+    if (!Array_add(&entries->keys, &copied_key))
     {
         free(copied_key);
         Kept_entries_deinit(entries);
         return false;
     }
 
-    if (!Vector_add(&entries->sizes, &size) || !Vector_add(&entries->values, &value))
+    if (!Array_add(&entries->sizes, &size) || !Array_add(&entries->values, &value))
     {
         Kept_entries_deinit(entries);
         return false;
@@ -272,31 +270,31 @@ static bool Kept_entries_add_entry(
 static long Kept_entries_get_entry_count(const Kept_entries* entries)
 {
     assert(entries != NULL);
-    assert(Vector_get_size(&entries->keys) == Vector_get_size(&entries->sizes));
-    assert(Vector_get_size(&entries->keys) == Vector_get_size(&entries->values));
+    assert(Array_get_size(&entries->keys) == Array_get_size(&entries->sizes));
+    assert(Array_get_size(&entries->keys) == Array_get_size(&entries->values));
 
-    return Vector_get_size(&entries->keys);
+    return Array_get_size(&entries->keys);
 }
 
 
 static const char** Kept_entries_get_keys(Kept_entries* entries)
 {
     assert(entries != NULL);
-    return (const char**)Vector_get_data(&entries->keys);
+    return (const char**)Array_get_data(&entries->keys);
 }
 
 
 static const long* Kept_entries_get_sizes(Kept_entries* entries)
 {
     assert(entries != NULL);
-    return (const long*)Vector_get_data(&entries->sizes);
+    return (const long*)Array_get_data(&entries->sizes);
 }
 
 
 static const char** Kept_entries_get_values(Kept_entries* entries)
 {
     assert(entries != NULL);
-    return (const char**)Vector_get_data(&entries->values);
+    return (const char**)Array_get_data(&entries->values);
 }
 
 

@@ -14,7 +14,7 @@
 
 #include <init/devices/param_types/Padsynth_params.h>
 
-#include <containers/Vector.h>
+#include <containers/Array.h>
 #include <init/devices/param_types/Envelope.h>
 #include <mathnum/common.h>
 #include <memory.h>
@@ -30,7 +30,7 @@ static bool read_harmonic(Streader* sr, int32_t index, void* userdata)
     ignore(index);
     rassert(userdata != NULL);
 
-    Vector* harmonics = userdata;
+    Array* harmonics = userdata;
 
     Padsynth_harmonic* info =
         &(Padsynth_harmonic){ .freq_mul = NAN, .amplitude = NAN, .phase = NAN };
@@ -61,7 +61,7 @@ static bool read_harmonic(Streader* sr, int32_t index, void* userdata)
             return false;
     }
 
-    if (!Vector_append(harmonics, info))
+    if (!Array_append(harmonics, info))
     {
         Streader_set_memory_error(
                 sr, "Could not allocate memory for PADsynth harmonics");
@@ -198,7 +198,7 @@ static bool read_param(Streader* sr, const char* key, void* userdata)
         if (!Streader_read_list(sr, read_harmonic, pp->harmonics))
             return false;
 
-        if (Vector_size(pp->harmonics) == 0)
+        if (Array_get_size(pp->harmonics) == 0)
         {
             Streader_set_error(sr, "List of PADsynth harmonics is empty");
             return false;
@@ -356,7 +356,7 @@ Padsynth_params* new_Padsynth_params(Streader* sr, int version)
     pp->is_res_env_enabled = false;
     pp->res_env = NULL;
 
-    pp->harmonics = new_Vector(sizeof(Padsynth_harmonic));
+    pp->harmonics = new_Array(sizeof(Padsynth_harmonic));
     if (pp->harmonics == NULL)
     {
         Streader_set_memory_error(
@@ -386,7 +386,7 @@ Padsynth_params* new_Padsynth_params(Streader* sr, int version)
     {
         Padsynth_harmonic* info =
             &(Padsynth_harmonic){ .freq_mul = 1, .amplitude = 1, .phase = 0 };
-        if (!Vector_append(pp->harmonics, info))
+        if (!Array_append(pp->harmonics, info))
         {
             Streader_set_error(sr, "Could not allocate memory for PADsynth harmonics");
             del_Padsynth_params(pp);
@@ -402,7 +402,7 @@ Padsynth_params* new_Padsynth_params(Streader* sr, int version)
         return NULL;
     }
 
-    if (Vector_size(pp->harmonics) == 0)
+    if (Array_get_size(pp->harmonics) == 0)
     {
         Streader_set_error(sr, "No harmonics found in PADsynth parameters");
         del_Padsynth_params(pp);
@@ -419,7 +419,7 @@ void del_Padsynth_params(Padsynth_params* pp)
         return;
 
     del_Envelope(pp->res_env);
-    del_Vector(pp->harmonics);
+    del_Array(pp->harmonics);
     memory_free(pp);
 
     return;

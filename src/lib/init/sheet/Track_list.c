@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2019
  *
  * This file is part of Kunquat.
  *
@@ -14,7 +14,7 @@
 
 #include <init/sheet/Track_list.h>
 
-#include <containers/Vector.h>
+#include <containers/Array.h>
 #include <debug/assert.h>
 #include <memory.h>
 
@@ -26,7 +26,7 @@
 
 struct Track_list
 {
-    Vector* songs;
+    Array* songs;
 };
 
 
@@ -73,7 +73,7 @@ static bool read_song(Streader* sr, int32_t index, void* userdata)
 
     // Add song index
     int16_t song_index = (int16_t)num;
-    Vector_append(rd->tl->songs, &song_index);
+    Array_append(rd->tl->songs, &song_index);
 
     return true;
 }
@@ -96,8 +96,8 @@ Track_list* new_Track_list(Streader* sr)
 
     tl->songs = NULL;
 
-    // Create song index vector
-    tl->songs = new_Vector(sizeof(int16_t));
+    // Create song index array
+    tl->songs = new_Array(sizeof(int16_t));
     if (tl->songs == NULL)
     {
         Streader_set_memory_error(
@@ -125,7 +125,7 @@ Track_list* new_Track_list(Streader* sr)
 int Track_list_get_len(const Track_list* tl)
 {
     rassert(tl != NULL);
-    return (int)Vector_size(tl->songs);
+    return (int)Array_get_size(tl->songs);
 }
 
 
@@ -135,7 +135,7 @@ int Track_list_get_song_index(const Track_list* tl, int index)
     rassert(index < Track_list_get_len(tl));
 
     int16_t song_index = -1;
-    Vector_get(tl->songs, index, &song_index);
+    Array_get_copy(tl->songs, index, &song_index);
 
     rassert(song_index >= 0);
     return song_index;
@@ -147,9 +147,9 @@ int Track_list_get_track_by_song(const Track_list* tl, int song_index)
     rassert(tl != NULL);
     rassert(song_index >= 0);
 
-    for (int64_t i = 0; i < Vector_size(tl->songs); ++i)
+    for (int64_t i = 0; i < Array_get_size(tl->songs); ++i)
     {
-        const int16_t* cur_index = Vector_get_ref(tl->songs, i);
+        const int16_t* cur_index = Array_get_ref(tl->songs, i);
         if (*cur_index == song_index)
             return (int)i;
     }
@@ -163,7 +163,7 @@ void del_Track_list(Track_list* tl)
     if (tl == NULL)
         return;
 
-    del_Vector(tl->songs);
+    del_Array(tl->songs);
     memory_free(tl);
 
     return;

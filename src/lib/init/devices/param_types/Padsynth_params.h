@@ -61,7 +61,7 @@ typedef struct Padsynth_params
 
     double bandwidth_base;
     double bandwidth_scale;
-    Vector* harmonics;
+    Array* harmonics;
 
     double phase_var_at_harmonic;
     double phase_var_off_harmonic;

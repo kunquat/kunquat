@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2018
+ * Author: Tomi Jylhä-Ollila, Finland 2018-2019
  *
  * This file is part of Kunquat.
  *
@@ -14,7 +14,7 @@
 
 #include <init/Background_loader.h>
 
-#include <containers/Vector.h>
+#include <containers/Array.h>
 #include <debug/assert.h>
 #include <Error.h>
 #include <init/Background_loader.h>
@@ -328,7 +328,7 @@ struct Background_loader
     Task_queue work_queue;
     Task_queue cleanup_queue;
 
-    Vector* final_cleanups;
+    Array* final_cleanups;
 };
 
 
@@ -338,7 +338,7 @@ Background_loader* new_Background_loader(void)
     if (loader == NULL)
         return NULL;
 
-    loader->final_cleanups = new_Vector(sizeof(Final_cleanup_info));
+    loader->final_cleanups = new_Array(sizeof(Final_cleanup_info));
     if (loader->final_cleanups == NULL)
     {
         // Note: del_Background_loader syncs so it is not safe here
@@ -485,7 +485,7 @@ bool Background_loader_add_delayed_task(
     rassert(callback != NULL);
 
     Final_cleanup_info info = { .callback = callback, .user_data = user_data };
-    return Vector_append(loader->final_cleanups, &info);
+    return Array_append(loader->final_cleanups, &info);
 }
 
 
@@ -567,14 +567,14 @@ void Background_loader_wait_idle(Background_loader* loader)
     Background_loader_run_cleanups(loader);
 
     // Final cleanups
-    const int64_t cleanup_count = Vector_size(loader->final_cleanups);
+    const int64_t cleanup_count = Array_get_size(loader->final_cleanups);
     for (int i = 0; i < cleanup_count; ++i)
     {
-        Final_cleanup_info* info = Vector_get_ref(loader->final_cleanups, i);
+        Final_cleanup_info* info = Array_get_ref(loader->final_cleanups, i);
         rassert(info->callback != NULL);
         info->callback(info->user_data);
     }
-    Vector_clear(loader->final_cleanups);
+    Array_clear(loader->final_cleanups);
 #endif // ENABLE_THREADS
 
     return;
@@ -624,7 +624,7 @@ void del_Background_loader(Background_loader* loader)
     Task_queue_deinit(&loader->work_queue);
     Task_queue_deinit(&loader->cleanup_queue);
 
-    del_Vector(loader->final_cleanups);
+    del_Array(loader->final_cleanups);
 
     memory_free(loader);
 

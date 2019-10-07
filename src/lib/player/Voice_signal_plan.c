@@ -14,8 +14,8 @@
 
 #include <player/Voice_signal_plan.h>
 
+#include <containers/Array.h>
 #include <containers/Etable.h>
-#include <containers/Vector.h>
 #include <debug/assert.h>
 #include <init/Connections.h>
 #include <init/Device_node.h>
@@ -52,8 +52,8 @@ typedef struct Buffer_connection
 typedef struct Voice_signal_task_info
 {
     uint32_t device_id;
-    Vector* sender_tasks;
-    Vector* buf_conns;
+    Array* sender_tasks;
+    Array* buf_conns;
     uint32_t is_connected_to_mixed : 1;
     uint32_t is_processed : 1;
 } Voice_signal_task_info;
@@ -63,10 +63,10 @@ static void Voice_signal_task_info_deinit(Voice_signal_task_info* task_info)
 {
     rassert(task_info != NULL);
 
-    del_Vector(task_info->sender_tasks);
+    del_Array(task_info->sender_tasks);
     task_info->sender_tasks = NULL;
 
-    del_Vector(task_info->buf_conns);
+    del_Array(task_info->buf_conns);
     task_info->buf_conns = NULL;
 
     return;
@@ -82,8 +82,8 @@ static bool Voice_signal_task_info_init(
     task_info->is_connected_to_mixed = false;
     task_info->is_processed = false;
 
-    task_info->sender_tasks = new_Vector(sizeof(Task_index));
-    task_info->buf_conns = new_Vector(sizeof(Buffer_connection));
+    task_info->sender_tasks = new_Array(sizeof(Task_index));
+    task_info->buf_conns = new_Array(sizeof(Buffer_connection));
     if ((task_info->sender_tasks == NULL) || (task_info->buf_conns == NULL))
         return false;
 
@@ -96,18 +96,18 @@ static bool Voice_signal_task_info_add_sender_task(
 {
     rassert(task_info != NULL);
 
-    Vector* senders = task_info->sender_tasks;
+    Array* senders = task_info->sender_tasks;
 
-    const uint16_t task_count = (uint16_t)Vector_size(senders);
+    const uint16_t task_count = (uint16_t)Array_get_size(senders);
     for (uint16_t i = 0; i < task_count; ++i)
     {
         Task_index cur_index = -1;
-        Vector_get(senders, i, &cur_index);
+        Array_get_copy(senders, i, &cur_index);
         if (cur_index == sender_index)
             return true;
     }
 
-    return Vector_append(task_info->sender_tasks, &sender_index);
+    return Array_append(task_info->sender_tasks, &sender_index);
 }
 
 
@@ -120,7 +120,7 @@ static bool Voice_signal_task_info_add_input(
     rassert(recv_buf != NULL);
     rassert(send_buf != NULL);
 
-    return Vector_append(task_info->buf_conns, MAKE_CONNECTION(recv_buf, send_buf));
+    return Array_append(task_info->buf_conns, MAKE_CONNECTION(recv_buf, send_buf));
 }
 
 
@@ -146,7 +146,7 @@ static void Voice_signal_task_info_invalidate_buffers(
 
 static int32_t Voice_signal_task_info_execute(
         Voice_signal_task_info* task_info,
-        Vector* tasks,
+        Array* tasks,
         Device_states* dstates,
         int thread_id,
         Voice_group* vgroup,
@@ -172,12 +172,12 @@ static int32_t Voice_signal_task_info_execute(
     int32_t keep_alive_stop = 0;
 
     // Execute dependencies
-    const int64_t sender_count = Vector_size(task_info->sender_tasks);
+    const int64_t sender_count = Array_get_size(task_info->sender_tasks);
     for (int64_t i = 0; i < sender_count; ++i)
     {
         Task_index sender_index = -1;
-        Vector_get(task_info->sender_tasks, i, &sender_index);
-        Voice_signal_task_info* sender_task_info = Vector_get_ref(tasks, sender_index);
+        Array_get_copy(task_info->sender_tasks, i, &sender_index);
+        Voice_signal_task_info* sender_task_info = Array_get_ref(tasks, sender_index);
 
         bool is_sender_active = false;
         const int32_t sender_keep_alive_stop = Voice_signal_task_info_execute(
@@ -195,10 +195,10 @@ static int32_t Voice_signal_task_info_execute(
     }
 
     // Mix signals to input buffers
-    const int64_t conn_count = Vector_size(task_info->buf_conns);
+    const int64_t conn_count = Array_get_size(task_info->buf_conns);
     for (int64_t i = 0; i < conn_count; ++i)
     {
-        const Buffer_connection* conn = Vector_get_ref(task_info->buf_conns, i);
+        const Buffer_connection* conn = Array_get_ref(task_info->buf_conns, i);
         Work_buffer_mix(conn->receiver, conn->sender, 0, frame_count);
     }
 
@@ -275,8 +275,8 @@ static void Voice_signal_task_info_mix(
 
 struct Voice_signal_plan
 {
-    Vector* roots;
-    Vector* tasks[KQT_THREADS_MAX];
+    Array* roots;
+    Array* tasks[KQT_THREADS_MAX];
 };
 
 
@@ -302,17 +302,17 @@ static bool Voice_signal_plan_build_from_node(
     Device_thread_state* recv_ts =
         Device_states_get_thread_state(dstates, thread_id, node_device_id);
 
-    Vector* tasks = plan->tasks[thread_id];
+    Array* tasks = plan->tasks[thread_id];
 
     if (Device_thread_state_get_node_state(recv_ts) > DEVICE_NODE_STATE_NEW)
     {
         rassert(Device_thread_state_get_node_state(recv_ts) == DEVICE_NODE_STATE_VISITED);
 
         // Update existing task info and report its index
-        const int64_t task_count = Vector_size(tasks);
+        const int64_t task_count = Array_get_size(tasks);
         for (int64_t i = 0; i < task_count; ++i)
         {
-            Voice_signal_task_info* task_info = Vector_get_ref(tasks, i);
+            Voice_signal_task_info* task_info = Array_get_ref(tasks, i);
             if (task_info->device_id == node_device_id)
             {
                 if (is_parent_mixed)
@@ -336,17 +336,17 @@ static bool Voice_signal_plan_build_from_node(
     if (use_voice_signals)
     {
         Voice_signal_task_info new_task_info;
-        rassert(Vector_size(tasks) <= (int64_t)UINT16_MAX);
-        cur_task_index = (Task_index)Vector_size(tasks);
+        rassert(Array_get_size(tasks) <= (int64_t)UINT16_MAX);
+        cur_task_index = (Task_index)Array_get_size(tasks);
 
         if (!Voice_signal_task_info_init(&new_task_info, node_device_id) ||
-                !Vector_append(tasks, &new_task_info))
+                !Array_append(tasks, &new_task_info))
         {
             Voice_signal_task_info_deinit(&new_task_info);
             return false;
         }
 
-        Voice_signal_task_info* task_info = Vector_get_ref(tasks, cur_task_index);
+        Voice_signal_task_info* task_info = Array_get_ref(tasks, cur_task_index);
         task_info->is_connected_to_mixed = is_parent_mixed;
     }
 
@@ -400,7 +400,7 @@ static bool Voice_signal_plan_build_from_node(
                 if ((send_buf != NULL) && (recv_buf != NULL) && (sender_task_index >= 0))
                 {
                     Voice_signal_task_info* task_info =
-                        Vector_get_ref(tasks, cur_task_index);
+                        Array_get_ref(tasks, cur_task_index);
                     if (!Voice_signal_task_info_add_sender_task(
                                 task_info, sender_task_index))
                         return false;
@@ -462,7 +462,7 @@ Voice_signal_plan* new_Voice_signal_plan(
     for (int i = 0; i < KQT_THREADS_MAX; ++i)
         plan->tasks[i] = NULL;
 
-    plan->roots = new_Vector(sizeof(Task_index));
+    plan->roots = new_Array(sizeof(Task_index));
     if (plan->roots == NULL)
     {
         del_Voice_signal_plan(plan);
@@ -471,7 +471,7 @@ Voice_signal_plan* new_Voice_signal_plan(
 
     for (int thread_id = 0; thread_id < thread_count; ++thread_id)
     {
-        plan->tasks[thread_id] = new_Vector(sizeof(Voice_signal_task_info));
+        plan->tasks[thread_id] = new_Array(sizeof(Voice_signal_task_info));
         if ((plan->tasks[thread_id] == NULL) ||
                 !Voice_signal_plan_build(plan, dstates, thread_id, conns))
         {
@@ -480,14 +480,14 @@ Voice_signal_plan* new_Voice_signal_plan(
         }
     }
 
-    const int64_t task_count = Vector_size(plan->tasks[0]);
+    const int64_t task_count = Array_get_size(plan->tasks[0]);
     for (int64_t i = 0; i < task_count; ++i)
     {
-        const Voice_signal_task_info* task_info = Vector_get_ref(plan->tasks[0], i);
+        const Voice_signal_task_info* task_info = Array_get_ref(plan->tasks[0], i);
         if (task_info->is_connected_to_mixed)
         {
             const Task_index task_index = (Task_index)i;
-            if (!Vector_append(plan->roots, &task_index))
+            if (!Array_append(plan->roots, &task_index))
             {
                 del_Voice_signal_plan(plan);
                 return NULL;
@@ -497,7 +497,7 @@ Voice_signal_plan* new_Voice_signal_plan(
 
     for (int64_t i = 0; i < task_count; ++i)
     {
-        const Voice_signal_task_info* task_info = Vector_get_ref(plan->tasks[0], i);
+        const Voice_signal_task_info* task_info = Array_get_ref(plan->tasks[0], i);
         Proc_state* proc_state =
             (Proc_state*)Device_states_get_state(dstates, task_info->device_id);
         proc_state->is_voice_connected_to_mixed = task_info->is_connected_to_mixed;
@@ -535,25 +535,25 @@ int32_t Voice_signal_plan_execute(
 
     bool any_active_tasks_connected_to_mixed = false;
 
-    Vector* tasks = plan->tasks[thread_id];
+    Array* tasks = plan->tasks[thread_id];
     rassert(tasks != NULL);
 
-    const int64_t task_count = Vector_size(tasks);
+    const int64_t task_count = Array_get_size(tasks);
     for (int64_t i = 0; i < task_count; ++i)
     {
-        Voice_signal_task_info* task_info = Vector_get_ref(tasks, i);
+        Voice_signal_task_info* task_info = Array_get_ref(tasks, i);
         Voice_signal_task_info_invalidate_buffers(
                 task_info, dstates, thread_id, frame_count);
         task_info->is_processed = false;
     }
 
-    const int64_t root_count = Vector_size(plan->roots);
+    const int64_t root_count = Array_get_size(plan->roots);
     for (int64_t i = 0; i < root_count; ++i)
     {
         Task_index root_index = -1;
-        Vector_get(plan->roots, i, &root_index);
+        Array_get_copy(plan->roots, i, &root_index);
 
-        Voice_signal_task_info* task_info = Vector_get_ref(tasks, root_index);
+        Voice_signal_task_info* task_info = Array_get_ref(tasks, root_index);
 
         bool is_task_active = false;
 
@@ -579,9 +579,9 @@ int32_t Voice_signal_plan_execute(
         for (int64_t i = 0; i < root_count; ++i)
         {
             Task_index root_index = -1;
-            Vector_get(plan->roots, i, &root_index);
+            Array_get_copy(plan->roots, i, &root_index);
 
-            Voice_signal_task_info* task_info = Vector_get_ref(tasks, root_index);
+            Voice_signal_task_info* task_info = Array_get_ref(tasks, root_index);
             Voice_signal_task_info_mix(
                     task_info,
                     dstates,
@@ -608,15 +608,15 @@ void del_Voice_signal_plan(Voice_signal_plan* plan)
     {
         if (plan->tasks[thread_id] != NULL)
         {
-            Vector* tasks = plan->tasks[thread_id];
-            for (int i = 0; i < Vector_size(tasks); ++i)
-                Voice_signal_task_info_deinit(Vector_get_ref(tasks, i));
+            Array* tasks = plan->tasks[thread_id];
+            for (int i = 0; i < Array_get_size(tasks); ++i)
+                Voice_signal_task_info_deinit(Array_get_ref(tasks, i));
 
-            del_Vector(plan->tasks[thread_id]);
+            del_Array(plan->tasks[thread_id]);
         }
     }
 
-    del_Vector(plan->roots);
+    del_Array(plan->roots);
 
     memory_free(plan);
 

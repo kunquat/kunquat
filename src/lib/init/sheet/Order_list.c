@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2019
  *
  * This file is part of Kunquat.
  *
@@ -15,7 +15,7 @@
 #include <init/sheet/Order_list.h>
 
 #include <containers/AAtree.h>
-#include <containers/Vector.h>
+#include <containers/Array.h>
 #include <debug/assert.h>
 #include <memory.h>
 #include <Pat_inst_ref.h>
@@ -49,7 +49,7 @@ static Index_mapping* new_Index_mapping(Index_mapping* im)
 
 struct Order_list
 {
-    Vector* pat_insts;
+    Array* pat_insts;
     AAtree* index_map;
 };
 
@@ -81,7 +81,7 @@ static bool read_piref(Streader* sr, int32_t index, void* userdata)
     }
 
     // Add the reference to our containers
-    if (!Vector_append(ol->pat_insts, p))
+    if (!Array_append(ol->pat_insts, p))
     {
         Streader_set_memory_error(
                 sr, "Could not allocate memory for order list");
@@ -119,8 +119,8 @@ Order_list* new_Order_list(Streader* sr)
     ol->pat_insts = NULL;
     ol->index_map = NULL;
 
-    // Create Pattern instance reference vector
-    ol->pat_insts = new_Vector(sizeof(Pat_inst_ref));
+    // Create Pattern instance reference array
+    ol->pat_insts = new_Array(sizeof(Pat_inst_ref));
     if (ol->pat_insts == NULL)
     {
         Streader_set_memory_error(
@@ -159,7 +159,7 @@ int Order_list_get_len(const Order_list* ol)
 {
     rassert(ol != NULL);
 
-    return (int)Vector_size(ol->pat_insts);
+    return (int)Array_get_size(ol->pat_insts);
 }
 
 
@@ -168,7 +168,7 @@ Pat_inst_ref* Order_list_get_pat_inst_ref(const Order_list* ol, int index)
     rassert(ol != NULL);
     rassert(index < Order_list_get_len(ol));
 
-    return Vector_get_ref(ol->pat_insts, index);
+    return Array_get_ref(ol->pat_insts, index);
 }
 
 
@@ -177,9 +177,9 @@ bool Order_list_contains_pat_inst_ref(const Order_list* ol, const Pat_inst_ref* 
     rassert(ol != NULL);
     rassert(piref != NULL);
 
-    for (int64_t i = 0; i < Vector_size(ol->pat_insts); ++i)
+    for (int64_t i = 0; i < Array_get_size(ol->pat_insts); ++i)
     {
-        const Pat_inst_ref* cur_piref = Vector_get_ref(ol->pat_insts, i);
+        const Pat_inst_ref* cur_piref = Array_get_ref(ol->pat_insts, i);
         if (Pat_inst_ref_cmp(cur_piref, piref) == 0)
             return true;
     }
@@ -193,7 +193,7 @@ void del_Order_list(Order_list* ol)
     if (ol == NULL)
         return;
 
-    del_Vector(ol->pat_insts);
+    del_Array(ol->pat_insts);
     del_AAtree(ol->index_map);
     memory_free(ol);
     return;

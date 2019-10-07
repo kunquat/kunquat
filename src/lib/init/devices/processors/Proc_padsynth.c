@@ -15,7 +15,7 @@
 #include <init/devices/processors/Proc_padsynth.h>
 
 #include <containers/AAtree.h>
-#include <containers/Vector.h>
+#include <containers/Array.h>
 #include <debug/assert.h>
 #include <init/Background_loader.h>
 #include <init/devices/param_types/Padsynth_params.h>
@@ -604,9 +604,9 @@ static void make_padsynth_sample(Error* error, void* user_data)
         snprintf(phase_context_str, 16, "PADphase%hd", (short)cb_data->context_index);
         Random* phase_random = Random_init(RANDOM_AUTO, phase_context_str);
 
-        for (int64_t h = 0; h < Vector_size(params->harmonics); ++h)
+        for (int64_t h = 0; h < Array_get_size(params->harmonics); ++h)
         {
-            const Padsynth_harmonic* harmonic = Vector_get_ref(params->harmonics, h);
+            const Padsynth_harmonic* harmonic = Array_get_ref(params->harmonics, h);
 
             // Skip harmonics that are not representable
             // NOTE: this only checks the centre frequency

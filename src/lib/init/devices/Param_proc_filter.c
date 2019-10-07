@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2019
  *
  * This file is part of Kunquat.
  *
@@ -14,7 +14,7 @@
 
 #include <init/devices/Param_proc_filter.h>
 
-#include <containers/Vector.h>
+#include <containers/Array.h>
 #include <debug/assert.h>
 #include <kunquat/limits.h>
 #include <memory.h>
@@ -34,7 +34,7 @@ typedef int16_t Xindex;
 
 struct Param_proc_filter
 {
-    Vector* excluded;
+    Array* excluded;
 };
 
 
@@ -58,7 +58,7 @@ static bool read_excluded(Streader* sr, int32_t index, void* userdata)
         return false;
     }
 
-    if (!Vector_append(pf->excluded, &proc_index))
+    if (!Array_append(pf->excluded, &proc_index))
     {
         Streader_set_memory_error(
                 sr, "Could not allocate memory for parameter processor filter");
@@ -84,7 +84,7 @@ Param_proc_filter* new_Param_proc_filter(Streader* sr)
         return NULL;
     }
 
-    pf->excluded = new_Vector(sizeof(Xindex));
+    pf->excluded = new_Array(sizeof(Xindex));
     if (pf->excluded == NULL)
     {
         del_Param_proc_filter(pf);
@@ -110,10 +110,10 @@ bool Param_proc_filter_is_proc_allowed(const Param_proc_filter* pf, int proc_ind
     rassert(proc_index >= 0);
     rassert(proc_index < KQT_PROCESSORS_MAX);
 
-    const int64_t length = Vector_size(pf->excluded);
+    const int64_t length = Array_get_size(pf->excluded);
     for (int64_t i = 0; i < length; ++i)
     {
-        Xindex* excluded = Vector_get_ref(pf->excluded, i);
+        Xindex* excluded = Array_get_ref(pf->excluded, i);
         if (*excluded == proc_index)
             return false;
     }
@@ -127,7 +127,7 @@ void del_Param_proc_filter(Param_proc_filter* pf)
     if (pf == NULL)
         return;
 
-    del_Vector(pf->excluded);
+    del_Array(pf->excluded);
     memory_free(pf);
 
     return;
