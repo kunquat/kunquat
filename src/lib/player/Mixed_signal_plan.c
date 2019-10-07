@@ -12,7 +12,7 @@
  */
 
 
-#include <containers/Vector.h>
+#include <containers/Array.h>
 #include <debug/assert.h>
 #include <init/Connections.h>
 #include <init/Device_node.h>
@@ -41,7 +41,7 @@ typedef uint32_t Task_id;
 
 struct Mixed_signal_plan
 {
-    Vector* tasks;
+    Array* tasks;
     Device_states* dstates;
 };
 
@@ -62,11 +62,11 @@ typedef struct Mixed_signal_task_info
     bool is_input_required;
     int level_index;
     uint32_t device_id;
-    Vector* sender_tasks;
-    Vector* conns;
+    Array* sender_tasks;
+    Array* conns;
     uint32_t container_id;
-    Vector* bypass_sender_tasks;
-    Vector* bypass_conns;
+    Array* bypass_sender_tasks;
+    Array* bypass_conns;
 } Mixed_signal_task_info;
 
 
@@ -87,14 +87,14 @@ static void Mixed_signal_task_info_deinit(Mixed_signal_task_info* task_info)
 {
     rassert(task_info != NULL);
 
-    del_Vector(task_info->bypass_conns);
+    del_Array(task_info->bypass_conns);
     task_info->bypass_conns = NULL;
-    del_Vector(task_info->bypass_sender_tasks);
+    del_Array(task_info->bypass_sender_tasks);
     task_info->bypass_sender_tasks = NULL;
 
-    del_Vector(task_info->conns);
+    del_Array(task_info->conns);
     task_info->conns = NULL;
-    del_Vector(task_info->sender_tasks);
+    del_Array(task_info->sender_tasks);
     task_info->sender_tasks = NULL;
 
     return;
@@ -114,8 +114,8 @@ static bool Mixed_signal_task_info_init(
     task_info->container_id = 0;
     task_info->bypass_conns = NULL;
 
-    task_info->conns = new_Vector(sizeof(Buffer_connection));
-    task_info->sender_tasks = new_Vector(sizeof(Task_id));
+    task_info->conns = new_Array(sizeof(Buffer_connection));
+    task_info->sender_tasks = new_Array(sizeof(Task_id));
     if ((task_info->conns == NULL) || (task_info->sender_tasks == NULL))
         return false;
 
@@ -123,14 +123,14 @@ static bool Mixed_signal_task_info_init(
 }
 
 
-static bool senders_contain_id(Vector* senders, Task_id sender_id)
+static bool senders_contain_id(Array* senders, Task_id sender_id)
 {
     rassert(senders != NULL);
 
-    const int64_t task_count = Vector_size(senders);
+    const int64_t task_count = Array_get_size(senders);
     for (int64_t i = 0; i < task_count; ++i)
     {
-        Task_id* cur_id = Vector_get_ref(senders, i);
+        Task_id* cur_id = Array_get_ref(senders, i);
         if (*cur_id == sender_id)
             return true;
     }
@@ -147,7 +147,7 @@ static bool Mixed_signal_task_info_add_sender_task(
     if (senders_contain_id(task_info->sender_tasks, sender_id))
         return true;
 
-    return Vector_append(task_info->sender_tasks, &sender_id);
+    return Array_append(task_info->sender_tasks, &sender_id);
 }
 
 
@@ -159,7 +159,7 @@ static bool Mixed_signal_task_info_add_bypass_sender_task(
     if (senders_contain_id(task_info->bypass_sender_tasks, sender_id))
         return true;
 
-    return Vector_append(task_info->bypass_sender_tasks, &sender_id);
+    return Array_append(task_info->bypass_sender_tasks, &sender_id);
 }
 
 
@@ -167,7 +167,7 @@ static bool Mixed_signal_task_info_is_empty(const Mixed_signal_task_info* task_i
 {
     rassert(task_info != NULL);
     return (task_info->is_input_required &&
-            (Vector_size(task_info->sender_tasks) == 0));
+            (Array_get_size(task_info->sender_tasks) == 0));
 }
 
 
@@ -181,7 +181,7 @@ static bool Mixed_signal_task_info_add_input(
     rassert(recv_buf != NULL);
     rassert(send_buf != NULL);
 
-    return Vector_append(task_info->conns, MAKE_CONNECTION(recv_buf, send_buf));
+    return Array_append(task_info->conns, MAKE_CONNECTION(recv_buf, send_buf));
 }
 
 
@@ -196,7 +196,7 @@ static bool Mixed_signal_task_info_add_bypass_input(
 
     rassert(task_info->bypass_conns != NULL);
 
-    return Vector_append(task_info->bypass_conns, MAKE_CONNECTION(recv_buf, send_buf));
+    return Array_append(task_info->bypass_conns, MAKE_CONNECTION(recv_buf, send_buf));
 }
 
 
@@ -226,10 +226,10 @@ static void Mixed_signal_task_info_execute(
             //fprintf(stdout, "bypass at level %d\n", task_info->level_index);
             if (task_info->bypass_conns != NULL)
             {
-                for (int i = 0; i < Vector_size(task_info->bypass_conns); ++i)
+                for (int i = 0; i < Array_get_size(task_info->bypass_conns); ++i)
                 {
                     const Buffer_connection* conn =
-                        Vector_get_ref(task_info->bypass_conns, i);
+                        Array_get_ref(task_info->bypass_conns, i);
                     Work_buffer_mix(conn->receiver, conn->sender, 0, frame_count);
                 }
             }
@@ -240,9 +240,9 @@ static void Mixed_signal_task_info_execute(
     }
 
     // Copy signals between buffers
-    for (int i = 0; i < Vector_size(task_info->conns); ++i)
+    for (int i = 0; i < Array_get_size(task_info->conns); ++i)
     {
-        const Buffer_connection* conn = Vector_get_ref(task_info->conns, i);
+        const Buffer_connection* conn = Array_get_ref(task_info->conns, i);
         Work_buffer_mix(conn->receiver, conn->sender, 0, frame_count);
     }
 
@@ -264,10 +264,10 @@ static int64_t Mixed_signal_create_or_get_task_info(
     rassert(is_new != NULL);
 
     // Return existing task info for device if present
-    const int64_t task_count = Vector_size(plan->tasks);
+    const int64_t task_count = Array_get_size(plan->tasks);
     for (int64_t i = 0; i < task_count; ++i)
     {
-        Mixed_signal_task_info* task_info = Vector_get_ref(plan->tasks, i);
+        Mixed_signal_task_info* task_info = Array_get_ref(plan->tasks, i);
         if (task_info->device_id == device_id)
         {
             task_info->level_index = max(task_info->level_index, level_index);
@@ -280,7 +280,7 @@ static int64_t Mixed_signal_create_or_get_task_info(
     {
         Mixed_signal_task_info* task_info = MIXED_SIGNAL_TASK_INFO_AUTO;
         if (!Mixed_signal_task_info_init(task_info, device_id, level_index) ||
-                !Vector_append(plan->tasks, task_info))
+                !Array_append(plan->tasks, task_info))
         {
             Mixed_signal_task_info_deinit(task_info);
             return -1;
@@ -289,7 +289,7 @@ static int64_t Mixed_signal_create_or_get_task_info(
 
     *is_new = true;
 
-    return Vector_size(plan->tasks) - 1;
+    return Array_get_size(plan->tasks) - 1;
 }
 
 
@@ -365,7 +365,7 @@ static bool Mixed_signal_plan_build_from_node(
 
     if (is_new_task_info)
     {
-        Mixed_signal_task_info* task_info = Vector_get_ref(plan->tasks, task_info_index);
+        Mixed_signal_task_info* task_info = Array_get_ref(plan->tasks, task_info_index);
         task_info->container_id = container_id;
     }
 
@@ -376,7 +376,7 @@ static bool Mixed_signal_plan_build_from_node(
                 (Device_impl_get_proc_type(node_device->dimpl) == Proc_type_stream))
         {
             Mixed_signal_task_info* task_info =
-                Vector_get_ref(plan->tasks, task_info_index);
+                Array_get_ref(plan->tasks, task_info_index);
             task_info->is_input_required = false;
         }
     }
@@ -413,12 +413,12 @@ static bool Mixed_signal_plan_build_from_node(
 
         // Output interface
         if (is_new_task_info && !Mixed_signal_task_info_add_au_interface(
-                    Vector_get_ref(plan->tasks, task_info_index), recv_ts, out_iface_ts))
+                    Array_get_ref(plan->tasks, task_info_index), recv_ts, out_iface_ts))
             return false;
 
         {
             Mixed_signal_task_info* task_info =
-                Vector_get_ref(plan->tasks, task_info_index);
+                Array_get_ref(plan->tasks, task_info_index);
             task_info->container_id = sub_container_id;
         }
 
@@ -440,7 +440,7 @@ static bool Mixed_signal_plan_build_from_node(
                 return false;
 
             Mixed_signal_task_info* in_task_info =
-                Vector_get_ref(plan->tasks, in_task_info_index);
+                Array_get_ref(plan->tasks, in_task_info_index);
 
             // NOTE: is_new_task_info is correct here, as the input interface
             //       has been touched by the recursive call above
@@ -454,10 +454,10 @@ static bool Mixed_signal_plan_build_from_node(
             {
                 // Set up bypass connections
                 Mixed_signal_task_info* task_info =
-                    Vector_get_ref(plan->tasks, task_info_index);
-                task_info->bypass_sender_tasks = new_Vector(sizeof(Task_id));
-                task_info->bypass_conns = new_Vector(sizeof(Buffer_connection));
-                //task_info->bypass_conns = new_Vector(sizeof(Mixed_signal_connection));
+                    Array_get_ref(plan->tasks, task_info_index);
+                task_info->bypass_sender_tasks = new_Array(sizeof(Task_id));
+                task_info->bypass_conns = new_Array(sizeof(Buffer_connection));
+                //task_info->bypass_conns = new_Array(sizeof(Mixed_signal_connection));
                 if ((task_info->bypass_sender_tasks == NULL) ||
                         (task_info->bypass_conns == NULL))
                     return false;
@@ -530,7 +530,7 @@ static bool Mixed_signal_plan_build_from_node(
             if ((send_buf != NULL) && (recv_buf != NULL))
             {
                 Mixed_signal_task_info* task_info =
-                    Vector_get_ref(plan->tasks, task_info_index);
+                    Array_get_ref(plan->tasks, task_info_index);
 
                 if (is_new_task_info)
                 {
@@ -553,13 +553,13 @@ static bool Mixed_signal_plan_build_from_node(
 
 
 #if 0
-static void debug_print_tasks(const Vector* tasks)
+static void debug_print_tasks(const Array* tasks)
 {
     rassert(tasks != NULL);
 
-    for (int ti = 0; ti < Vector_size(tasks); ++ti)
+    for (int ti = 0; ti < Array_get_size(tasks); ++ti)
     {
-        const Mixed_signal_task_info* tinfo = Vector_get_ref(tasks, ti);
+        const Mixed_signal_task_info* tinfo = Array_get_ref(tasks, ti);
 
         fprintf(stderr, "Task %d, device ID %ld, level %d",
                 ti, (long)tinfo->device_id, tinfo->level_index);
@@ -568,21 +568,21 @@ static void debug_print_tasks(const Vector* tasks)
         fprintf(stderr, ":\n");
 
         fprintf(stderr, "  Senders:");
-        for (int i = 0; i < Vector_size(tinfo->sender_tasks); ++i)
+        for (int i = 0; i < Array_get_size(tinfo->sender_tasks); ++i)
         {
             if (i > 0)
                 fprintf(stderr, ",");
 
             Task_id tid = UINT32_MAX;
-            Vector_get(tinfo->sender_tasks, i, &tid);
+            Array_get(tinfo->sender_tasks, i, &tid);
             fprintf(stderr, " %ld", (long)tid);
         }
         fprintf(stderr, "\n");
 
 #if 0
-        for (int i = 0; i < Vector_size(tinfo->conns); ++i)
+        for (int i = 0; i < Array_get_size(tinfo->conns); ++i)
         {
-            const Buffer_connection* conn = Vector_get_ref(tinfo->conns, i);
+            const Buffer_connection* conn = Array_get_ref(tinfo->conns, i);
             fprintf(stdout, "  ####################### %p -> %p\n",
                     (const void*)conn->sender,
                     (void*)conn->receiver);
@@ -601,10 +601,10 @@ static bool Mixed_signal_plan_finalise(Mixed_signal_plan* plan)
 
     // Sort the tasks
     {
-        int64_t task_count = Vector_size(plan->tasks);
+        int64_t task_count = Array_get_size(plan->tasks);
         if (task_count > 1)
         {
-            Mixed_signal_task_info* tasks = Vector_get_ref(plan->tasks, 0);
+            Mixed_signal_task_info* tasks = Array_get_ref(plan->tasks, 0);
 
             for (int new_index = 1; new_index < task_count; ++new_index)
             {
@@ -625,30 +625,31 @@ static bool Mixed_signal_plan_finalise(Mixed_signal_plan* plan)
     // Remove tasks that don't require execution
     {
         int64_t task_index = 0;
-        while (task_index < Vector_size(plan->tasks))
+        while (task_index < Array_get_size(plan->tasks))
         {
-            Mixed_signal_task_info* task_info = Vector_get_ref(plan->tasks, task_index);
+            Mixed_signal_task_info* task_info = Array_get_ref(plan->tasks, task_index);
             if (Mixed_signal_task_info_is_empty(task_info))
             {
                 // Remove connections to the empty task
                 const uint32_t remove_id = task_info->device_id;
-                for (int64_t li = task_index + 1; li < Vector_size(plan->tasks); ++li)
+                for (int64_t li = task_index + 1; li < Array_get_size(plan->tasks); ++li)
                 {
-                    Mixed_signal_task_info* later_task = Vector_get_ref(plan->tasks, li);
+                    Mixed_signal_task_info* later_task = Array_get_ref(plan->tasks, li);
                     int64_t sender_index = 0;
-                    while (sender_index < Vector_size(later_task->sender_tasks))
+                    while (sender_index < Array_get_size(later_task->sender_tasks))
                     {
                         Task_id sender_id = UINT32_MAX;
-                        Vector_get(later_task->sender_tasks, sender_index, &sender_id);
+                        Array_get_copy(
+                                later_task->sender_tasks, sender_index, &sender_id);
                         if (sender_id == remove_id)
-                            Vector_remove_at(later_task->sender_tasks, sender_index);
+                            Array_remove_at(later_task->sender_tasks, sender_index);
                         else
                             ++sender_index;
                     }
                 }
 
                 Mixed_signal_task_info_deinit(task_info);
-                Vector_remove_at(plan->tasks, task_index);
+                Array_remove_at(plan->tasks, task_index);
             }
             else
             {
@@ -694,7 +695,7 @@ Mixed_signal_plan* new_Mixed_signal_plan(
     plan->dstates = dstates;
 
     // Initialise
-    plan->tasks = new_Vector(sizeof(Mixed_signal_task_info));
+    plan->tasks = new_Array(sizeof(Mixed_signal_task_info));
     if ((plan->tasks == NULL) || !Mixed_signal_plan_build(plan, dstates, conns))
     {
         del_Mixed_signal_plan(plan);
@@ -716,11 +717,11 @@ void Mixed_signal_plan_execute_all_tasks(
     rassert(frame_count >= 0);
     rassert(tempo > 0);
 
-    const int64_t task_count = Vector_size(plan->tasks);
+    const int64_t task_count = Array_get_size(plan->tasks);
     for (int64_t task_index = 0; task_index < task_count; ++task_index)
     {
         const Mixed_signal_task_info* task_info =
-            Vector_get_ref(plan->tasks, task_index);
+            Array_get_ref(plan->tasks, task_index);
         Mixed_signal_task_info_execute(
                 task_info, plan->dstates, wbs, frame_count, tempo);
     }
@@ -736,11 +737,11 @@ void del_Mixed_signal_plan(Mixed_signal_plan* plan)
 
     if (plan->tasks != NULL)
     {
-        for (int64_t i = 0; i < Vector_size(plan->tasks); ++i)
-            Mixed_signal_task_info_deinit(Vector_get_ref(plan->tasks, i));
+        for (int64_t i = 0; i < Array_get_size(plan->tasks); ++i)
+            Mixed_signal_task_info_deinit(Array_get_ref(plan->tasks, i));
     }
 
-    del_Vector(plan->tasks);
+    del_Array(plan->tasks);
     memory_free(plan);
 
     return;
