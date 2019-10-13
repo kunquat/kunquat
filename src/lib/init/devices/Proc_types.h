@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2019
  *
  * This file is part of Kunquat.
  *
@@ -34,6 +34,7 @@ PROC_TYPE(mult)
 PROC_TYPE(noise)
 PROC_TYPE(padsynth)
 PROC_TYPE(panning)
+PROC_TYPE(phaser)
 PROC_TYPE(pitch)
 PROC_TYPE(rangemap)
 PROC_TYPE(sample)
