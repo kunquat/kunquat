@@ -66,7 +66,7 @@ class PhaserParams(ProcParams):
         self._set_value('p_f_notch_separation.json', value)
 
     def get_dry_wet_ratio(self):
-        return self._get_value('p_f_dry_wet_ratio.json', 0.5)
+        return self._get_value('p_f_dry_wet_ratio.json', 1)
 
     def set_dry_wet_ratio(self, ratio):
         self._set_value('p_f_dry_wet_ratio.json', ratio)

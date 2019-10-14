@@ -182,7 +182,7 @@ static void Phaser_impl_update(
             const float input = *in++;
             const float cutoff = cutoffs[i];
             const float res = resonances[i];
-            const float dry_wet = dry_wets[i];
+            const float dry_wet = dry_wets[i] * 0.5f;
 
             const float hp_mult = 1.0f / (1.0f + (res * cutoff) + (cutoff * cutoff));
             const float rpc = res + cutoff;

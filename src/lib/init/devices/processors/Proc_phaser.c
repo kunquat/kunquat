@@ -49,7 +49,7 @@ Device_impl* new_Proc_phaser(void)
     phaser->stage_count = PHASER_STAGES_DEFAULT;
     phaser->cutoff = 100;
     phaser->notch_separation = 2; // TODO
-    phaser->dry_wet_ratio = 0.5;
+    phaser->dry_wet_ratio = 1;
 
     if (!(REGISTER_SET_FIXED_STATE(
                     phaser,
@@ -74,7 +74,7 @@ Device_impl* new_Proc_phaser(void)
                     float,
                     dry_wet_ratio,
                     "p_f_dry_wet_ratio.json",
-                    0.5)
+                    1)
          ))
     {
         del_Device_impl(&phaser->parent);
@@ -141,7 +141,7 @@ static bool Proc_phaser_set_dry_wet_ratio(
 
     Proc_phaser* phaser = (Proc_phaser*)dimpl;
     if ((value < 0) || (value > 1))
-        phaser->dry_wet_ratio = 0.5;
+        phaser->dry_wet_ratio = 1;
     else
         phaser->dry_wet_ratio = value;
 
