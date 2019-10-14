@@ -19,8 +19,9 @@
 #include <init/devices/Device_impl.h>
 
 
-#define PHASER_STAGES_MIN 2
+#define PHASER_STAGES_MIN 1
 #define PHASER_STAGES_MAX 32
+#define PHASER_STAGES_DEFAULT 2
 
 #define PHASER_NOTCH_SEP_MIN 0.01
 #define PHASER_NOTCH_SEP_MAX 16

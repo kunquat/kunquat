@@ -46,7 +46,7 @@ Device_impl* new_Proc_phaser(void)
 
     phaser->parent.create_pstate = new_Phaser_pstate;
 
-    phaser->stage_count = PHASER_STAGES_MIN;
+    phaser->stage_count = PHASER_STAGES_DEFAULT;
     phaser->cutoff = 100;
     phaser->notch_separation = 2; // TODO
     phaser->dry_wet_ratio = 0.5;
@@ -56,7 +56,7 @@ Device_impl* new_Proc_phaser(void)
                     int,
                     stage_count,
                     "p_i_stages.json",
-                    PHASER_STAGES_MIN) &&
+                    PHASER_STAGES_DEFAULT) &&
                 REGISTER_SET_FIXED_STATE(
                     phaser,
                     float,
@@ -92,8 +92,8 @@ static bool Proc_phaser_set_stage_count(
     rassert(indices != NULL);
 
     Proc_phaser* phaser = (Proc_phaser*)dimpl;
-    if ((value < PHASER_STAGES_MIN) || (value > PHASER_STAGES_MAX) || ((value & 1) != 0))
-        phaser->stage_count = PHASER_STAGES_MIN;
+    if ((value < PHASER_STAGES_MIN) || (value > PHASER_STAGES_MAX))
+        phaser->stage_count = PHASER_STAGES_DEFAULT;
     else
         phaser->stage_count = (int)value;
 
