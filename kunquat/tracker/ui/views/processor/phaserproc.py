@@ -74,7 +74,8 @@ class StageCountSlider(ProcNumSlider):
         super().__init__(
                 0,
                 PhaserParams.get_min_stage_count(),
-                PhaserParams.get_max_stage_count())
+                PhaserParams.get_max_stage_count(),
+                width_txt='100.00')
 
     def _get_phaser_params(self):
         return utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
