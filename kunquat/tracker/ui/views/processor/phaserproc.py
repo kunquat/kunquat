@@ -13,6 +13,7 @@
 
 from kunquat.tracker.ui.qt import *
 
+from kunquat.tracker.ui.model.procparams.phaserparams import PhaserParams
 from .procnumslider import ProcNumSlider
 from .processorupdater import ProcessorUpdater
 from . import utils
@@ -67,67 +68,25 @@ class PhaserProc(QWidget, ProcessorUpdater):
         self.layout().setSpacing(style_mgr.get_scaled_size_param('large_padding'))
 
 
-class StageCountSlider(QWidget, ProcessorUpdater):
-
-    _WIDTH_TEXT = '100.00'
+class StageCountSlider(ProcNumSlider):
 
     def __init__(self):
-        super().__init__()
-
-        self._slider = QSlider()
-        self._slider.setOrientation(Qt.Horizontal)
-        self._slider.setRange(1, 16)
-
-        self._value = QLabel()
-
-        h = QHBoxLayout()
-        h.setContentsMargins(0, 0, 0, 0)
-        h.setSpacing(0)
-        h.addWidget(self._slider)
-        h.addWidget(self._value)
-        self.setLayout(h)
-
-        self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Maximum)
-
-        self._slider.valueChanged.connect(self._on_value_changed)
-
-    def _on_setup(self):
-        self.register_action('signal_style_changed', self._update_style)
-        self.register_action(self._get_update_signal_type(), self._update_value)
-
-        self._update_style()
-        self._update_value()
-
-    def _update_style(self):
-        style_mgr = self._ui_model.get_style_manager()
-
-        fm = QFontMetrics(get_scaled_font(style_mgr, 1))
-        value_width = fm.boundingRect(self._WIDTH_TEXT).width()
-        value_width += style_mgr.get_scaled_size(2)
-        self._value.setFixedWidth(value_width)
-
-        self.layout().setSpacing(style_mgr.get_scaled_size_param('medium_padding'))
+        super().__init__(
+                0,
+                PhaserParams.get_min_stage_count(),
+                PhaserParams.get_max_stage_count())
 
     def _get_phaser_params(self):
         return utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
 
     def _get_update_signal_type(self):
-        return 'signal_phaser_stages_{}'.format(self._proc_id)
+        return 'signal_phaser_phaser_{}'.format(self._proc_id)
 
     def _update_value(self):
-        phaser_params = self._get_phaser_params()
-        stage_count = phaser_params.get_stage_count()
+        self.set_number(self._get_phaser_params().get_stage_count())
 
-        old_block = self._slider.blockSignals(True)
-        self._slider.setValue(stage_count // 2)
-        self._slider.blockSignals(old_block)
-
-        self._value.setText(str(stage_count))
-
-    def _on_value_changed(self, scaled_value):
-        stage_count = scaled_value * 2
-        phaser_params = self._get_phaser_params()
-        phaser_params.set_stage_count(stage_count)
+    def _value_changed(self, count):
+        self._get_phaser_params().set_stage_count(count)
         self._updater.signal_update(self._get_update_signal_type())
 
 
