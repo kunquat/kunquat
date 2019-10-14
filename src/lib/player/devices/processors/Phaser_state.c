@@ -168,6 +168,13 @@ static void Phaser_impl_update(
 
         Phaser_ch_state* ch_state = &phaser_impl->ch_states[ch];
 
+        // Clear unused allpass states in case they contain obsolete values
+        for (int si = stage_count; si < PHASER_STAGES_MAX; ++si)
+        {
+            ch_state->states[si].s1 = 0;
+            ch_state->states[si].s2 = 0;
+        }
+
         float* out = Work_buffer_get_contents_mut(out_wb);
 
         for (int32_t i = 0; i < frame_count; ++i)
@@ -201,13 +208,6 @@ static void Phaser_impl_update(
             }
 
             *out++ = (input * dry_wet) + (stage_value * (1 - dry_wet));
-        }
-
-        // Clear unused allpass states in case they are re-enabled later
-        for (int si = stage_count; si < PHASER_STAGES_MAX; ++si)
-        {
-            ch_state->states[si].s1 = 0;
-            ch_state->states[si].s2 = 0;
         }
     }
 
