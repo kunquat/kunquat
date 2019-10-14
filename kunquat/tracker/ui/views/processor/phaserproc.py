@@ -80,7 +80,7 @@ class StageCountSlider(ProcNumSlider):
         return utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
 
     def _get_update_signal_type(self):
-        return 'signal_phaser_phaser_{}'.format(self._proc_id)
+        return 'signal_phaser_stage_count_{}'.format(self._proc_id)
 
     def _update_value(self):
         self.set_number(self._get_phaser_params().get_stage_count())
@@ -102,12 +102,10 @@ class CutoffSlider(ProcNumSlider):
         return 'signal_phaser_cutoff_{}'.format(self._proc_id)
 
     def _update_value(self):
-        phaser_params = self._get_phaser_params()
-        self.set_number(phaser_params.get_cutoff())
+        self.set_number(self._get_phaser_params().get_cutoff())
 
     def _value_changed(self, cutoff):
-        phaser_params = self._get_phaser_params()
-        phaser_params.set_cutoff(cutoff)
+        self._get_phaser_params().set_cutoff(cutoff)
         self._updater.signal_update(self._get_update_signal_type())
 
 
@@ -123,12 +121,10 @@ class NotchSeparationSlider(ProcNumSlider):
         return 'signal_phaser_notch_sep_{}'.format(self._proc_id)
 
     def _update_value(self):
-        phaser_params = self._get_phaser_params()
-        self.set_number(phaser_params.get_notch_separation())
+        self.set_number(self._get_phaser_params().get_notch_separation())
 
     def _value_changed(self, sep):
-        phaser_params = self._get_phaser_params()
-        phaser_params.set_notch_separation(sep)
+        self._get_phaser_params().set_notch_separation(sep)
         self._updater.signal_update(self._get_update_signal_type())
 
 
@@ -144,12 +140,10 @@ class DryWetSlider(ProcNumSlider):
         return 'signal_phaser_dry_wet_{}'.format(self._proc_id)
 
     def _update_value(self):
-        phaser_params = self._get_phaser_params()
-        self.set_number(phaser_params.get_dry_wet_ratio())
+        self.set_number(self._get_phaser_params().get_dry_wet_ratio())
 
     def _value_changed(self, ratio):
-        phaser_params = self._get_phaser_params()
-        phaser_params.set_dry_wet_ratio(ratio)
+        self._get_phaser_params().set_dry_wet_ratio(ratio)
         self._updater.signal_update(self._get_update_signal_type())
 
 
