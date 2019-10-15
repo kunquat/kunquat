@@ -26,7 +26,7 @@
 
 static Set_int_func     Proc_phaser_set_stage_count;
 static Set_float_func   Proc_phaser_set_cutoff;
-static Set_float_func   Proc_phaser_set_notch_separation;
+static Set_float_func   Proc_phaser_set_bandwidth;
 static Set_float_func   Proc_phaser_set_dry_wet_ratio;
 
 static Device_impl_destroy_func del_Proc_phaser;
@@ -48,7 +48,7 @@ Device_impl* new_Proc_phaser(void)
 
     phaser->stage_count = PHASER_STAGES_DEFAULT;
     phaser->cutoff = 100;
-    phaser->notch_separation = 2; // TODO
+    phaser->bandwidth = PHASER_BANDWIDTH_DEFAULT;
     phaser->dry_wet_ratio = 1;
 
     if (!(REGISTER_SET_FIXED_STATE(
@@ -66,9 +66,9 @@ Device_impl* new_Proc_phaser(void)
                 REGISTER_SET_FIXED_STATE(
                     phaser,
                     float,
-                    notch_separation,
-                    "p_f_notch_separation.json",
-                    2.0) &&
+                    bandwidth,
+                    "p_f_bandwidth.json",
+                    PHASER_BANDWIDTH_DEFAULT) &&
                 REGISTER_SET_FIXED_STATE(
                     phaser,
                     float,
@@ -115,7 +115,7 @@ static bool Proc_phaser_set_cutoff(
 }
 
 
-static bool Proc_phaser_set_notch_separation(
+static bool Proc_phaser_set_bandwidth(
         Device_impl* dimpl, const Key_indices indices, double value)
 {
     rassert(dimpl != NULL);
@@ -123,10 +123,10 @@ static bool Proc_phaser_set_notch_separation(
     rassert(isfinite(value));
 
     Proc_phaser* phaser = (Proc_phaser*)dimpl;
-    if ((value < PHASER_NOTCH_SEP_MIN) || (value > PHASER_NOTCH_SEP_MAX))
-        phaser->notch_separation = 2;
+    if ((value < PHASER_BANDWIDTH_MIN) || (value > PHASER_BANDWIDTH_MAX))
+        phaser->bandwidth = PHASER_BANDWIDTH_DEFAULT;
     else
-        phaser->notch_separation = value;
+        phaser->bandwidth = value;
 
     return true;
 }

@@ -20,6 +20,10 @@ class PhaserParams(ProcParams):
     _STAGES_MAX = 32
     _STAGES_DEFAULT = 2
 
+    _BANDWIDTH_MIN = 0.125
+    _BANDWIDTH_MAX = 12
+    _BANDWIDTH_DEFAULT = 2
+
     @staticmethod
     def get_default_signal_type():
         return 'mixed'
@@ -30,7 +34,7 @@ class PhaserParams(ProcParams):
             'in_00':  'audio L',
             'in_01':  'audio R',
             'in_02':  'cutoff',
-            'in_03':  'notch sep',
+            'in_03':  'bandwidth',
             'in_04':  'dry/wet',
             'out_00': 'audio L',
             'out_01': 'audio R',
@@ -43,6 +47,14 @@ class PhaserParams(ProcParams):
     @staticmethod
     def get_max_stage_count():
         return PhaserParams._STAGES_MAX
+
+    @staticmethod
+    def get_min_bandwidth():
+        return PhaserParams._BANDWIDTH_MIN
+
+    @staticmethod
+    def get_max_bandwidth():
+        return PhaserParams._BANDWIDTH_MAX
 
     def __init__(self, proc_id, controller):
         super().__init__(proc_id, controller)
@@ -59,11 +71,11 @@ class PhaserParams(ProcParams):
     def set_cutoff(self, value):
         self._set_value('p_f_cutoff.json', value)
 
-    def get_notch_separation(self):
-        return self._get_value('p_f_notch_separation.json', 2)
+    def get_bandwidth(self):
+        return self._get_value('p_f_bandwidth.json', self._BANDWIDTH_DEFAULT)
 
-    def set_notch_separation(self, value):
-        self._set_value('p_f_notch_separation.json', value)
+    def set_bandwidth(self, value):
+        self._set_value('p_f_bandwidth.json', value)
 
     def get_dry_wet_ratio(self):
         return self._get_value('p_f_dry_wet_ratio.json', 1)

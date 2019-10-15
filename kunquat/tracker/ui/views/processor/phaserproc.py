@@ -31,10 +31,10 @@ class PhaserProc(QWidget, ProcessorUpdater):
 
         self._stages = StageCountSlider()
         self._cutoff = CutoffSlider()
-        self._notch_sep = NotchSeparationSlider()
+        self._bandwidth = BandwidthSlider()
         self._dry_wet = DryWetSlider()
 
-        self.add_to_updaters(self._stages, self._cutoff, self._notch_sep, self._dry_wet)
+        self.add_to_updaters(self._stages, self._cutoff, self._bandwidth, self._dry_wet)
 
         self._sliders_layout = QGridLayout()
         self._sliders_layout.setContentsMargins(0, 0, 0, 0)
@@ -43,8 +43,8 @@ class PhaserProc(QWidget, ProcessorUpdater):
         self._sliders_layout.addWidget(self._stages, 0, 1)
         self._sliders_layout.addWidget(QLabel('Cutoff:'), 1, 0)
         self._sliders_layout.addWidget(self._cutoff, 1, 1)
-        self._sliders_layout.addWidget(QLabel('Notch separation:'), 2, 0)
-        self._sliders_layout.addWidget(self._notch_sep, 2, 1)
+        self._sliders_layout.addWidget(QLabel('Bandwidth:'), 2, 0)
+        self._sliders_layout.addWidget(self._bandwidth, 2, 1)
         self._sliders_layout.addWidget(QLabel('Dry/wet ratio:'), 3, 0)
         self._sliders_layout.addWidget(self._dry_wet, 3, 1)
 
@@ -110,22 +110,26 @@ class CutoffSlider(ProcNumSlider):
         self._updater.signal_update(self._get_update_signal_type())
 
 
-class NotchSeparationSlider(ProcNumSlider):
+class BandwidthSlider(ProcNumSlider):
 
     def __init__(self):
-        super().__init__(2, 0.125, 16.0, width_txt='100.00')
+        super().__init__(
+                3,
+                PhaserParams.get_min_bandwidth(),
+                PhaserParams.get_max_bandwidth(),
+                width_txt='100.00')
 
     def _get_phaser_params(self):
         return utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
 
     def _get_update_signal_type(self):
-        return 'signal_phaser_notch_sep_{}'.format(self._proc_id)
+        return 'signal_phaser_bandwidth_{}'.format(self._proc_id)
 
     def _update_value(self):
-        self.set_number(self._get_phaser_params().get_notch_separation())
+        self.set_number(self._get_phaser_params().get_bandwidth())
 
     def _value_changed(self, sep):
-        self._get_phaser_params().set_notch_separation(sep)
+        self._get_phaser_params().set_bandwidth(sep)
         self._updater.signal_update(self._get_update_signal_type())
 
 

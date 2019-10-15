@@ -23,8 +23,9 @@
 #define PHASER_STAGES_MAX 32
 #define PHASER_STAGES_DEFAULT 2
 
-#define PHASER_NOTCH_SEP_MIN 0.01
-#define PHASER_NOTCH_SEP_MAX 16
+#define PHASER_BANDWIDTH_MIN 0.125
+#define PHASER_BANDWIDTH_MAX 12.0
+#define PHASER_BANDWIDTH_DEFAULT 2
 
 
 typedef struct Proc_phaser
@@ -33,7 +34,7 @@ typedef struct Proc_phaser
 
     int stage_count;
     double cutoff;
-    double notch_separation;
+    double bandwidth;
     double dry_wet_ratio;
 } Proc_phaser;
 

@@ -19,6 +19,8 @@
 #include <init/devices/processors/Proc_phaser.h>
 #include <mathnum/common.h>
 #include <mathnum/conversions.h>
+#include <mathnum/fast_exp2.h>
+#include <mathnum/fast_tan.h>
 #include <memory.h>
 #include <player/devices/Device_thread_state.h>
 #include <player/devices/Proc_state.h>
@@ -81,7 +83,7 @@ static void Phaser_impl_init(Phaser_impl* phaser)
 
 
 static const int PHASER_WB_CUTOFF       = WORK_BUFFER_IMPL_1;
-static const int PHASER_WB_NOTCH_SEP    = WORK_BUFFER_IMPL_2;
+static const int PHASER_WB_BANDWIDTH    = WORK_BUFFER_IMPL_2;
 static const int PHASER_WB_DRY_WET      = WORK_BUFFER_IMPL_3;
 
 
@@ -92,7 +94,7 @@ static void Phaser_impl_update(
         const Work_buffer* in_wbs[2],
         Work_buffer* out_wbs[2],
         const Work_buffer* cutoff_wb,
-        const Work_buffer* notch_sep_wb,
+        const Work_buffer* bandwidth_wb,
         const Work_buffer* dry_wet_wb,
         int32_t frame_count,
         int32_t audio_rate)
@@ -116,22 +118,60 @@ static void Phaser_impl_update(
 
     const float* cutoffs = Work_buffer_get_contents(dest_cutoff_wb);
 
-    // Get notch separation input
-    // TODO: figure out a natural parameter scaling for this
-    Work_buffer* dest_notch_sep_wb =
-        Work_buffers_get_buffer_mut(wbs, PHASER_WB_NOTCH_SEP);
-    if (Work_buffer_is_valid(notch_sep_wb))
+    const int stage_count = phaser->stage_count;
+
+    // Get bandwidth input
+    // R = sinh(bandwidth * 2 * ln 2 / 2) / cot(PI / (2 * stage_count))
+
+    const float ln2 = logf(2.0f);
+    const float bw_cot_mult =
+        1.0f / (float)(-tan((PI / (2 * max(stage_count, 2))) + PI / 2.0));
+
+    Work_buffer* dest_bandwidth_wb =
+        Work_buffers_get_buffer_mut(wbs, PHASER_WB_BANDWIDTH);
     {
-        Work_buffer_copy(dest_notch_sep_wb, notch_sep_wb, 0, frame_count);
-    }
-    else
-    {
-        float* notch_seps = Work_buffer_get_contents_mut(dest_notch_sep_wb);
-        for (int32_t i = 0; i < frame_count; ++i)
-            notch_seps[i] = (float)phaser->notch_separation;
+        int32_t const_start = 0;
+        float fixed_bw = (float)phaser->bandwidth;
+
+        float* bws = Work_buffer_get_contents_mut(dest_bandwidth_wb);
+
+        if (Work_buffer_is_valid(bandwidth_wb))
+        {
+            const_start = Work_buffer_get_const_start(bandwidth_wb);
+            const_start = min(const_start, frame_count);
+
+            const float* src_bws = Work_buffer_get_contents(bandwidth_wb);
+            for (int32_t i = 0; i < const_start; ++i)
+            {
+                float bw = src_bws[i];
+                bw = clamp(bw, (float)PHASER_BANDWIDTH_MIN, (float)PHASER_BANDWIDTH_MAX);
+
+                // e^x = 2^(x / ln 2), so we can eliminate the ln 2 factor here
+                const float scaled_bw = bw;
+                float sinh_bw =
+                    (float)(fast_exp2(scaled_bw) - fast_exp2(-scaled_bw)) * 0.5f;
+                bws[i] = sinh_bw * bw_cot_mult;
+            }
+
+            if (const_start < frame_count)
+                fixed_bw = clamp(
+                        src_bws[const_start],
+                        (float)PHASER_BANDWIDTH_MIN,
+                        (float)PHASER_BANDWIDTH_MAX);
+        }
+
+        if (const_start < frame_count)
+        {
+            const float scaled_bw = fixed_bw * ln2;
+            float sinh_bw = sinhf(scaled_bw);
+            float fixed_res = sinh_bw * bw_cot_mult;
+
+            for (int32_t i = const_start; i < frame_count; ++i)
+                bws[i] = fixed_res;
+        }
     }
 
-    const float* resonances = Work_buffer_get_contents(dest_notch_sep_wb);
+    const float* resonances = Work_buffer_get_contents(dest_bandwidth_wb);
 
     // Get dry/wet ratio input
     Work_buffer* clamped_dry_wet_wb =
@@ -153,8 +193,6 @@ static void Phaser_impl_update(
     }
 
     const float* dry_wets = Work_buffer_get_contents(clamped_dry_wet_wb);
-
-    const int stage_count = phaser->stage_count;
 
     for (int ch = 0; ch < 2; ++ch)
     {
