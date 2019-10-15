@@ -17,9 +17,14 @@
 
 
 #include <player/devices/Device_state.h>
+#include <player/devices/Voice_state.h>
 
 
 Device_state_create_func new_Phaser_pstate;
+
+Voice_state_get_size_func Phaser_vstate_get_size;
+Voice_state_init_func Phaser_vstate_init;
+Voice_state_render_voice_func Phaser_vstate_render_voice;
 
 
 #endif // KQT_PHASER_STATE_H

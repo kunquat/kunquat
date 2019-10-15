@@ -45,6 +45,9 @@ Device_impl* new_Proc_phaser(void)
     }
 
     phaser->parent.create_pstate = new_Phaser_pstate;
+    phaser->parent.get_vstate_size = Phaser_vstate_get_size;
+    phaser->parent.init_vstate = Phaser_vstate_init;
+    phaser->parent.render_voice = Phaser_vstate_render_voice;
 
     phaser->stage_count = PHASER_STAGES_DEFAULT;
     phaser->cutoff = 100;

@@ -26,8 +26,10 @@
 #include <player/devices/Proc_state.h>
 #include <player/devices/processors/Filter_utils.h>
 #include <player/devices/processors/Proc_state_utils.h>
+#include <player/devices/Voice_state.h>
 #include <player/Work_buffers.h>
 
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -55,14 +57,6 @@ typedef struct Phaser_impl
 } Phaser_impl;
 
 
-typedef struct Phaser_pstate
-{
-    Proc_state parent;
-
-    Phaser_impl impl;
-} Phaser_pstate;
-
-
 static void Phaser_impl_init(Phaser_impl* phaser)
 {
     rassert(phaser != NULL);
@@ -79,6 +73,26 @@ static void Phaser_impl_init(Phaser_impl* phaser)
     }
 
     return;
+}
+
+
+static bool Phaser_impl_is_neutral(Phaser_impl* phaser, int stage_count)
+{
+    rassert(phaser != NULL);
+    rassert(stage_count > 0);
+
+    for (int ch = 0; ch < 2; ++ch)
+    {
+        Phaser_ch_state* ch_state = &phaser->ch_states[ch];
+
+        for (int si = 0; si < stage_count; ++si)
+        {
+            if ((ch_state->states[si].s1 != 0) || (ch_state->states[si].s2 != 0))
+                return false;
+        }
+    }
+
+    return true;
 }
 
 
@@ -253,12 +267,20 @@ static void Phaser_impl_update(
 }
 
 
-static void del_Phaser_pstate(Device_state* dstate)
+typedef struct Phaser_pstate
+{
+    Proc_state parent;
+
+    Phaser_impl impl;
+} Phaser_pstate;
+
+
+static void Phaser_pstate_reset(Device_state* dstate)
 {
     rassert(dstate != NULL);
 
     Phaser_pstate* ppstate = (Phaser_pstate*)dstate;
-    memory_free(ppstate);
+    Phaser_impl_init(&ppstate->impl);
 
     return;
 }
@@ -293,6 +315,9 @@ static void Phaser_pstate_render_mixed(
     rassert(wbs != NULL);
     rassert(tempo > 0);
 
+    Phaser_pstate* ppstate = (Phaser_pstate*)dstate;
+    const Proc_phaser* phaser = (const Proc_phaser*)dstate->device->dimpl;
+
     // Get audio buffers
     const Work_buffer* in_wbs[2] = { NULL };
     for (int ch = 0; ch < 2; ++ch)
@@ -303,7 +328,9 @@ static void Phaser_pstate_render_mixed(
             in_wbs[ch] = NULL;
     };
 
-    if ((in_wbs[0] == NULL) && (in_wbs[1] == NULL))
+    if ((in_wbs[0] == NULL) &&
+            (in_wbs[1] == NULL) &&
+            Phaser_impl_is_neutral(&ppstate->impl, phaser->stage_count))
         return;
 
     // Get output
@@ -313,9 +340,6 @@ static void Phaser_pstate_render_mixed(
                 proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L + ch);
     if ((out_wbs[0] == NULL) && (out_wbs[1] == NULL))
         return;
-
-    Phaser_pstate* ppstate = (Phaser_pstate*)dstate;
-    const Proc_phaser* phaser = (const Proc_phaser*)dstate->device->dimpl;
 
     Phaser_impl_update(
             &ppstate->impl,
@@ -355,10 +379,104 @@ Device_state* new_Phaser_pstate(
 
     Phaser_impl_init(&ppstate->impl);
 
-    ppstate->parent.destroy = del_Phaser_pstate;
+    ppstate->parent.reset = Phaser_pstate_reset;
     ppstate->parent.render_mixed = Phaser_pstate_render_mixed;
 
     return &ppstate->parent.parent;
+}
+
+
+typedef struct Phaser_vstate
+{
+    Voice_state parent;
+
+    Phaser_impl impl;
+} Phaser_vstate;
+
+
+int32_t Phaser_vstate_get_size(void)
+{
+    return sizeof(Phaser_vstate);
+}
+
+
+int32_t Phaser_vstate_render_voice(
+        Voice_state* vstate,
+        Proc_state* proc_state,
+        const Device_thread_state* proc_ts,
+        const Au_state* au_state,
+        const Work_buffers* wbs,
+        int32_t frame_count,
+        double tempo)
+{
+    rassert(vstate != NULL);
+    rassert(proc_state != NULL);
+    rassert(proc_ts != NULL);
+    rassert(au_state != NULL);
+    rassert(wbs != NULL);
+    rassert(frame_count > 0);
+    rassert(isfinite(tempo));
+    rassert(tempo > 0);
+
+    // Get audio buffers
+    const Work_buffer* in_wbs[2] = { NULL };
+    for (int ch = 0; ch < 2; ++ch)
+    {
+        in_wbs[ch] = Device_thread_state_get_voice_buffer(
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_AUDIO_L + ch);
+        if (!Work_buffer_is_valid(in_wbs[ch]))
+            in_wbs[ch] = NULL;
+    }
+
+    // Get audio outputs
+    Work_buffer* out_wbs[2] = { NULL };
+    for (int ch = 0; ch < 2; ++ch)
+        out_wbs[ch] = Device_thread_state_get_voice_buffer(
+                proc_ts, DEVICE_PORT_TYPE_SEND, PORT_OUT_AUDIO_L + ch);
+    if ((out_wbs[0] == NULL) && (out_wbs[1] == NULL))
+    {
+        vstate->active = false;
+        return 0;
+    }
+
+    Phaser_vstate* pvstate = (Phaser_vstate*)vstate;
+
+    const Device_state* dstate = (const Device_state*)proc_state;
+    const Proc_phaser* phaser = (const Proc_phaser*)dstate->device->dimpl;
+
+    Phaser_impl_update(
+            &pvstate->impl,
+            phaser,
+            wbs,
+            in_wbs,
+            out_wbs,
+            Device_thread_state_get_voice_buffer(
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_CUTOFF),
+            Device_thread_state_get_voice_buffer(
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_NOTCH_SEP),
+            Device_thread_state_get_voice_buffer(
+                proc_ts, DEVICE_PORT_TYPE_RECV, PORT_IN_DRY_WET),
+            frame_count,
+            dstate->audio_rate);
+
+    if ((in_wbs[0] == NULL) &&
+            (in_wbs[1] == NULL) &&
+            Phaser_impl_is_neutral(&pvstate->impl, phaser->stage_count))
+        vstate->active = false;
+
+    return frame_count;
+}
+
+
+void Phaser_vstate_init(Voice_state* vstate, const Proc_state* proc_state)
+{
+    rassert(vstate != NULL);
+    rassert(proc_state != NULL);
+
+    Phaser_vstate* pvstate = (Phaser_vstate*)vstate;
+    Phaser_impl_init(&pvstate->impl);
+
+    return;
 }
 
 
