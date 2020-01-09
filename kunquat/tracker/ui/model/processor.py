@@ -27,6 +27,7 @@ from .procparams.multparams import MultParams
 from .procparams.noiseparams import NoiseParams
 from .procparams.padsynthparams import PadsynthParams
 from .procparams.panningparams import PanningParams
+from .procparams.phaserparams import PhaserParams
 from .procparams.pitchparams import PitchParams
 from .procparams.rangemapparams import RangeMapParams
 from .procparams.sampleparams import SampleParams
@@ -51,6 +52,7 @@ _proc_classes = {
     'noise':        NoiseParams,
     'padsynth':     PadsynthParams,
     'panning':      PanningParams,
+    'phaser':       PhaserParams,
     'pitch':        PitchParams,
     'rangemap':     RangeMapParams,
     'sample':       SampleParams,

@@ -18,15 +18,13 @@
 #include <debug/assert.h>
 #include <init/devices/Device.h>
 #include <init/devices/processors/Proc_filter.h>
-#include <intrinsics.h>
 #include <kunquat/limits.h>
 #include <mathnum/common.h>
-#include <mathnum/conversions.h>
 #include <mathnum/fast_exp2.h>
-#include <mathnum/fast_tan.h>
 #include <memory.h>
 #include <player/devices/Device_thread_state.h>
 #include <player/devices/Proc_state.h>
+#include <player/devices/processors/Filter_utils.h>
 #include <player/devices/processors/Proc_state_utils.h>
 #include <player/devices/Voice_state.h>
 #include <player/Work_buffers.h>
@@ -34,13 +32,6 @@
 #include <math.h>
 #include <stdint.h>
 #include <stdlib.h>
-
-
-#define MIN_CUTOFF_RATIO 0.00003
-#define MAX_CUTOFF_RATIO 0.49
-
-
-#define ENABLE_FILTER_SSE (KQT_SSE && KQT_SSE2 && KQT_SSE4_1)
 
 
 typedef struct Filter_ch_state
@@ -85,47 +76,6 @@ static bool Filter_state_is_neutral(const Filter_state_impl* fimpl)
 }
 
 
-static float get_cutoff(double rel_freq)
-{
-    rassert(rel_freq > 0);
-    rassert(rel_freq < 0.5);
-    return (float)tan(PI * rel_freq);
-}
-
-
-static float get_cutoff_ratio(double cutoff_param, int32_t audio_rate)
-{
-    const double clamped_cutoff_param = clamp(cutoff_param, -36, 136);
-    const double cutoff_ratio =
-        cents_to_Hz((clamped_cutoff_param - 24) * 100) / audio_rate;
-    return (float)clamp(cutoff_ratio, MIN_CUTOFF_RATIO, MAX_CUTOFF_RATIO);
-}
-
-
-#if ENABLE_FILTER_SSE
-
-static __m128 get_cutoff_fast_f4(__m128 rel_freq)
-{
-    const __m128 pi = _mm_set1_ps((float)PI);
-    const __m128 scaled_freq = _mm_mul_ps(pi, rel_freq);
-    return fast_tan_pos_f4(scaled_freq);
-}
-
-#else
-
-static float get_cutoff_fast(double rel_freq)
-{
-    dassert(rel_freq > 0);
-    dassert(rel_freq < 0.5);
-
-    const double scaled_freq = PI * rel_freq;
-
-    return (float)fast_tan(scaled_freq);
-}
-
-#endif
-
-
 static const int CONTROL_WB_CUTOFF = WORK_BUFFER_IMPL_1;
 static const int CONTROL_WB_RESONANCE = WORK_BUFFER_IMPL_2;
 static const int FILTER_WB_SILENT_INPUT = WORK_BUFFER_IMPL_3;
@@ -148,77 +98,23 @@ static void Filter_state_impl_apply_input_buffers(
     rassert(out_wbs != NULL);
     rassert(audio_rate > 0);
 
-    float* cutoffs = Work_buffers_get_buffer_contents_mut(wbs, CONTROL_WB_CUTOFF);
+    Work_buffer* dest_cutoff_wb = Work_buffers_get_buffer_mut(wbs, CONTROL_WB_CUTOFF);
 
     int32_t params_const_start = 0;
 
     // Fill cutoff buffer
     {
-        int32_t fast_cutoff_stop = 0;
-        float const_cutoff = NAN;
-
-        if (Work_buffer_is_valid(cutoff_wb))
-        {
-            const int32_t const_start = Work_buffer_get_const_start(cutoff_wb);
-            fast_cutoff_stop = min(const_start, frame_count);
-            const float* cutoff_buf = Work_buffer_get_contents(cutoff_wb);
-
-            // Get cutoff values from input
-#if ENABLE_FILTER_SSE
-            const __m128 inv_audio_rate = _mm_set_ps1((float)(1.0 / audio_rate));
-            for (int32_t i = 0; i < fast_cutoff_stop; i += 4)
-            {
-                const __m128 cutoff_param = _mm_load_ps(cutoff_buf + i);
-                const __m128 offset = _mm_set_ps1(-24);
-                const __m128 scale = _mm_set_ps1(100);
-                const __m128 cutoff_ratio = _mm_mul_ps(
-                        fast_cents_to_Hz_f4(
-                            _mm_mul_ps(_mm_add_ps(cutoff_param, offset), scale)),
-                        inv_audio_rate);
-
-                const __m128 min_ratio = _mm_set_ps1((float)MIN_CUTOFF_RATIO);
-                const __m128 max_ratio = _mm_set_ps1((float)MAX_CUTOFF_RATIO);
-                const __m128 cutoff_ratio_clamped =
-                    _mm_min_ps(_mm_max_ps(min_ratio, cutoff_ratio), max_ratio);
-
-                const __m128 cutoff = get_cutoff_fast_f4(cutoff_ratio_clamped);
-                _mm_store_ps(cutoffs + i, cutoff);
-            }
-#else
-            for (int32_t i = 0; i < fast_cutoff_stop; ++i)
-            {
-                const double cutoff_param = cutoff_buf[i];
-                const double cutoff_ratio =
-                    fast_cents_to_Hz((cutoff_param - 24) * 100) / audio_rate;
-                const double cutoff_ratio_clamped =
-                    clamp(cutoff_ratio, MIN_CUTOFF_RATIO, MAX_CUTOFF_RATIO);
-
-                cutoffs[i] = get_cutoff_fast(cutoff_ratio_clamped);
-            }
-#endif
-
-            if (fast_cutoff_stop < frame_count)
-            {
-                const double cutoff_ratio =
-                    get_cutoff_ratio(cutoff_buf[fast_cutoff_stop], audio_rate);
-                const_cutoff = get_cutoff(cutoff_ratio);
-            }
-        }
-        else
-        {
-            const double cutoff_ratio = get_cutoff_ratio(filter->cutoff, audio_rate);
-            const_cutoff = get_cutoff(cutoff_ratio);
-        }
-
-        for (int32_t i = fast_cutoff_stop; i < frame_count; ++i)
-            cutoffs[i] = const_cutoff;
-
-        params_const_start = max(params_const_start, fast_cutoff_stop);
+        transform_cutoff(
+                dest_cutoff_wb, cutoff_wb, filter->cutoff, frame_count, audio_rate);
+        const int32_t const_cutoff_start = Work_buffer_get_const_start(dest_cutoff_wb);
+        params_const_start = max(params_const_start, const_cutoff_start);
     }
 
-    float* resonances = Work_buffers_get_buffer_contents_mut(wbs, CONTROL_WB_RESONANCE);
+    const float* cutoffs = Work_buffer_get_contents(dest_cutoff_wb);
 
     // Fill resonance buffer
+    float* resonances = Work_buffers_get_buffer_contents_mut(wbs, CONTROL_WB_RESONANCE);
+
     {
         // We are going to warp the normalised resonance with: (bias^res - 1) / (bias - 1)
         const double res_bias_base = 50.0;

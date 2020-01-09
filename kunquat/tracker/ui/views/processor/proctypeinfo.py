@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015-2018
+# Author: Tomi Jylhä-Ollila, Finland 2015-2019
 #
 # This file is part of Kunquat.
 #
@@ -26,6 +26,7 @@ from .multproc import MultProc
 from .noiseproc import NoiseProc
 from .padsynthproc import PadsynthProc
 from .panningproc import PanningProc
+from .phaserproc import PhaserProc
 from .pitchproc import PitchProc
 from .rangemapproc import RangeMapProc
 from .sampleproc import SampleProc
@@ -51,6 +52,7 @@ _proc_classes = {
     'noise':        NoiseProc,
     'padsynth':     PadsynthProc,
     'panning':      PanningProc,
+    'phaser':       PhaserProc,
     'pitch':        PitchProc,
     'rangemap':     RangeMapProc,
     'sample':       SampleProc,
