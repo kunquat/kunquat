@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2020
  *
  * This file is part of Kunquat.
  *
@@ -29,6 +29,10 @@ typedef struct Proc_rangemap
     double max_to;
     bool clamp_dest_min;
     bool clamp_dest_max;
+
+    bool is_env_enabled;
+    const Envelope* envelope_param;
+    Envelope* envelope;
 } Proc_rangemap;
 
 
