@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016
+# Author: Tomi Jylhä-Ollila, Finland 2016-2020
 #
 # This file is part of Kunquat.
 #
@@ -67,5 +67,20 @@ class RangeMapParams(ProcParams):
 
     def set_clamp_dest_max(self, enabled):
         self._set_value('p_b_clamp_dest_max.json', enabled)
+
+    def get_envelope_enabled(self):
+        return self._get_value('p_b_env_enabled.json', False)
+
+    def set_envelope_enabled(self, enabled):
+        self._set_value('p_b_env_enabled.json', enabled)
+
+    def get_envelope(self):
+        ret_env = { 'nodes': [ [0, 0], [1, 1] ], 'smooth': False }
+        stored_env = self._get_value('p_e_envelope.json', None) or {}
+        ret_env.update(stored_env)
+        return ret_env
+
+    def set_envelope(self, envelope):
+        self._set_value('p_e_envelope.json', envelope)
 
 

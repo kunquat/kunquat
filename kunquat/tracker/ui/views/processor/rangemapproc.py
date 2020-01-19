@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016-2019
+# Author: Tomi Jylhä-Ollila, Finland 2016-2020
 #
 # This file is part of Kunquat.
 #
@@ -13,8 +13,10 @@
 
 from kunquat.tracker.ui.qt import *
 
+from kunquat.tracker.ui.views.envelope import Envelope
 from kunquat.tracker.ui.views.varprecspinbox import VarPrecSpinBox
 from . import utils
+from .procsimpleenv import ProcessorSimpleEnvelope
 from .processorupdater import ProcessorUpdater
 
 
@@ -32,6 +34,9 @@ class RangeMapProc(QWidget, ProcessorUpdater):
         self._max_to = RangeValue()
         self._clamp_dest_min = ClampToggle('Clamp to minimum destination')
         self._clamp_dest_max = ClampToggle('Clamp to maximum destination')
+        self._envelope = MappingEnvelope()
+
+        self.add_to_updaters(self._envelope)
 
         self._map_layout = QGridLayout()
         self._map_layout.setContentsMargins(0, 0, 0, 0)
@@ -50,7 +55,7 @@ class RangeMapProc(QWidget, ProcessorUpdater):
         v.addLayout(self._map_layout)
         v.addWidget(self._clamp_dest_min)
         v.addWidget(self._clamp_dest_max)
-        v.addStretch(1)
+        v.addWidget(self._envelope)
         self.setLayout(v)
 
     def _on_setup(self):
@@ -152,5 +157,43 @@ class ClampToggle(QCheckBox):
         old_block = self.blockSignals(True)
         self.setCheckState(Qt.Checked if enabled else Qt.Unchecked)
         self.blockSignals(old_block)
+
+
+class MappingEnvelope(ProcessorSimpleEnvelope):
+
+    def __init__(self):
+        super().__init__()
+
+    def _get_range_map_params(self):
+        return utils.get_proc_params(self._ui_model, self._au_id, self._proc_id)
+
+    def _make_envelope_widget(self):
+        envelope = Envelope()
+        ev = envelope.get_envelope_view()
+        ev.set_node_count_max(32)
+        ev.set_y_range(0, 1)
+        ev.set_x_range(0, 1)
+        ev.set_first_lock(True, False)
+        ev.set_last_lock(True, False)
+
+        return envelope
+
+    def _get_update_signal_type(self):
+        return 'signal_rangemap_env_{}'.format(self._proc_id)
+
+    def _get_title(self):
+        return 'Mapping envelope'
+
+    def _get_enabled(self):
+        return self._get_range_map_params().get_envelope_enabled()
+
+    def _set_enabled(self, enabled):
+        self._get_range_map_params().set_envelope_enabled(enabled)
+
+    def _get_envelope_data(self):
+        return self._get_range_map_params().get_envelope()
+
+    def _set_envelope_data(self, envelope):
+        self._get_range_map_params().set_envelope(envelope)
 
 
