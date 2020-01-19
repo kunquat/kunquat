@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016-2019
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2020
  *
  * This file is part of Kunquat.
  *
@@ -16,6 +16,7 @@
 
 #include <debug/assert.h>
 #include <init/devices/Device.h>
+#include <init/devices/param_types/Envelope.h>
 #include <init/devices/processors/Proc_rangemap.h>
 #include <mathnum/common.h>
 #include <memory.h>
@@ -27,7 +28,7 @@
 #include <stdlib.h>
 
 
-static void get_scalars(
+static void get_linear_scalars(
         float* mul,
         float* add,
         double from_min,
@@ -58,7 +59,85 @@ static void get_scalars(
 }
 
 
-static void apply_range(
+static void get_extrapolated_envelope_scalars(
+        float* mul,
+        float* add,
+        bool clamp_dest_min,
+        float* mul2,
+        float* add2,
+        bool clamp_dest_max,
+        const Envelope* envelope)
+{
+    rassert(mul != NULL);
+    rassert(add != NULL);
+    rassert(mul2 != NULL);
+    rassert(add2 != NULL);
+    rassert(envelope != NULL);
+    rassert(Envelope_node_count(envelope) >= 2);
+
+    if (clamp_dest_min)
+    {
+        *mul = 0;
+        *add = (float)Envelope_get_node(envelope, 0)[1];
+    }
+    else
+    {
+        const double* node1 = Envelope_get_node(envelope, 0);
+        const double* node2 = Envelope_get_node(envelope, 1);
+        get_linear_scalars(mul, add, node1[0], node2[0], node1[1], node2[1]);
+    }
+
+    if (clamp_dest_max)
+    {
+        *mul2 = 0;
+        *add2 = (float)Envelope_get_node(envelope, Envelope_node_count(envelope) - 1)[1];
+    }
+    else
+    {
+        const double* node1 =
+            Envelope_get_node(envelope, Envelope_node_count(envelope) - 2);
+        const double* node2 =
+            Envelope_get_node(envelope, Envelope_node_count(envelope) - 1);
+        get_linear_scalars(mul2, add2, node1[0], node2[0], node1[1], node2[1]);
+    }
+
+    return;
+}
+
+
+static void get_scalars(
+        float* mul, float* add, float* mul2, float* add2, const Proc_rangemap* rangemap)
+{
+    rassert(mul != NULL);
+    rassert(add != NULL);
+    rassert(mul2 != NULL);
+    rassert(add2 != NULL);
+
+    if (rangemap->is_env_enabled && (rangemap->envelope != NULL))
+    {
+        get_extrapolated_envelope_scalars(
+                mul,
+                add,
+                rangemap->clamp_dest_min,
+                mul2,
+                add2,
+                rangemap->clamp_dest_max,
+                rangemap->envelope);
+    }
+    else
+    {
+        get_linear_scalars(
+                mul,
+                add,
+                rangemap->from_min, rangemap->from_max,
+                rangemap->min_to, rangemap->max_to);
+    }
+
+    return;
+}
+
+
+static void apply_linear_range(
         const Work_buffer* in_wb,
         Work_buffer* out_wb,
         int32_t frame_count,
@@ -96,6 +175,48 @@ static void apply_range(
 }
 
 
+static void apply_envelope_range(
+        const Work_buffer* in_wb,
+        Work_buffer* out_wb,
+        int32_t frame_count,
+        float mul,
+        float add,
+        float mul2,
+        float add2,
+        const Envelope* envelope)
+{
+    rassert(in_wb != NULL);
+    rassert(out_wb != NULL);
+    rassert(frame_count > 0);
+    rassert(isfinite(mul));
+    rassert(isfinite(add));
+    rassert(isfinite(mul2));
+    rassert(isfinite(add2));
+    rassert(envelope != NULL);
+
+    const float env_min = (float)Envelope_get_node(envelope, 0)[0];
+    const float env_max =
+        (float)Envelope_get_node(envelope, Envelope_node_count(envelope) - 1)[0];
+
+    const float* in = Work_buffer_get_contents(in_wb);
+    float* out = Work_buffer_get_contents_mut(out_wb);
+
+    for (int32_t i = 0; i < frame_count; ++i)
+    {
+        const float in_val = in[i];
+
+        if (in_val < env_min)
+            out[i] = (mul * in_val) + add;
+        else if (in_val > env_max)
+            out[i] = (mul2 * in_val) + add2;
+        else
+            out[i] = (float)Envelope_get_value(envelope, in_val);
+    }
+
+    return;
+}
+
+
 static const int RANGEMAP_WB_FIXED_INPUT = WORK_BUFFER_IMPL_1;
 
 
@@ -117,17 +238,17 @@ static void Rangemap_pstate_render_mixed(
 
     float mul = 0;
     float add = 0;
-    get_scalars(
-            &mul,
-            &add,
-            rangemap->from_min, rangemap->from_max,
-            rangemap->min_to, rangemap->max_to);
+    float mul2 = 0;
+    float add2 = 0;
+    get_scalars(&mul, &add, &mul2, &add2, rangemap);
 
     const double range_min = min(rangemap->min_to, rangemap->max_to);
     const double range_max = max(rangemap->min_to, rangemap->max_to);
 
     const float min_val = (float)(rangemap->clamp_dest_min ? range_min : -INFINITY);
     const float max_val = (float)(rangemap->clamp_dest_max ? range_max : INFINITY);
+
+    const bool use_envelope = (rangemap->is_env_enabled && (rangemap->envelope != NULL));
 
     for (int ch = 0; ch < 2; ++ch)
     {
@@ -144,7 +265,18 @@ static void Rangemap_pstate_render_mixed(
             Work_buffer_clear(in_wb, 0, frame_count);
         }
 
-        apply_range(in_wb, out_wb, frame_count, mul, add, min_val, max_val);
+        if (!use_envelope)
+            apply_linear_range(in_wb, out_wb, frame_count, mul, add, min_val, max_val);
+        else
+            apply_envelope_range(
+                    in_wb,
+                    out_wb,
+                    frame_count,
+                    mul,
+                    add,
+                    mul2,
+                    add2,
+                    rangemap->envelope);
 
         const int32_t const_start = Work_buffer_get_const_start(in_wb);
         Work_buffer_set_const_start(out_wb, const_start);
@@ -195,17 +327,17 @@ int32_t Rangemap_vstate_render_voice(
 
     float mul = 0;
     float add = 0;
-    get_scalars(
-            &mul,
-            &add,
-            rangemap->from_min, rangemap->from_max,
-            rangemap->min_to, rangemap->max_to);
+    float mul2 = 0;
+    float add2 = 0;
+    get_scalars(&mul, &add, &mul2, &add2, rangemap);
 
     const double range_min = min(rangemap->min_to, rangemap->max_to);
     const double range_max = max(rangemap->min_to, rangemap->max_to);
 
     const float min_val = (float)(rangemap->clamp_dest_min ? range_min : -INFINITY);
     const float max_val = (float)(rangemap->clamp_dest_max ? range_max : INFINITY);
+
+    const bool use_envelope = (rangemap->is_env_enabled && (rangemap->envelope != NULL));
 
     for (int ch = 0; ch < 2; ++ch)
     {
@@ -222,7 +354,18 @@ int32_t Rangemap_vstate_render_voice(
             Work_buffer_clear(in_wb, 0, frame_count);
         }
 
-        apply_range(in_wb, out_wb, frame_count, mul, add, min_val, max_val);
+        if (!use_envelope)
+            apply_linear_range(in_wb, out_wb, frame_count, mul, add, min_val, max_val);
+        else
+            apply_envelope_range(
+                    in_wb,
+                    out_wb,
+                    frame_count,
+                    mul,
+                    add,
+                    mul2,
+                    add2,
+                    rangemap->envelope);
 
         const int32_t const_start = Work_buffer_get_const_start(in_wb);
         const bool is_final = Work_buffer_is_final(in_wb);
