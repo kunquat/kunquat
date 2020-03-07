@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2013-2019
+# Authors: Tomi Jylhä-Ollila, Finland 2013-2020
 #          Toni Ruottu, Finland 2014
 #
 # This file is part of Kunquat.
@@ -948,7 +948,7 @@ class View(QWidget, Updater):
         new_location = self._sheet_mgr.get_clamped_location(test_location)
         selection.set_location(new_location)
 
-    def _move_edit_cursor_tstamp(self):
+    def _move_edit_cursor_tstamp(self, jump_to_breakpoint=False):
         px_delta = self._vertical_move_state.get_delta()
         if px_delta == 0:
             return
@@ -999,7 +999,7 @@ class View(QWidget, Updater):
         cur_column = self._sheet_mgr.get_column_at_location(location)
         is_grid_enabled = self._sheet_mgr.is_grid_enabled()
 
-        if is_grid_enabled:
+        if is_grid_enabled and not jump_to_breakpoint:
             grid = self._sheet_mgr.get_grid()
             song = album.get_song_by_track(track)
             pinst = song.get_pattern_instance(system)
@@ -1030,9 +1030,17 @@ class View(QWidget, Updater):
             assert utils.get_px_from_tstamp(def_ts, self._px_per_beat) == cur_px_offset
 
             # Get target tstamp
-            new_px_offset = cur_px_offset + px_delta
-            new_ts = utils.get_tstamp_from_px(new_px_offset, self._px_per_beat)
-            assert utils.get_px_from_tstamp(new_ts, self._px_per_beat) != cur_px_offset
+            if jump_to_breakpoint:
+                if px_delta < 0:
+                    new_ts = tstamp.Tstamp(0)
+                else:
+                    cur_song = album.get_song_by_track(track)
+                    cur_pattern = cur_song.get_pattern_instance(system).get_pattern()
+                    new_ts = cur_pattern.get_length() + tstamp.Tstamp(0, 1)
+            else:
+                new_px_offset = cur_px_offset + px_delta
+                new_ts = utils.get_tstamp_from_px(new_px_offset, self._px_per_beat)
+                assert utils.get_px_from_tstamp(new_ts, self._px_per_beat) != cur_px_offset
 
         # Get shortest movement between target tstamp and closest trigger row
         move_range_start = min(new_ts, row_ts)
@@ -1720,6 +1728,18 @@ class View(QWidget, Updater):
                 self.update()
             self._move_edit_cursor_bar(1)
 
+        def handle_move_prev_breakpoint():
+            selection.clear_area()
+            self._vertical_move_state.press_up()
+            self._move_edit_cursor_tstamp(jump_to_breakpoint=True)
+            self._vertical_move_state.release_up()
+
+        def handle_move_next_breakpoint():
+            selection.clear_area()
+            self._vertical_move_state.press_down()
+            self._move_edit_cursor_tstamp(jump_to_breakpoint=True)
+            self._vertical_move_state.release_down()
+
         def handle_move_trow_start():
             if selection.has_area_start():
                 selection.clear_area()
@@ -1760,6 +1780,20 @@ class View(QWidget, Updater):
             else:
                 self._horizontal_move_state.press_right()
                 self._move_edit_cursor_trow()
+            selection.set_area_stop(selection.get_location())
+
+        def area_bounds_move_prev_breakpoint():
+            selection.try_set_area_start(orig_location)
+            self._vertical_move_state.press_up()
+            self._move_edit_cursor_tstamp(jump_to_breakpoint=True)
+            self._vertical_move_state.release_up()
+            selection.set_area_stop(selection.get_location())
+
+        def area_bounds_move_next_breakpoint():
+            selection.try_set_area_start(orig_location)
+            self._vertical_move_state.press_down()
+            self._move_edit_cursor_tstamp(jump_to_breakpoint=True)
+            self._vertical_move_state.release_down()
             selection.set_area_stop(selection.get_location())
 
         def area_bounds_move_prev_bar():
@@ -1959,10 +1993,20 @@ class View(QWidget, Updater):
                 Qt.Key_V:       area_paste,
                 Qt.Key_M:       handle_convert_trigger,
                 Qt.Key_Z:       handle_undo,
+
+                Qt.Key_Up:      handle_move_prev_breakpoint,
+                Qt.Key_Down:    handle_move_next_breakpoint,
+                Qt.Key_Left:    handle_move_left,
+                Qt.Key_Right:   handle_move_right,
             },
 
             int(Qt.ControlModifier | Qt.ShiftModifier): {
                 Qt.Key_Z:       handle_redo,
+
+                Qt.Key_Up:      area_bounds_move_prev_breakpoint,
+                Qt.Key_Down:    area_bounds_move_next_breakpoint,
+                Qt.Key_Left:    area_bounds_move_left,
+                Qt.Key_Right:   area_bounds_move_right,
             },
 
             int(Qt.ControlModifier | Qt.AltModifier): {
