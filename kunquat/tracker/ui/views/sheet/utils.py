@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2013-2017
+# Author: Tomi Jylhä-Ollila, Finland 2013-2020
 #
 # This file is part of Kunquat.
 #
@@ -190,9 +190,9 @@ def get_zoom_levels(min_val, default_val, max_val, zoom_factor):
 
 def scale_colour(colour, factor):
     new_colour = QColor(colour)
-    new_colour.setRed(colour.red() * factor)
-    new_colour.setGreen(colour.green() * factor)
-    new_colour.setBlue(colour.blue() * factor)
+    new_colour.setRed(int(colour.red() * factor))
+    new_colour.setGreen(int(colour.green() * factor))
+    new_colour.setBlue(int(colour.blue() * factor))
     return new_colour
 
 

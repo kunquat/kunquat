@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2018
+# Author: Tomi Jylhä-Ollila, Finland 2014-2020
 #
 # This file is part of Kunquat.
 #
@@ -38,7 +38,7 @@ class EventLight(QWidget):
 
         self._refresh_timer = QTimer()
         self._refresh_timer.timeout.connect(self._update_vis)
-        self._refresh_timer.start(self._config['delta'] * 1000)
+        self._refresh_timer.start(int(self._config['delta'] * 1000))
 
     def set_config(self, config):
         self._config = _LIGHT_CONFIG.copy()

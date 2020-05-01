@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2019
+# Author: Tomi Jylhä-Ollila, Finland 2014-2020
 #
 # This file is part of Kunquat.
 #
@@ -436,7 +436,11 @@ class RandomListMap(QWidget, ProcessorUpdater):
             else:
                 painter.setBrush(self._config['point_colour'])
             x, y = self._get_vis_coords(point)
-            rect = QRect(x + point_offset, y + point_offset, point_size, point_size)
+            rect = QRect(
+                    int(x + point_offset),
+                    int(y + point_offset),
+                    int(point_size),
+                    int(point_size))
             painter.drawEllipse(rect)
 
         if selected_found:
@@ -450,7 +454,8 @@ class RandomListMap(QWidget, ProcessorUpdater):
             highlight_offset = -(highlight_size // 2)
             x, y = self._get_vis_coords(selected_point)
             painter.translate(highlight_offset, highlight_offset)
-            painter.drawEllipse(QRect(x, y, highlight_size, highlight_size))
+            painter.drawEllipse(QRect(
+                int(x), int(y), int(highlight_size), int(highlight_size)))
 
             painter.restore()
 

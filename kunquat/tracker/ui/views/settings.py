@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016-2019
+# Author: Tomi Jylhä-Ollila, Finland 2016-2020
 #
 # This file is part of Kunquat.
 #
@@ -1387,8 +1387,8 @@ class ColourSelector(QWidget):
         hue_ring = self._get_hue_ring()
         sv_triangle = self._get_sv_triangle(hue_inner_radius)
 
-        painter.drawImage(-hue_inner_radius, -hue_inner_radius, sv_triangle)
-        painter.drawImage(-hue_outer_radius, -hue_outer_radius, hue_ring)
+        painter.drawImage(int(-hue_inner_radius), int(-hue_inner_radius), sv_triangle)
+        painter.drawImage(int(-hue_outer_radius), int(-hue_outer_radius), hue_ring)
 
         # Draw markers
         painter.setRenderHint(QPainter.Antialiasing)
@@ -1477,7 +1477,7 @@ class ColourSelector(QWidget):
 
         # Draw the triangle
         wh = inner_radius * 2
-        self._sv_triangle = QImage(wh, wh, QImage.Format_ARGB32)
+        self._sv_triangle = QImage(int(wh), int(wh), QImage.Format_ARGB32)
         self._sv_triangle.fill(0)
 
         painter = QPainter(self._sv_triangle)
@@ -1489,7 +1489,7 @@ class ColourSelector(QWidget):
 
         ir = inner_radius
 
-        painter.drawImage(QRectF(-ir, -ir, wh, wh), hue_grad)
+        painter.drawImage(QRectF(int(-ir), int(-ir), int(wh), int(wh)), hue_grad)
 
         triangle = QPolygonF([
             QPointF(ir, 0),

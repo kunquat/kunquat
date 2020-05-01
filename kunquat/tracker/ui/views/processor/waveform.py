@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2019
+# Author: Tomi Jylhä-Ollila, Finland 2014-2020
 #
 # This file is part of Kunquat.
 #
@@ -116,7 +116,7 @@ class Waveform(QWidget):
         pen.setCosmetic(True)
         pen.setWidth(line_thickness)
         painter.setPen(pen)
-        painter.drawLine(0, centre_y, width - 1, centre_y)
+        painter.drawLine(0, int(centre_y), int(width - 1), int(centre_y))
 
         # Draw the waveform image
         assert self._path_image != None

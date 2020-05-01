@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2014-2019
+# Authors: Tomi Jylhä-Ollila, Finland 2014-2020
 #          Toni Ruottu, Finland 2014
 #
 # This file is part of Kunquat.
@@ -387,7 +387,7 @@ class ProgressWindow(QWidget):
         self.hide()
 
     def delayed_show(self):
-        self._show_timer.start(self._SHOW_DELAY * 1000)
+        self._show_timer.start(int(self._SHOW_DELAY * 1000))
 
     def set_description(self, desc):
         self._desc.setText(desc)

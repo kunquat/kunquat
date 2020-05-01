@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2013-2019
+# Author: Tomi Jylhä-Ollila, Finland 2013-2020
 #
 # This file is part of Kunquat.
 #
@@ -83,7 +83,7 @@ class PeakMeter(QWidget, Updater):
             r = lerp(bg_r, r, dim_factor)
             g = lerp(bg_g, g, dim_factor)
             b = lerp(bg_b, b, dim_factor)
-            self._dim_colours[k] = QColor(r, g, b)
+            self._dim_colours[k] = QColor(int(r), int(g), int(b))
 
         self._update_buffers()
 

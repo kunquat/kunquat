@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2013-2019
+# Author: Tomi Jylhä-Ollila, Finland 2013-2020
 #
 # This file is part of Kunquat.
 #
@@ -221,9 +221,9 @@ class Ruler(QWidget, Updater):
         if inactive:
             dim_factor = self._config['inactive_dim']
             new_colour = QColor(colour)
-            new_colour.setRed(colour.red() * dim_factor)
-            new_colour.setGreen(colour.green() * dim_factor)
-            new_colour.setBlue(colour.blue() * dim_factor)
+            new_colour.setRed(int(colour.red() * dim_factor))
+            new_colour.setGreen(int(colour.green() * dim_factor))
+            new_colour.setBlue(int(colour.blue() * dim_factor))
             return new_colour
         return colour
 
@@ -395,9 +395,9 @@ class RulerCache():
         if self._inactive:
             dim_factor = self._config['inactive_dim']
             new_colour = QColor(colour)
-            new_colour.setRed(colour.red() * dim_factor)
-            new_colour.setGreen(colour.green() * dim_factor)
-            new_colour.setBlue(colour.blue() * dim_factor)
+            new_colour.setRed(int(colour.red() * dim_factor))
+            new_colour.setGreen(int(colour.green() * dim_factor))
+            new_colour.setBlue(int(colour.blue() * dim_factor))
             return new_colour
         return colour
 
@@ -422,8 +422,8 @@ class RulerCache():
         painter.translate(0, -((line_width - 1) // 2))
 
         painter.drawLine(
-                QPoint(self._width - line_width / 2, 0),
-                QPoint(self._width - line_width / 2, RulerCache.PIXMAP_HEIGHT - 1))
+                QPoint(int(self._width - line_width / 2), 0),
+                QPoint(int(self._width - line_width / 2), RulerCache.PIXMAP_HEIGHT - 1))
 
         # Ruler lines
         slice_margin_ts = utils.get_tstamp_from_px(line_width / 2, self._px_per_beat)
@@ -439,8 +439,8 @@ class RulerCache():
             else:
                 line_length = cfg['line_len_short']
             painter.drawLine(
-                    QPoint(self._width - 1 - line_length, y),
-                    QPoint(self._width - 1, y))
+                    QPoint(int(self._width - 1 - line_length), int(y)),
+                    QPoint(int(self._width - 1), int(y)))
 
         self._draw_markers(
                 painter,

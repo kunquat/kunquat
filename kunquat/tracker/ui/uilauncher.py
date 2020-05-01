@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2013-2019
+# Authors: Tomi Jylhä-Ollila, Finland 2013-2020
 #          Toni Ruottu, Finland 2013-2014
 #
 # This file is part of Kunquat.
@@ -136,7 +136,7 @@ class UiLauncher():
 
         update_timer = QTimer()
         update_timer.timeout.connect(self.update)
-        update_timer.start(1000 * self.UI_DELTA)
+        update_timer.start(int(1000 * self.UI_DELTA))
 
         root_view.set_ui_model(self._ui_model)
         root_view.set_crash_dialog(error_dialog)

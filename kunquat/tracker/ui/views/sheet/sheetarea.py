@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2013-2019
+# Author: Tomi Jylhä-Ollila, Finland 2013-2020
 #
 # This file is part of Kunquat.
 #
@@ -47,12 +47,12 @@ class LongScrollBar(QScrollBar):
 
         scaled_min = self._actual_min / self._range_factor
         scaled_max = self._actual_max / self._range_factor
-        super().setRange(scaled_min, scaled_max)
+        super().setRange(int(scaled_min), int(scaled_max))
         self.set_actual_value(self._actual_value)
 
     def set_actual_value(self, actual_value):
         self._actual_value = min(max(self._actual_min, actual_value), self._actual_max)
-        super().setValue(self._actual_value / self._range_factor)
+        super().setValue(int(self._actual_value / self._range_factor))
 
     def get_actual_value(self):
         return self._actual_value

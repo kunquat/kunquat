@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016-2018
+# Author: Tomi Jylhä-Ollila, Finland 2016-2020
 #
 # This file is part of Kunquat.
 #
@@ -104,7 +104,7 @@ class HitKeyboardLayout(QWidget):
             self._pad_factors.append(typewriter_mgr.get_pad_factor_at_row(row_index))
             pad_px = self._PAD * self._pad_factors[row_index]
             pad = QWidget()
-            pad.setFixedWidth(pad_px)
+            pad.setFixedWidth(int(pad_px))
             row.addWidget(pad)
 
             # Buttons
@@ -139,8 +139,8 @@ class HitKeyboardLayout(QWidget):
             row_layout.setSpacing(style_mgr.get_scaled_size_param('medium_padding'))
 
             pad = row_layout.itemAt(0).widget()
-            pad.setFixedWidth(self._pad_factors[row_index] *
-                    style_mgr.get_scaled_size_param('typewriter_padding'))
+            pad.setFixedWidth(int(self._pad_factors[row_index] *
+                    style_mgr.get_scaled_size_param('typewriter_padding')))
 
             button_size = style_mgr.get_scaled_size_param('typewriter_button_size')
             for widget_index in range(1, row_layout.count() - 1):
@@ -214,7 +214,8 @@ class HitBankButton(QPushButton):
         self._set_selected_hit_info((hit_base, hit_offset))
 
     def update_style(self, style_mgr):
-        self.setFixedWidth(style_mgr.get_scaled_size_param('typewriter_button_size'))
+        self.setFixedWidth(
+                int(style_mgr.get_scaled_size_param('typewriter_button_size')))
 
 
 class HitButton(QPushButton):

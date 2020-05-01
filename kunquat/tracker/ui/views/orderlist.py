@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2014
-#          Tomi Jylhä-Ollila, Finland 2014-2019
+#          Tomi Jylhä-Ollila, Finland 2014-2020
 #
 # This file is part of Kunquat.
 #
@@ -155,7 +155,9 @@ class AlbumTreeModel(QAbstractItemModel, Updater):
             return default_flags
         node = index.internalPointer()
         if node.is_song_node() or node.is_pattern_instance_node():
-            return Qt.ItemIsDragEnabled | Qt.ItemIsDropEnabled | default_flags
+            return Qt.ItemFlags(int(Qt.ItemIsDragEnabled) |
+                    int(Qt.ItemIsDropEnabled) |
+                    int(default_flags))
         else:
             assert False
 

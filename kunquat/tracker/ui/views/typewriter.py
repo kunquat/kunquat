@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013-2014
-#          Tomi Jylhä-Ollila, Finland 2014-2018
+#          Tomi Jylhä-Ollila, Finland 2014-2020
 #
 # This file is part of Kunquat.
 #
@@ -51,7 +51,7 @@ class Typewriter(QFrame, Updater):
             pad = row.itemAt(0).widget()
             assert pad
             pad_px = self._pad * self._typewriter_mgr.get_pad_factor_at_row(row_index)
-            pad.setFixedWidth(pad_px)
+            pad.setFixedWidth(int(pad_px))
 
     def _get_layout(self):
         style_mgr = self._ui_model.get_style_manager()
@@ -83,7 +83,7 @@ class Typewriter(QFrame, Updater):
 
     def _get_pad(self, psize):
         pad = QWidget()
-        pad.setFixedWidth(psize)
+        pad.setFixedWidth(int(psize))
         return pad
 
     def _update_button_leds(self):

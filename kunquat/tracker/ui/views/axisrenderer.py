@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016-2019
+# Author: Tomi Jylhä-Ollila, Finland 2016-2020
 #
 # This file is part of Kunquat.
 #
@@ -90,7 +90,7 @@ class AbstractAxisRenderer():
             axis_painter.setRenderHint(QPainter.Antialiasing)
             self._draw_axis(axis_painter)
 
-        painter.drawImage(QPoint(-lw_half, -lw_half), self._cache)
+        painter.drawImage(QPoint(int(-lw_half), int(-lw_half)), self._cache)
 
     def _fill_markers_interval(
             self,
