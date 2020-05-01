@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2015-2019
+# Author: Tomi Jylhä-Ollila, Finland 2015-2020
 #
 # This file is part of Kunquat.
 #
@@ -70,9 +70,9 @@ def lerp_val(v1, v2, t):
 def lerp_colour(c1, c2, t):
     assert 0 <= t <= 1, 'lerp value {} is not within valid range [0, 1]'.format(t)
     return QColor(
-            lerp_val(c1.red(), c2.red(), t),
-            lerp_val(c1.green(), c2.green(), t),
-            lerp_val(c1.blue(), c2.blue(), t))
+            int(lerp_val(c1.red(), c2.red(), t)),
+            int(lerp_val(c1.green(), c2.green(), t)),
+            int(lerp_val(c1.blue(), c2.blue(), t)))
 
 def get_colour_from_str(s):
     if len(s) == 4:

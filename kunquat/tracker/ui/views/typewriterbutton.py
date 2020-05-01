@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013-2014
-#          Tomi Jylhä-Ollila, Finland 2013-2019
+#          Tomi Jylhä-Ollila, Finland 2013-2020
 #
 # This file is part of Kunquat.
 #
@@ -431,13 +431,13 @@ class TypewriterButton(QPushButton, Updater):
         if char_image:
             char_x = width * 0.1
             char_y = height * 0.1
-            painter.drawImage(char_x, char_y, char_image)
+            painter.drawImage(int(char_x), int(char_y), char_image)
 
         name_image = self._get_name_image(pressed)
         if name_image:
             name_x = (width - name_image.width()) // 2
             name_y = height * 0.54
-            painter.drawImage(name_x, name_y, name_image)
+            painter.drawImage(int(name_x), int(name_y), name_image)
 
         if self.isEnabled():
             led_image = self._get_led_image()

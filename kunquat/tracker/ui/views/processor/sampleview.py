@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016-2019
+# Author: Tomi Jylhä-Ollila, Finland 2016-2020
 #
 # This file is part of Kunquat.
 #
@@ -571,11 +571,11 @@ class SampleViewCanvas(QWidget):
                 vis_x = self._get_frame_start_vis_x(pos)
                 if 0 <= vis_x < width:
                     painter.setPen(self._config['bg_colour'])
-                    painter.drawLine(vis_x, 0, vis_x, height)
+                    painter.drawLine(int(vis_x), 0, int(vis_x), int(height))
 
                     pen.setColor(get_line_colour(pos))
                     painter.setPen(pen)
-                    painter.drawLine(vis_x, 0, vis_x, height)
+                    painter.drawLine(int(vis_x), 0, int(vis_x), int(height))
 
             # Draw handles
             def get_handle_colour(pos):
@@ -591,17 +591,17 @@ class SampleViewCanvas(QWidget):
             if -handle_size < lstart_x < width + handle_size:
                 painter.setBrush(get_handle_colour(lstart))
                 painter.drawConvexPolygon(QPolygon([
-                    QPoint(lstart_x - handle_size + 1, 0),
-                    QPoint(lstart_x + handle_size, 0),
-                    QPoint(lstart_x, handle_size)]))
+                    QPoint(int(lstart_x - handle_size + 1), 0),
+                    QPoint(int(lstart_x + handle_size), 0),
+                    QPoint(int(lstart_x), int(handle_size))]))
 
             lstop_x = self._get_frame_start_vis_x(lstop)
             if -handle_size < lstop_x < width + handle_size:
                 painter.setBrush(get_handle_colour(lstop))
                 painter.drawConvexPolygon(QPolygon([
-                    QPoint(lstop_x - handle_size, height),
-                    QPoint(lstop_x + handle_size + 1, height),
-                    QPoint(lstop_x, height - handle_size)]))
+                    QPoint(int(lstop_x - handle_size), int(height)),
+                    QPoint(int(lstop_x + handle_size + 1), int(height)),
+                    QPoint(int(lstop_x), int(height - handle_size))]))
 
         end = time.time()
         elapsed = end - start

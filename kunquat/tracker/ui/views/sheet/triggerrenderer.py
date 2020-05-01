@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2019
+# Author: Tomi Jylhä-Ollila, Finland 2014-2020
 #
 # This file is part of Kunquat.
 #
@@ -70,9 +70,9 @@ class TriggerRenderer():
         if self._inactive:
             dim_factor = self._config['inactive_dim']
             new_colour = QColor(colour)
-            new_colour.setRed(colour.red() * dim_factor)
-            new_colour.setGreen(colour.green() * dim_factor)
-            new_colour.setBlue(colour.blue() * dim_factor)
+            new_colour.setRed(int(colour.red() * dim_factor))
+            new_colour.setGreen(int(colour.green() * dim_factor))
+            new_colour.setBlue(int(colour.blue() * dim_factor))
             return new_colour
         return colour
 

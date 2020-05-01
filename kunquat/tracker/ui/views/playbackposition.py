@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2016-2018
+# Author: Tomi Jylhä-Ollila, Finland 2016-2020
 #
 # This file is part of Kunquat.
 #
@@ -463,7 +463,7 @@ class PlaybackPosition(QWidget, Updater):
 
         for c in num_str:
             glyph = glyphs[c]
-            painter.drawPixmap(x, y, glyph)
+            painter.drawPixmap(int(x), int(y), glyph)
             x += width
 
         painter.restore()
@@ -527,7 +527,9 @@ class PlaybackPosition(QWidget, Updater):
 
         painter.setClipping(False)
         painter.drawPixmap(
-                -style_mgr.get_scaled_size(0.2, 0), title_y, self._titles['track'])
+                int(-style_mgr.get_scaled_size(0.2, 0)),
+                int(title_y),
+                self._titles['track'])
 
         # System number
         shift_x()
@@ -540,7 +542,9 @@ class PlaybackPosition(QWidget, Updater):
 
         painter.setClipping(False)
         painter.drawPixmap(
-                style_mgr.get_scaled_size(0.2, 0), title_y, self._titles['system'])
+                int(style_mgr.get_scaled_size(0.2, 0)),
+                int(title_y),
+                self._titles['system'])
 
         # Pattern instance
         shift_x()
@@ -567,7 +571,7 @@ class PlaybackPosition(QWidget, Updater):
 
         painter.save()
         painter.translate(pat_shift, 0)
-        painter.setClipRegion(painter.clipRegion().translated(pat_shift, 0))
+        painter.setClipRegion(painter.clipRegion().translated(int(pat_shift), 0))
         self._draw_str(
                 painter,
                 str(pat_num) if pat_num >= 0 else '-',
@@ -581,7 +585,7 @@ class PlaybackPosition(QWidget, Updater):
         if inst_num >= 0:
             painter.save()
             painter.translate(pat_shift, 0)
-            painter.setClipRegion(painter.clipRegion().translated(pat_shift, 0))
+            painter.setClipRegion(painter.clipRegion().translated(int(pat_shift), 0))
             self._draw_str(
                     painter,
                     str(inst_num),
@@ -592,7 +596,9 @@ class PlaybackPosition(QWidget, Updater):
 
         painter.setClipping(False)
         painter.drawPixmap(
-                -style_mgr.get_scaled_size(1.9, 0), title_y, self._titles['pattern'])
+                int(-style_mgr.get_scaled_size(1.9, 0)),
+                int(title_y),
+                self._titles['pattern'])
 
         # Timestamp
         beats, rem = row_ts
@@ -625,7 +631,9 @@ class PlaybackPosition(QWidget, Updater):
 
         painter.setClipping(False)
         painter.drawPixmap(
-                -style_mgr.get_scaled_size(1.2, 0), title_y, self._titles['row'])
+                int(-style_mgr.get_scaled_size(1.2, 0)),
+                int(title_y),
+                self._titles['row'])
 
         end = time.time()
         elapsed = end - start
