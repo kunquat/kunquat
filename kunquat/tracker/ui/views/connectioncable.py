@@ -89,7 +89,8 @@ class ConnectionCable():
         if not self._image:
             width = self._area_width + self._width
             height = self._area_height + self._width
-            self._image = QImage(width, height, QImage.Format_ARGB32_Premultiplied)
+            self._image = QImage(
+                    int(width), int(height), QImage.Format_ARGB32_Premultiplied)
             self._image.fill(0)
 
             painter = QPainter(self._image)
@@ -109,7 +110,7 @@ class ConnectionCable():
         if not self._focus_map:
             width = self._area_width + self._focus_dist * 2
             height = self._area_height + self._focus_dist * 2
-            self._focus_map = QImage(width, height, QImage.Format_Mono)
+            self._focus_map = QImage(int(width), int(height), QImage.Format_Mono)
             self._focus_map.fill(0)
 
             painter = QPainter(self._focus_map)
