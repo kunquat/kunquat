@@ -92,8 +92,8 @@ class EnvelopeScrollBar(QScrollBar):
 
         old_block = self.blockSignals(True)
         self.setMinimum(0)
-        self.setMaximum(max(0, self._AREA_SPAN * (1 - width_norm)))
-        self.setPageStep(self._AREA_SPAN * width_norm)
+        self.setMaximum(max(0, int(self._AREA_SPAN * (1 - width_norm))))
+        self.setPageStep(int(self._AREA_SPAN * width_norm))
         self.setValue(area_start_norm * self._AREA_SPAN)
         self.blockSignals(old_block)
 
