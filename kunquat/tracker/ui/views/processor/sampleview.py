@@ -667,7 +667,9 @@ class Shape():
                 offset = config['line_thickness']
                 image_width = width + offset * 2
                 line_image = QImage(
-                        image_width, ch_height, QImage.Format_ARGB32_Premultiplied)
+                        int(image_width),
+                        int(ch_height),
+                        QImage.Format_ARGB32_Premultiplied)
                 line_image.fill(0)
                 line_painter = QPainter(line_image)
                 line_painter.setRenderHint(QPainter.Antialiasing)
@@ -684,9 +686,9 @@ class Shape():
 
                 painter.setRenderHint(QPainter.SmoothPixmapTransform)
                 painter.drawImage(
-                        QRect(0, ch_y_start, width, line_image.height()),
+                        QRect(0, int(ch_y_start), int(width), line_image.height()),
                         line_image,
-                        QRect(offset, 0, width, line_image.height()))
+                        QRect(offset, 0, int(width), line_image.height()))
 
                 # Get transformed positions of individual items
                 tfm = painter.transform()
