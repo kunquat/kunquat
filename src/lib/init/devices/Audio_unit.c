@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2021
  *
  * This file is part of Kunquat.
  *
@@ -336,7 +336,7 @@ const Au_streams* Audio_unit_get_streams(const Audio_unit* au)
 
 
 bool Audio_unit_validate_streams(
-        const Audio_unit* au, char error_msg[128 + KQT_VAR_NAME_MAX])
+        const Audio_unit* au, char error_msg[128 + KQT_VAR_NAME_MAX + 1])
 {
     rassert(au != NULL);
     rassert(error_msg != NULL);
@@ -360,7 +360,8 @@ bool Audio_unit_validate_streams(
         if ((proc == NULL) || !Device_is_existent((const Device*)proc))
         {
             sprintf(error_msg,
-                    "Target of event stream interface `%s` not found in audio unit",
+                    "Target of event stream interface `%.*s` not found in audio unit",
+                    KQT_VAR_NAME_MAX,
                     name);
             return false;
         }
@@ -369,7 +370,8 @@ bool Audio_unit_validate_streams(
         if ((dimpl == NULL) || (dimpl->proc_type != Proc_type_stream))
         {
             sprintf(error_msg,
-                    "Target of event stream interface `%s` is not a stream processor",
+                    "Target of event stream interface `%.*s` is not a stream processor",
+                    KQT_VAR_NAME_MAX,
                     name);
             return false;
         }

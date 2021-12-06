@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2019
+# Author: Tomi Jylhä-Ollila, Finland 2014-2021
 #
 # This file is part of Kunquat.
 #
@@ -84,6 +84,7 @@ class GccCommand():
                 '-Wundef',
                 '-Wunused-macros',
                 '-Wwrite-strings',
+                '-Wno-vla-parameter', # Turn off incorrect warnings about argument buf[2 * n]
             ]
         self._include_flags = []
         self._link_dirs = []
