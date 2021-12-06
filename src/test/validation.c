@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2021
  *
  * This file is part of Kunquat.
  *
@@ -84,33 +84,33 @@ START_TEST(Handle_refuses_to_render_unvalidated_module)
 
     long frames_available = kqt_Handle_get_frames_available(handle);
 
-    fail_if(frames_available > 0,
+    ck_assert_msg(frames_available <= 0,
             "kqt_Handle_play rendered %ld frames of unvalidated music",
             frames_available);
 
     const char* error_msg = kqt_Handle_get_error(handle);
-    fail_if(strlen(error_msg) == 0,
+    ck_assert_msg(strlen(error_msg) != 0,
             "Attempting to render unvalidated music did not give an error"
             " message");
-    fail_unless(string_contains(error_msg, "\"ArgumentError\""),
+    ck_assert_msg(string_contains(error_msg, "\"ArgumentError\""),
             "Error on missing validation was not an ArgumentError");
-    fail_unless(string_contains_word(error_msg, "valid"),
+    ck_assert_msg(string_contains_word(error_msg, "valid"),
             "Error message on missing validation does not contain word"
             " \"valid\"");
 }
 END_TEST
 
 
-#define check_validation_error(context_str, ...)                    \
-    if (true)                                                       \
-    {                                                               \
-        const char* error_msg = kqt_Handle_get_error(handle);       \
-        fail_if(strlen(error_msg) == 0, __VA_ARGS__);               \
-        fail_unless(string_contains(error_msg, "\"FormatError\""),  \
-                "Validation error is not a FormatError");           \
-        fail_unless(string_contains_word(error_msg, context_str),   \
-                "Validation error message does not mention \"%s\"", \
-                context_str);                                       \
+#define check_validation_error(context_str, ...)                        \
+    if (true)                                                           \
+    {                                                                   \
+        const char* error_msg = kqt_Handle_get_error(handle);           \
+        ck_assert_msg(strlen(error_msg) != 0, __VA_ARGS__);             \
+        ck_assert_msg(string_contains(error_msg, "\"FormatError\""),    \
+                "Validation error is not a FormatError");               \
+        ck_assert_msg(string_contains_word(error_msg, context_str),     \
+                "Validation error message does not mention \"%s\"",     \
+                context_str);                                           \
     } else (void)0
 
 

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2018-2019
+ * Author: Tomi Jylhä-Ollila, Finland 2018-2021
  *
  * This file is part of Kunquat.
  *
@@ -46,7 +46,7 @@ START_TEST(Maximum_relative_error_is_small)
         const double std_tan = tan(x);
         const double rel_error = fabs((result / std_tan) - 1);
 
-        fail_unless(rel_error <= small,
+        ck_assert_msg(rel_error <= small,
                 "fast_tan(%.7g) yields %.7g, which is too far from %.7g",
                 x, result, std_tan);
     }
@@ -81,7 +81,7 @@ START_TEST(Maximum_relative_error_is_small_f4)
             const float std_tan = tanf(x_data[k]);
             const float rel_error = fabsf((result[k] / std_tan) - 1);
 
-            fail_unless(rel_error <= small,
+            ck_assert_msg(rel_error <= small,
                     "fast_tan_pos_f4(%.7g) yields %.7g, which is too far from %.7g",
                     x_data[k], result_data[k], std_tan);
         }

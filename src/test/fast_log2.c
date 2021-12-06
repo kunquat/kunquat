@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2021
  *
  * This file is part of Kunquat.
  *
@@ -40,7 +40,7 @@ START_TEST(Maximum_absolute_error_is_small)
         const double std_log2 = log2(x);
         const double abs_error = fabs(result - std_log2);
 
-        fail_unless(abs_error <= small,
+        ck_assert_msg(abs_error <= small,
                 "fast_log2(%.17g) yields %.17g, which is %.17g from %.17g",
                 x, result, abs_error, std_log2);
     }
@@ -73,7 +73,7 @@ START_TEST(Maximum_absolute_error_is_small_f4)
             const float std_log2 = log2f(x_data[k]);
             const float abs_error = fabsf(result_data[k] - std_log2);
 
-            fail_unless(abs_error <= small,
+            ck_assert_msg(abs_error <= small,
                     "fast_log2_f4(%.7g) yields %.7g, which is %.7g from %.7g",
                     x_data[k], result_data[k], abs_error, std_log2);
         }

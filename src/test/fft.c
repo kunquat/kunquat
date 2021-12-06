@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2016
+ * Author: Tomi Jylhä-Ollila, Finland 2016-2021
  *
  * This file is part of Kunquat.
  *
@@ -31,7 +31,7 @@ static FFT_worker* fw = FFT_WORKER_AUTO;
 void setup_fft_worker(void)
 {
     FFT_worker* tfw = FFT_worker_init(fw, max_test_length);
-    fail_if(tfw == NULL, "Could not allocate memory for FFT worker.");
+    ck_assert_msg(tfw != NULL, "Could not allocate memory for FFT worker.");
     return;
 }
 
@@ -51,17 +51,17 @@ START_TEST(Factorisation_is_valid)
 
     FFT_worker_rfft(fw, data, check_val);
 
-    fail_unless(fw->ifac[0] == check_val,
+    ck_assert_msg(fw->ifac[0] == check_val,
             "Calculated length (%d) does not match the given length (%d)",
             (int)fw->ifac[0], check_val);
-    fail_unless(fw->ifac[1] > 0,
+    ck_assert_msg(fw->ifac[1] > 0,
             "Number of factors (%d) is not positive", fw->ifac[1]);
 
     int32_t prod = 1;
     for (int i = 0; i < fw->ifac[1]; ++i)
         prod *= fw->ifac[2 + i];
 
-    fail_unless(prod == check_val,
+    ck_assert_msg(prod == check_val,
             "Product of calculated factors (%d) does not equal given length (%d)",
             prod, check_val);
 }
@@ -125,7 +125,7 @@ START_TEST(Forward_and_inverse_transform_return_scaled_original)
 
         for (int i = 0; i < test_length; ++i)
         {
-            fail_if(fabsf(data[i] - orig_data[i]) > 0.001f,
+            ck_assert_msg(fabsf(data[i] - orig_data[i]) <= 0.001f,
                     "Absolute value is too large at index %d:"
                     " converted %.7g, original %.7g",
                     i, data[i], orig_data[i]);

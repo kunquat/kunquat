@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2021
  *
  * This file is part of Kunquat.
  *
@@ -47,7 +47,7 @@ START_TEST(Handle_creation_prefers_unused_ids)
 
         for (int k = 0; k < i; ++k)
         {
-            fail_if(handles[k] == cur_handle,
+            ck_assert_msg(handles[k] != cur_handle,
                     "libkunquat reused handle %d",
                     cur_handle);
         }
@@ -60,7 +60,7 @@ START_TEST(Handle_creation_prefers_unused_ids)
 
     kqt_Handle reuse_handle = kqt_new_Handle();
     check_unexpected_error();
-    fail_if(reuse_handle <= 0 || reuse_handle > KQT_HANDLES_MAX,
+    ck_assert_msg(reuse_handle > 0 && reuse_handle <= KQT_HANDLES_MAX,
             "Unexpected handle ID %d after using all possible IDs",
             (int)reuse_handle);
     kqt_del_Handle(reuse_handle);
@@ -87,10 +87,10 @@ START_TEST(Empty_composition_has_zero_duration)
     assert(handle != 0);
     long long dur = kqt_Handle_get_duration(handle, songs[_i]);
     check_unexpected_error();
-    fail_unless(
+    ck_assert_msg(
             dur == 0,
             "Wrong duration"
-            KT_VALUES("%lld", 0, dur));
+            KT_VALUES("%lld", (long long)0, dur));
 }
 END_TEST
 
@@ -100,7 +100,7 @@ START_TEST(Default_audio_rate_is_correct)
     assert(handle != 0);
     long rate = kqt_Handle_get_audio_rate(handle);
     check_unexpected_error();
-    fail_unless(
+    ck_assert_msg(
             rate == mixing_rates[MIXING_RATE_DEFAULT],
             "Wrong mixing rate"
             KT_VALUES("%ld", mixing_rates[MIXING_RATE_DEFAULT], rate));
