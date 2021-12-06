@@ -415,8 +415,8 @@ class AtimesRunner(Runner):
             and after access times to determine dependencies. """
 
         # For Python pre-2.5, ensure os.stat() returns float atimes
-        old_stat_float = os.stat_float_times()
-        os.stat_float_times(True)
+        #old_stat_float = os.stat_float_times()
+        #os.stat_float_times(True)
 
         originals = self.file_times()
         if self.atimes == 2:
@@ -464,7 +464,7 @@ class AtimesRunner(Runner):
                 if original != afters.get(name, None):
                     self._utime(name, original[0], original[1])
 
-        os.stat_float_times(old_stat_float)  # restore stat_float_times value
+        #os.stat_float_times(old_stat_float)  # restore stat_float_times value
         return deps, outputs
 
 class StraceProcess(object):
