@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2021
  *
  * This file is part of Kunquat.
  *
@@ -657,7 +657,7 @@ int kqt_Handle_validate(kqt_Handle handle)
             const Audio_unit* au = Au_table_get(au_table, au_index);
             if ((au != NULL) && Device_is_existent((const Device*)au))
             {
-                char error_msg[128 + KQT_VAR_NAME_MAX] = "";
+                char error_msg[128 + KQT_VAR_NAME_MAX + 1] = "";
                 set_invalid_if(
                         !Audio_unit_validate_streams(au, error_msg),
                         "Error in stream interfaces of audio unit au_%02x: %s",
