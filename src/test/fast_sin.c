@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2015-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2015-2021
  *
  * This file is part of Kunquat.
  *
@@ -31,11 +31,11 @@ START_TEST(Sine_values_have_maximum_magnitude_of_one)
         const double x = 2.0 * PI * (double)i / (double)(test_count - 1);
         const double result = fast_sin(x);
 
-        fail_if(result < -1.0,
+        ck_assert_msg(result >= -1.0,
                 "fast_sin(2 * pi * %" PRId32 " / %" PRId32 ") = fast_sin(%.17f)"
                 " yields %.17f < -1.0",
                 i, (test_count - 1), x, result);
-        fail_if(result > 1.0,
+        ck_assert_msg(result <= 1.0,
                 "fast_sin(2 * pi * %" PRId32 " / %" PRId32 ") = fast_sin(%.17f)"
                 " yields %.17f > 1.0",
                 i, (test_count - 1), x, result);
@@ -56,7 +56,7 @@ START_TEST(Maximum_absolute_error_is_small)
         const double std_sin = sin(x);
         const double abs_error = fabs(result - std_sin);
 
-        fail_unless(abs_error <= small,
+        ck_assert_msg(abs_error <= small,
                 "fast_sin(2 * pi * %" PRId32 " / %" PRId32 ") = fast_sin(%.17f)"
                 " yields %.17f, which is %.17f from %.17f",
                 i, (test_count - 1), x, result, abs_error, std_sin);

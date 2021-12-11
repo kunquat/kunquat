@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2021
  *
  * This file is part of Kunquat.
  *
@@ -92,11 +92,12 @@ START_TEST(Aligned_alloc_returns_proper_base_address)
     {
 #define BLOCK_SIZE 16384
         blocks[i] = memory_alloc_items_aligned(char, BLOCK_SIZE, alignment);
-        fail_if(blocks[i] == NULL, "Could not allocate aligned memory block");
+        ck_assert_msg(blocks[i] != NULL, "Could not allocate aligned memory block");
 
         const intptr_t addr = (intptr_t)blocks[i];
         const intptr_t rem = addr % alignment;
-        fail_if(rem != 0, "Incorrect alignment: got address %p, expected alignment %d",
+        ck_assert_msg(rem == 0,
+                "Incorrect alignment: got address %p, expected alignment %d",
                 blocks[i], (int)alignment);
 
         char* block = blocks[i];

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2013-2019
+ * Author: Tomi Jylhä-Ollila, Finland 2013-2021
  *
  * This file is part of Kunquat.
  *
@@ -239,7 +239,7 @@ START_TEST(Empty_pattern_contains_silence)
     check_unexpected_error();
     actual_length += nframes;
 
-    fail_unless(actual_length == expected_length,
+    ck_assert_msg(actual_length == expected_length,
             "Wrong number of frames rendered"
             KT_VALUES("%ld", expected_length, actual_length));
 }
@@ -445,7 +445,7 @@ START_TEST(Pattern_playback_pauses_zero_length_pattern)
         frames_left -= frames_available;
     }
 
-    fail_if(frames_left == buf_len,
+    ck_assert_msg(frames_left != buf_len,
             "Pattern playback of zero-length pattern produces no audio");
 
     float expected_buf[buf_len] = { 1.0f, 1.0f };
@@ -462,7 +462,7 @@ START_TEST(Empty_composition_renders_zero_frames)
 
     const long nframes = kqt_Handle_get_frames_available(handle);
 
-    fail_unless(
+    ck_assert_msg(
             nframes == 0,
             "Wrong number of frames rendered"
             KT_VALUES("%ld", 0L, nframes));
@@ -478,7 +478,7 @@ START_TEST(Paused_empty_composition_contains_silence)
     check_unexpected_error();
 
     const long frames_available = kqt_Handle_get_frames_available(handle);
-    fail_if(frames_available != buf_len,
+    ck_assert_msg(frames_available == buf_len,
             "kqt_Handle_play rendered %ld instead of %d frames",
             frames_available, buf_len);
 
@@ -549,9 +549,9 @@ START_TEST(Infinite_mode_loops_composition)
 
     float actual_buf[buf_len] = { 0.0f };
     const long mixed = mix_and_fill(actual_buf, buf_len);
-    fail_unless(mixed == buf_len,
+    ck_assert_msg(mixed == buf_len,
             "Wrong number of frames mixed"
-            KT_VALUES("%ld", buf_len, mixed));
+            KT_VALUES("%ld", (long)buf_len, mixed));
 
     float expected_buf[buf_len] = { 0.0f };
     for (long i = 0; i < buf_len; i += mixing_rates[MIXING_RATE_LOW])
@@ -773,21 +773,21 @@ START_TEST(Tempo_slide_affects_playback_cursor)
             break;
         }
     }
-    fail_if(third_offset == 0, "Third pulse not found");
+    ck_assert_msg(third_offset != 0, "Third pulse not found");
 
     if (tempos[_i] < 120)
     {
-        fail_unless((third_offset - second_offset) >= second_offset,
+        ck_assert_msg((third_offset - second_offset) >= second_offset,
                 "Pulse interval was not increased during slide down");
     }
     else if (tempos[_i] > 120)
     {
-        fail_unless((third_offset - second_offset) <= second_offset,
+        ck_assert_msg((third_offset - second_offset) <= second_offset,
                 "Pulse interval was not decreased during slide up");
     }
     else
     {
-        fail_unless((third_offset - second_offset) == second_offset,
+        ck_assert_msg((third_offset - second_offset) == second_offset,
                 "Pulse interval was changed without slide");
     }
 
@@ -850,7 +850,7 @@ START_TEST(Events_appear_in_event_buffer)
     check_unexpected_error();
     const char expected_events_none[] = "[]";
 
-    fail_unless(strcmp(actual_events, expected_events_none) == 0,
+    ck_assert_msg(strcmp(actual_events, expected_events_none) == 0,
             "Wrong events received"
             KT_VALUES("%s", expected_events_none, actual_events));
 
@@ -862,7 +862,7 @@ START_TEST(Events_appear_in_event_buffer)
     const char expected_events_1[] =
         "[[0, [\"cpause\", null]]]";
 
-    fail_unless(strcmp(actual_events, expected_events_1) == 0,
+    ck_assert_msg(strcmp(actual_events, expected_events_1) == 0,
             "Wrong events received"
             KT_VALUES("%s", expected_events_1, actual_events));
 
@@ -874,7 +874,7 @@ START_TEST(Events_appear_in_event_buffer)
     const char expected_events_2[] =
         "[[2, [\".a\", 0]]]";
 
-    fail_unless(strcmp(actual_events, expected_events_2) == 0,
+    ck_assert_msg(strcmp(actual_events, expected_events_2) == 0,
             "Wrong events received"
             KT_VALUES("%s", expected_events_2, actual_events));
 }
@@ -894,7 +894,7 @@ void setup_many_triggers(int event_count)
 
     // Add lots of simultaneous triggers
     char* triggers = malloc(sizeof(char) * 65536);
-    fail_if(triggers == NULL, "Could not allocate memory for triggers");
+    ck_assert_msg(triggers != NULL, "Could not allocate memory for triggers");
 
     char* cur_pos = triggers;
     cur_pos += sprintf(triggers, "[0, [ [[0, 0], [\"n+\", \"0\"]]");
@@ -961,14 +961,14 @@ START_TEST(Events_from_many_triggers_can_be_retrieved_with_multiple_receives)
 
     const int event_count = 2049;
     const int note_count = event_count / 16 + 1;
-    fail_if(note_count >= 512, "Too many notes to check correct audio output");
+    ck_assert_msg(note_count < 512, "Too many notes to check correct audio output");
 
     setup_many_triggers(event_count);
 
     // Play
     kqt_Handle_play(handle, 10);
     const long frames_available = kqt_Handle_get_frames_available(handle);
-    fail_if(frames_available > 0,
+    ck_assert_msg(frames_available <= 0,
             "Kunquat handle rendered %ld frames of audio"
             " although event buffer was filled",
             frames_available);
@@ -980,7 +980,7 @@ START_TEST(Events_from_many_triggers_can_be_retrieved_with_multiple_receives)
     while (strcmp("[]", events) != 0)
     {
         Streader* sr = Streader_init(STREADER_AUTO, events, (int64_t)strlen(events));
-        fail_if(!Streader_read_list(sr, read_received_events, &expected),
+        ck_assert_msg(Streader_read_list(sr, read_received_events, &expected),
                 "Event list reading failed: %s",
                 Streader_get_error_desc(sr));
 
@@ -988,16 +988,16 @@ START_TEST(Events_from_many_triggers_can_be_retrieved_with_multiple_receives)
         ++loop_count;
     }
 
-    fail_if(loop_count <= 1,
+    ck_assert_msg(loop_count > 1,
             "Test did not fill the event buffer, increase event count!");
 
-    fail_if(expected != event_count,
+    ck_assert_msg(expected == event_count,
             "Read %" PRId32 " instead of %d events",
             expected, event_count);
 
     // Continue playing
     kqt_Handle_play(handle, 10);
-    fail_if(kqt_Handle_get_frames_available(handle) != 10,
+    ck_assert_msg(kqt_Handle_get_frames_available(handle) == 10,
             "Kunquat handle rendered %ld instead of 10 frames",
             kqt_Handle_get_frames_available(handle));
 
@@ -1021,7 +1021,7 @@ START_TEST(Events_from_many_triggers_are_skipped_by_fire)
 
     const char* events = kqt_Handle_receive_events(handle);
     const char* expected = "[[0, [\".a\", 0]]]";
-    fail_if(strcmp(events, expected) != 0,
+    ck_assert_msg(strcmp(events, expected) == 0,
             "Received event list %s instead of %s",
             events, expected);
 }
@@ -1031,7 +1031,7 @@ END_TEST
 void setup_complex_bind(int event_count)
 {
     char* bind = malloc(sizeof(char) * 65536);
-    fail_if(bind == NULL, "Could not allocate memory for bind specification");
+    ck_assert_msg(bind != NULL, "Could not allocate memory for bind specification");
 
     char* cur_pos = bind;
     cur_pos += sprintf(bind, "[0, [[\"#\", [], [[0, [\"n+\", \"0\"]]");
@@ -1125,7 +1125,7 @@ START_TEST(Events_from_complex_bind_can_be_retrieved_with_multiple_receives)
     // Play
     kqt_Handle_play(handle, 10);
     const long frames_available = kqt_Handle_get_frames_available(handle);
-    fail_if(frames_available > 0,
+    ck_assert_msg(frames_available <= 0,
             "Kunquat handle rendered %ld frames of audio"
             " although event buffer was filled",
             frames_available);
@@ -1137,7 +1137,7 @@ START_TEST(Events_from_complex_bind_can_be_retrieved_with_multiple_receives)
     while (strcmp("[]", events) != 0)
     {
         Streader* sr = Streader_init(STREADER_AUTO, events, (int64_t)strlen(events));
-        fail_if(!Streader_read_list(sr, read_received_events_bind, &expected),
+        ck_assert_msg(Streader_read_list(sr, read_received_events_bind, &expected),
                 "Event list reading failed: %s",
                 Streader_get_error_desc(sr));
 
@@ -1145,16 +1145,16 @@ START_TEST(Events_from_complex_bind_can_be_retrieved_with_multiple_receives)
         ++loop_count;
     }
 
-    fail_if(loop_count <= 1,
+    ck_assert_msg(loop_count > 1,
             "Test did not fill the event buffer, increase event count!");
 
-    fail_if(expected != event_count,
+    ck_assert_msg(expected == event_count,
             "Read %" PRId32 " instead of %d events",
             expected, event_count);
 
     // Continue playing
     kqt_Handle_play(handle, 10);
-    fail_if(kqt_Handle_get_frames_available(handle) != 10,
+    ck_assert_msg(kqt_Handle_get_frames_available(handle) == 10,
             "Kunquat handle rendered %ld instead of 10 frames",
             kqt_Handle_get_frames_available(handle));
 
@@ -1187,7 +1187,7 @@ START_TEST(Fire_with_complex_bind_can_be_processed_with_multiple_receives)
     while (strcmp("[]", events) != 0)
     {
         Streader* sr = Streader_init(STREADER_AUTO, events, (int64_t)strlen(events));
-        fail_if(!Streader_read_list(sr, read_received_events_bind, &expected),
+        ck_assert_msg(Streader_read_list(sr, read_received_events_bind, &expected),
                 "Event list reading failed: %s",
                 Streader_get_error_desc(sr));
 
@@ -1195,16 +1195,16 @@ START_TEST(Fire_with_complex_bind_can_be_processed_with_multiple_receives)
         ++loop_count;
     }
 
-    fail_if(loop_count <= 1,
+    ck_assert_msg(loop_count > 1,
             "Test did not fill the event buffer, increase event count!");
 
-    fail_if(expected != event_count,
+    ck_assert_msg(expected == event_count,
             "Read %" PRId32 " instead of %d events",
             expected, event_count);
 
     // Continue playing
     kqt_Handle_play(handle, 10);
-    fail_if(kqt_Handle_get_frames_available(handle) != 10,
+    ck_assert_msg(kqt_Handle_get_frames_available(handle) == 10,
             "Kunquat handle rendered %ld instead of 10 frames",
             kqt_Handle_get_frames_available(handle));
 
@@ -1253,7 +1253,7 @@ START_TEST(Query_initial_location)
         ", [0, [\"Apattern\", [0, 0]]], [0, [\"Arow\", [0, 0]]]"
         "]";
 
-    fail_if(strcmp(events, expected) != 0,
+    ck_assert_msg(strcmp(events, expected) == 0,
             "Received event list %s instead of %s", events, expected);
 }
 END_TEST
@@ -1274,7 +1274,7 @@ START_TEST(Query_final_location)
         ", [0, [\"Apattern\", [0, 1]]], [0, [\"Arow\", [4, 0]]]"
         "]";
 
-    fail_if(strcmp(events, expected) != 0,
+    ck_assert_msg(strcmp(events, expected) == 0,
             "Received event list %s instead of %s", events, expected);
 }
 END_TEST
@@ -1292,7 +1292,7 @@ START_TEST(Query_voice_count_with_silence)
     const char* expected =
         "[[0, [\"qvoices\", null]], [0, [\"Avoices\", 0]], [0, [\"Avgroups\", 0]]]";
 
-    fail_if(strcmp(events, expected) != 0,
+    ck_assert_msg(strcmp(events, expected) == 0,
             "Received event list %s instead of %s", events, expected);
 }
 END_TEST
@@ -1312,7 +1312,7 @@ START_TEST(Query_voice_count_with_note)
     const char* expected2 =
         "[[0, [\"qvoices\", null]], [0, [\"Avoices\", 2]], [0, [\"Avgroups\", 1]]]";
 
-    fail_if(strcmp(events2, expected2) != 0,
+    ck_assert_msg(strcmp(events2, expected2) == 0,
             "Received event list %s instead of %s", events2, expected2);
 
     kqt_Handle_play(handle, 2048);
@@ -1322,7 +1322,7 @@ START_TEST(Query_voice_count_with_note)
     const char* expected1 =
         "[[0, [\"qvoices\", null]], [0, [\"Avoices\", 0]], [0, [\"Avgroups\", 0]]]";
 
-    fail_if(strcmp(events1, expected1) != 0,
+    ck_assert_msg(strcmp(events1, expected1) == 0,
             "Received event list %s instead of %s", events1, expected1);
 
     /*
@@ -1332,7 +1332,7 @@ START_TEST(Query_voice_count_with_note)
     const char* events0 = kqt_Handle_receive_events(handle);
     const char* expected0 = "[[0, [\"qvoices\", null]], [0, [\"Avoices\", 0]]]";
 
-    fail_if(strcmp(events0, expected0) != 0,
+    ck_assert_msg(strcmp(events0, expected0) == 0,
             "Received event list %s instead of %s", events0, expected0);
     // */
 }
@@ -1373,13 +1373,13 @@ START_TEST(Query_note_force)
     kqt_Handle_fire_event(handle, 0, "[\"qf\", null]");
     const char* events0 = kqt_Handle_receive_events(handle);
     Streader* sr0 = Streader_init(STREADER_AUTO, events0, (int64_t)strlen(events0));
-    fail_if(!test_reported_force(sr0, 0.0), Streader_get_error_desc(sr0));
+    ck_assert_msg(test_reported_force(sr0, 0.0), Streader_get_error_desc(sr0));
 
     kqt_Handle_fire_event(handle, 0, "[\".f\", -6]");
     kqt_Handle_fire_event(handle, 0, "[\"qf\", null]");
     const char* events6 = kqt_Handle_receive_events(handle);
     Streader* sr6 = Streader_init(STREADER_AUTO, events6, (int64_t)strlen(events6));
-    fail_if(!test_reported_force(sr6, -6.0), Streader_get_error_desc(sr6));
+    ck_assert_msg(test_reported_force(sr6, -6.0), Streader_get_error_desc(sr6));
 }
 END_TEST
 

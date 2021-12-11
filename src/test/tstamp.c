@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2016
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2021
  *
  * This file is part of Kunquat.
  *
@@ -37,11 +37,11 @@ START_TEST (init)
 {
     Tstamp rel;
     Tstamp* rp = Tstamp_init(&rel);
-    fail_unless(rp == &rel,
-            "Tstamp_init() returned %p instead of %p.", rp, &rel);
-    fail_unless(rp->beats == 0,
+    ck_assert_msg(rp == &rel,
+            "Tstamp_init() returned %p instead of %p.", (void*)rp, (void*)&rel);
+    ck_assert_msg(rp->beats == 0,
             "Tstamp_init() set beats to %lld instead of 0.", (long long)rp->beats);
-    fail_unless(rp->rem == 0,
+    ck_assert_msg(rp->rem == 0,
             "Tstamp_init() set remainder to %ld instead of 0.", (long)rp->rem);
 }
 END_TEST
@@ -69,12 +69,12 @@ START_TEST (set)
                 Tstamp* r = Tstamp_init(&(Tstamp){ .beats = 0 });
                 r->rem = all_rems[l];
                 Tstamp* s = Tstamp_set(r, beat_values[i], rem_values[k]);
-                fail_unless(s == r,
-                        "Tstamp_set() returned %p instead of %p.", s, r);
-                fail_unless(s->beats == beat_values[i],
+                ck_assert_msg(s == r,
+                        "Tstamp_set() returned %p instead of %p.", (void*)s, (void*)r);
+                ck_assert_msg(s->beats == beat_values[i],
                         "Tstamp_set() set beats to %lld instead of %lld.",
                         (long long)s->beats, (long long)beat_values[i]);
-                fail_unless(s->rem == rem_values[k],
+                ck_assert_msg(s->rem == rem_values[k],
                         "Tstamp_set() set remainder to %lld instead of %lld.",
                         (long long)s->rem, (long long)rem_values[k]);
             }
@@ -126,376 +126,376 @@ START_TEST (cmp)
     Tstamp_set(r1, INT64_MIN, 0);
     Tstamp_set(r2, INT64_MIN, 0);
     res = Tstamp_cmp(r1, r2);
-    fail_unless(res == 0,
+    ck_assert_msg(res == 0,
             "Tstamp_cmp() returned %s instead of equal.", CMPTEXT(res));
     Tstamp_set(r1, INT64_MIN, KQT_TSTAMP_BEAT - 1);
     Tstamp_set(r2, INT64_MIN, KQT_TSTAMP_BEAT - 1);
     res = Tstamp_cmp(r1, r2);
-    fail_unless(res == 0,
+    ck_assert_msg(res == 0,
             "Tstamp_cmp() returned %s instead of equal.", CMPTEXT(res));
 
     Tstamp_set(r1, INT64_MIN + 1, 0);
     Tstamp_set(r2, INT64_MIN + 1, 0);
     res = Tstamp_cmp(r1, r2);
-    fail_unless(res == 0,
+    ck_assert_msg(res == 0,
             "Tstamp_cmp() returned %s instead of equal.", CMPTEXT(res));
     Tstamp_set(r1, INT64_MIN + 1, KQT_TSTAMP_BEAT - 1);
     Tstamp_set(r2, INT64_MIN + 1, KQT_TSTAMP_BEAT - 1);
     res = Tstamp_cmp(r1, r2);
-    fail_unless(res == 0,
+    ck_assert_msg(res == 0,
             "Tstamp_cmp() returned %s instead of equal.", CMPTEXT(res));
 
     Tstamp_set(r1, -1, 0);
     Tstamp_set(r2, -1, 0);
     res = Tstamp_cmp(r1, r2);
-    fail_unless(res == 0,
+    ck_assert_msg(res == 0,
             "Tstamp_cmp() returned %s instead of equal.", CMPTEXT(res));
     Tstamp_set(r1, -1, KQT_TSTAMP_BEAT - 1);
     Tstamp_set(r2, -1, KQT_TSTAMP_BEAT - 1);
     res = Tstamp_cmp(r1, r2);
-    fail_unless(res == 0,
+    ck_assert_msg(res == 0,
             "Tstamp_cmp() returned %s instead of equal.", CMPTEXT(res));
 
     Tstamp_set(r1, 0, 0);
     Tstamp_set(r2, 0, 0);
     res = Tstamp_cmp(r1, r2);
-    fail_unless(res == 0,
+    ck_assert_msg(res == 0,
             "Tstamp_cmp() returned %s instead of equal.", CMPTEXT(res));
     Tstamp_set(r1, 0, KQT_TSTAMP_BEAT - 1);
     Tstamp_set(r2, 0, KQT_TSTAMP_BEAT - 1);
     res = Tstamp_cmp(r1, r2);
-    fail_unless(res == 0,
+    ck_assert_msg(res == 0,
             "Tstamp_cmp() returned %s instead of equal.", CMPTEXT(res));
 
     Tstamp_set(r1, 1, 0);
     Tstamp_set(r2, 1, 0);
     res = Tstamp_cmp(r1, r2);
-    fail_unless(res == 0,
+    ck_assert_msg(res == 0,
             "Tstamp_cmp() returned %s instead of equal.", CMPTEXT(res));
     Tstamp_set(r1, 1, KQT_TSTAMP_BEAT - 1);
     Tstamp_set(r2, 1, KQT_TSTAMP_BEAT - 1);
     res = Tstamp_cmp(r1, r2);
-    fail_unless(res == 0,
+    ck_assert_msg(res == 0,
             "Tstamp_cmp() returned %s instead of equal.", CMPTEXT(res));
 
     Tstamp_set(r1, INT64_MAX - 1, 0);
     Tstamp_set(r2, INT64_MAX - 1, 0);
     res = Tstamp_cmp(r1, r2);
-    fail_unless(res == 0,
+    ck_assert_msg(res == 0,
             "Tstamp_cmp() returned %s instead of equal.", CMPTEXT(res));
     Tstamp_set(r1, INT64_MAX - 1, KQT_TSTAMP_BEAT - 1);
     Tstamp_set(r2, INT64_MAX - 1, KQT_TSTAMP_BEAT - 1);
     res = Tstamp_cmp(r1, r2);
-    fail_unless(res == 0,
+    ck_assert_msg(res == 0,
             "Tstamp_cmp() returned %s instead of equal.", CMPTEXT(res));
 
     Tstamp_set(r1, INT64_MAX, 0);
     Tstamp_set(r2, INT64_MAX, 0);
     res = Tstamp_cmp(r1, r2);
-    fail_unless(res == 0,
+    ck_assert_msg(res == 0,
             "Tstamp_cmp() returned %s instead of equal.", CMPTEXT(res));
     Tstamp_set(r1, INT64_MAX, KQT_TSTAMP_BEAT - 1);
     Tstamp_set(r2, INT64_MAX, KQT_TSTAMP_BEAT - 1);
     res = Tstamp_cmp(r1, r2);
-    fail_unless(res == 0,
+    ck_assert_msg(res == 0,
             "Tstamp_cmp() returned %s instead of equal.", CMPTEXT(res));
 
     // beats equal and remainders unequal
     Tstamp_set(r1, INT64_MIN, 0);
     Tstamp_set(r2, INT64_MIN, 1);
     res = Tstamp_cmp(r1, r2);
-    fail_unless(res < 0,
+    ck_assert_msg(res < 0,
             "Tstamp_cmp() returned %s instead of smaller.", CMPTEXT(res));
     res = Tstamp_cmp(r2, r1);
-    fail_unless(res > 0,
+    ck_assert_msg(res > 0,
             "Tstamp_cmp() returned %s instead of greater.", CMPTEXT(res));
     Tstamp_set(r1, INT64_MIN, 0);
     Tstamp_set(r2, INT64_MIN, KQT_TSTAMP_BEAT - 1);
     res = Tstamp_cmp(r1, r2);
-    fail_unless(res < 0,
+    ck_assert_msg(res < 0,
             "Tstamp_cmp() returned %s instead of smaller.", CMPTEXT(res));
     res = Tstamp_cmp(r2, r1);
-    fail_unless(res > 0,
+    ck_assert_msg(res > 0,
             "Tstamp_cmp() returned %s instead of greater.", CMPTEXT(res));
     Tstamp_set(r1, INT64_MIN, KQT_TSTAMP_BEAT - 2);
     Tstamp_set(r2, INT64_MIN, KQT_TSTAMP_BEAT - 1);
     res = Tstamp_cmp(r1, r2);
-    fail_unless(res < 0,
+    ck_assert_msg(res < 0,
             "Tstamp_cmp() returned %s instead of smaller.", CMPTEXT(res));
     res = Tstamp_cmp(r2, r1);
-    fail_unless(res > 0,
+    ck_assert_msg(res > 0,
             "Tstamp_cmp() returned %s instead of greater.", CMPTEXT(res));
 
     Tstamp_set(r1, -1, 0);
     Tstamp_set(r2, -1, 1);
     res = Tstamp_cmp(r1, r2);
-    fail_unless(res < 0,
+    ck_assert_msg(res < 0,
             "Tstamp_cmp() returned %s instead of smaller.", CMPTEXT(res));
     res = Tstamp_cmp(r2, r1);
-    fail_unless(res > 0,
+    ck_assert_msg(res > 0,
             "Tstamp_cmp() returned %s instead of greater.", CMPTEXT(res));
     Tstamp_set(r1, -1, 0);
     Tstamp_set(r2, -1, KQT_TSTAMP_BEAT - 1);
     res = Tstamp_cmp(r1, r2);
-    fail_unless(res < 0,
+    ck_assert_msg(res < 0,
             "Tstamp_cmp() returned %s instead of smaller.", CMPTEXT(res));
     res = Tstamp_cmp(r2, r1);
-    fail_unless(res > 0,
+    ck_assert_msg(res > 0,
             "Tstamp_cmp() returned %s instead of greater.", CMPTEXT(res));
     Tstamp_set(r1, -1, KQT_TSTAMP_BEAT - 2);
     Tstamp_set(r2, -1, KQT_TSTAMP_BEAT - 1);
     res = Tstamp_cmp(r1, r2);
-    fail_unless(res < 0,
+    ck_assert_msg(res < 0,
             "Tstamp_cmp() returned %s instead of smaller.", CMPTEXT(res));
     res = Tstamp_cmp(r2, r1);
-    fail_unless(res > 0,
+    ck_assert_msg(res > 0,
             "Tstamp_cmp() returned %s instead of greater.", CMPTEXT(res));
 
     Tstamp_set(r1, 0, 0);
     Tstamp_set(r2, 0, 1);
     res = Tstamp_cmp(r1, r2);
-    fail_unless(res < 0,
+    ck_assert_msg(res < 0,
             "Tstamp_cmp() returned %s instead of smaller.", CMPTEXT(res));
     res = Tstamp_cmp(r2, r1);
-    fail_unless(res > 0,
+    ck_assert_msg(res > 0,
             "Tstamp_cmp() returned %s instead of greater.", CMPTEXT(res));
     Tstamp_set(r1, 0, 0);
     Tstamp_set(r2, 0, KQT_TSTAMP_BEAT - 1);
     res = Tstamp_cmp(r1, r2);
-    fail_unless(res < 0,
+    ck_assert_msg(res < 0,
             "Tstamp_cmp() returned %s instead of smaller.", CMPTEXT(res));
     res = Tstamp_cmp(r2, r1);
-    fail_unless(res > 0,
+    ck_assert_msg(res > 0,
             "Tstamp_cmp() returned %s instead of greater.", CMPTEXT(res));
     Tstamp_set(r1, 0, KQT_TSTAMP_BEAT - 2);
     Tstamp_set(r2, 0, KQT_TSTAMP_BEAT - 1);
     res = Tstamp_cmp(r1, r2);
-    fail_unless(res < 0,
+    ck_assert_msg(res < 0,
             "Tstamp_cmp() returned %s instead of smaller.", CMPTEXT(res));
     res = Tstamp_cmp(r2, r1);
-    fail_unless(res > 0,
+    ck_assert_msg(res > 0,
             "Tstamp_cmp() returned %s instead of greater.", CMPTEXT(res));
 
     Tstamp_set(r1, 1, 0);
     Tstamp_set(r2, 1, 1);
     res = Tstamp_cmp(r1, r2);
-    fail_unless(res < 0,
+    ck_assert_msg(res < 0,
             "Tstamp_cmp() returned %s instead of smaller.", CMPTEXT(res));
     res = Tstamp_cmp(r2, r1);
-    fail_unless(res > 0,
+    ck_assert_msg(res > 0,
             "Tstamp_cmp() returned %s instead of greater.", CMPTEXT(res));
     Tstamp_set(r1, 1, 0);
     Tstamp_set(r2, 1, KQT_TSTAMP_BEAT - 1);
     res = Tstamp_cmp(r1, r2);
-    fail_unless(res < 0,
+    ck_assert_msg(res < 0,
             "Tstamp_cmp() returned %s instead of smaller.", CMPTEXT(res));
     res = Tstamp_cmp(r2, r1);
-    fail_unless(res > 0,
+    ck_assert_msg(res > 0,
             "Tstamp_cmp() returned %s instead of greater.", CMPTEXT(res));
     Tstamp_set(r1, 1, KQT_TSTAMP_BEAT - 2);
     Tstamp_set(r2, 1, KQT_TSTAMP_BEAT - 1);
     res = Tstamp_cmp(r1, r2);
-    fail_unless(res < 0,
+    ck_assert_msg(res < 0,
             "Tstamp_cmp() returned %s instead of smaller.", CMPTEXT(res));
     res = Tstamp_cmp(r2, r1);
-    fail_unless(res > 0,
+    ck_assert_msg(res > 0,
             "Tstamp_cmp() returned %s instead of greater.", CMPTEXT(res));
 
     Tstamp_set(r1, INT64_MAX, 0);
     Tstamp_set(r2, INT64_MAX, 1);
     res = Tstamp_cmp(r1, r2);
-    fail_unless(res < 0,
+    ck_assert_msg(res < 0,
             "Tstamp_cmp() returned %s instead of smaller.", CMPTEXT(res));
     res = Tstamp_cmp(r2, r1);
-    fail_unless(res > 0,
+    ck_assert_msg(res > 0,
             "Tstamp_cmp() returned %s instead of greater.", CMPTEXT(res));
     Tstamp_set(r1, INT64_MAX, 0);
     Tstamp_set(r2, INT64_MAX, KQT_TSTAMP_BEAT - 1);
     res = Tstamp_cmp(r1, r2);
-    fail_unless(res < 0,
+    ck_assert_msg(res < 0,
             "Tstamp_cmp() returned %s instead of smaller.", CMPTEXT(res));
     res = Tstamp_cmp(r2, r1);
-    fail_unless(res > 0,
+    ck_assert_msg(res > 0,
             "Tstamp_cmp() returned %s instead of greater.", CMPTEXT(res));
     Tstamp_set(r1, INT64_MAX, KQT_TSTAMP_BEAT - 2);
     Tstamp_set(r2, INT64_MAX, KQT_TSTAMP_BEAT - 1);
     res = Tstamp_cmp(r1, r2);
-    fail_unless(res < 0,
+    ck_assert_msg(res < 0,
             "Tstamp_cmp() returned %s instead of smaller.", CMPTEXT(res));
     res = Tstamp_cmp(r2, r1);
-    fail_unless(res > 0,
+    ck_assert_msg(res > 0,
             "Tstamp_cmp() returned %s instead of greater.", CMPTEXT(res));
 
     // beats unequal and remainders equal
     Tstamp_set(r1, INT64_MIN, 0);
     Tstamp_set(r2, INT64_MIN + 1, 0);
     res = Tstamp_cmp(r1, r2);
-    fail_unless(res < 0,
+    ck_assert_msg(res < 0,
             "Tstamp_cmp() returned %s instead of smaller.", CMPTEXT(res));
     res = Tstamp_cmp(r2, r1);
-    fail_unless(res > 0,
+    ck_assert_msg(res > 0,
             "Tstamp_cmp() returned %s instead of greater.", CMPTEXT(res));
     Tstamp_set(r1, INT64_MIN, KQT_TSTAMP_BEAT - 1);
     Tstamp_set(r2, INT64_MIN + 1, KQT_TSTAMP_BEAT - 1);
     res = Tstamp_cmp(r1, r2);
-    fail_unless(res < 0,
+    ck_assert_msg(res < 0,
             "Tstamp_cmp() returned %s instead of smaller.", CMPTEXT(res));
     res = Tstamp_cmp(r2, r1);
-    fail_unless(res > 0,
+    ck_assert_msg(res > 0,
             "Tstamp_cmp() returned %s instead of greater.", CMPTEXT(res));
 
     Tstamp_set(r1, -1, 0);
     Tstamp_set(r2, 0, 0);
     res = Tstamp_cmp(r1, r2);
-    fail_unless(res < 0,
+    ck_assert_msg(res < 0,
             "Tstamp_cmp() returned %s instead of smaller.", CMPTEXT(res));
     res = Tstamp_cmp(r2, r1);
-    fail_unless(res > 0,
+    ck_assert_msg(res > 0,
             "Tstamp_cmp() returned %s instead of greater.", CMPTEXT(res));
     Tstamp_set(r1, -1, KQT_TSTAMP_BEAT - 1);
     Tstamp_set(r2, 0, KQT_TSTAMP_BEAT - 1);
     res = Tstamp_cmp(r1, r2);
-    fail_unless(res < 0,
+    ck_assert_msg(res < 0,
             "Tstamp_cmp() returned %s instead of smaller.", CMPTEXT(res));
     res = Tstamp_cmp(r2, r1);
-    fail_unless(res > 0,
+    ck_assert_msg(res > 0,
             "Tstamp_cmp() returned %s instead of greater.", CMPTEXT(res));
 
     Tstamp_set(r1, 0, 0);
     Tstamp_set(r2, 1, 0);
     res = Tstamp_cmp(r1, r2);
-    fail_unless(res < 0,
+    ck_assert_msg(res < 0,
             "Tstamp_cmp() returned %s instead of smaller.", CMPTEXT(res));
     res = Tstamp_cmp(r2, r1);
-    fail_unless(res > 0,
+    ck_assert_msg(res > 0,
             "Tstamp_cmp() returned %s instead of greater.", CMPTEXT(res));
     Tstamp_set(r1, 0, KQT_TSTAMP_BEAT - 1);
     Tstamp_set(r2, 1, KQT_TSTAMP_BEAT - 1);
     res = Tstamp_cmp(r1, r2);
-    fail_unless(res < 0,
+    ck_assert_msg(res < 0,
             "Tstamp_cmp() returned %s instead of smaller.", CMPTEXT(res));
     res = Tstamp_cmp(r2, r1);
-    fail_unless(res > 0,
+    ck_assert_msg(res > 0,
             "Tstamp_cmp() returned %s instead of greater.", CMPTEXT(res));
 
     Tstamp_set(r1, INT64_MAX - 1, 0);
     Tstamp_set(r2, INT64_MAX, 0);
     res = Tstamp_cmp(r1, r2);
-    fail_unless(res < 0,
+    ck_assert_msg(res < 0,
             "Tstamp_cmp() returned %s instead of smaller.", CMPTEXT(res));
     res = Tstamp_cmp(r2, r1);
-    fail_unless(res > 0,
+    ck_assert_msg(res > 0,
             "Tstamp_cmp() returned %s instead of greater.", CMPTEXT(res));
     Tstamp_set(r1, INT64_MAX - 1, KQT_TSTAMP_BEAT - 1);
     Tstamp_set(r2, INT64_MAX, KQT_TSTAMP_BEAT - 1);
     res = Tstamp_cmp(r1, r2);
-    fail_unless(res < 0,
+    ck_assert_msg(res < 0,
             "Tstamp_cmp() returned %s instead of smaller.", CMPTEXT(res));
     res = Tstamp_cmp(r2, r1);
-    fail_unless(res > 0,
+    ck_assert_msg(res > 0,
             "Tstamp_cmp() returned %s instead of greater.", CMPTEXT(res));
 
     Tstamp_set(r1, INT64_MIN, 0);
     Tstamp_set(r2, INT64_MAX, 0);
     res = Tstamp_cmp(r1, r2);
-    fail_unless(res < 0,
+    ck_assert_msg(res < 0,
             "Tstamp_cmp() returned %s instead of smaller.", CMPTEXT(res));
     res = Tstamp_cmp(r2, r1);
-    fail_unless(res > 0,
+    ck_assert_msg(res > 0,
             "Tstamp_cmp() returned %s instead of greater.", CMPTEXT(res));
     Tstamp_set(r1, INT64_MIN, KQT_TSTAMP_BEAT - 1);
     Tstamp_set(r2, INT64_MAX, KQT_TSTAMP_BEAT - 1);
     res = Tstamp_cmp(r1, r2);
-    fail_unless(res < 0,
+    ck_assert_msg(res < 0,
             "Tstamp_cmp() returned %s instead of smaller.", CMPTEXT(res));
     res = Tstamp_cmp(r2, r1);
-    fail_unless(res > 0,
+    ck_assert_msg(res > 0,
             "Tstamp_cmp() returned %s instead of greater.", CMPTEXT(res));
 
     // beats and remainders unequal
     Tstamp_set(r1, INT64_MIN, 0);
     Tstamp_set(r2, INT64_MIN + 1, KQT_TSTAMP_BEAT - 1);
     res = Tstamp_cmp(r1, r2);
-    fail_unless(res < 0,
+    ck_assert_msg(res < 0,
             "Tstamp_cmp() returned %s instead of smaller.", CMPTEXT(res));
     res = Tstamp_cmp(r2, r1);
-    fail_unless(res > 0,
+    ck_assert_msg(res > 0,
             "Tstamp_cmp() returned %s instead of greater.", CMPTEXT(res));
     Tstamp_set(r1, INT64_MIN, KQT_TSTAMP_BEAT - 1);
     Tstamp_set(r2, INT64_MIN + 1, 0);
     res = Tstamp_cmp(r1, r2);
-    fail_unless(res < 0,
+    ck_assert_msg(res < 0,
             "Tstamp_cmp() returned %s instead of smaller.", CMPTEXT(res));
     res = Tstamp_cmp(r2, r1);
-    fail_unless(res > 0,
+    ck_assert_msg(res > 0,
             "Tstamp_cmp() returned %s instead of greater.", CMPTEXT(res));
 
     Tstamp_set(r1, -1, 0);
     Tstamp_set(r2, 0, KQT_TSTAMP_BEAT - 1);
     res = Tstamp_cmp(r1, r2);
-    fail_unless(res < 0,
+    ck_assert_msg(res < 0,
             "Tstamp_cmp() returned %s instead of smaller.", CMPTEXT(res));
     res = Tstamp_cmp(r2, r1);
-    fail_unless(res > 0,
+    ck_assert_msg(res > 0,
             "Tstamp_cmp() returned %s instead of greater.", CMPTEXT(res));
     Tstamp_set(r1, -1, KQT_TSTAMP_BEAT - 1);
     Tstamp_set(r2, 0, 0);
     res = Tstamp_cmp(r1, r2);
-    fail_unless(res < 0,
+    ck_assert_msg(res < 0,
             "Tstamp_cmp() returned %s instead of smaller.", CMPTEXT(res));
     res = Tstamp_cmp(r2, r1);
-    fail_unless(res > 0,
+    ck_assert_msg(res > 0,
             "Tstamp_cmp() returned %s instead of greater.", CMPTEXT(res));
 
     Tstamp_set(r1, 0, 0);
     Tstamp_set(r2, 1, KQT_TSTAMP_BEAT - 1);
     res = Tstamp_cmp(r1, r2);
-    fail_unless(res < 0,
+    ck_assert_msg(res < 0,
             "Tstamp_cmp() returned %s instead of smaller.", CMPTEXT(res));
     res = Tstamp_cmp(r2, r1);
-    fail_unless(res > 0,
+    ck_assert_msg(res > 0,
             "Tstamp_cmp() returned %s instead of greater.", CMPTEXT(res));
     Tstamp_set(r1, 0, KQT_TSTAMP_BEAT - 1);
     Tstamp_set(r2, 1, 0);
     res = Tstamp_cmp(r1, r2);
-    fail_unless(res < 0,
+    ck_assert_msg(res < 0,
             "Tstamp_cmp() returned %s instead of smaller.", CMPTEXT(res));
     res = Tstamp_cmp(r2, r1);
-    fail_unless(res > 0,
+    ck_assert_msg(res > 0,
             "Tstamp_cmp() returned %s instead of greater.", CMPTEXT(res));
 
     Tstamp_set(r1, INT64_MAX - 1, 0);
     Tstamp_set(r2, INT64_MAX, KQT_TSTAMP_BEAT - 1);
     res = Tstamp_cmp(r1, r2);
-    fail_unless(res < 0,
+    ck_assert_msg(res < 0,
             "Tstamp_cmp() returned %s instead of smaller.", CMPTEXT(res));
     res = Tstamp_cmp(r2, r1);
-    fail_unless(res > 0,
+    ck_assert_msg(res > 0,
             "Tstamp_cmp() returned %s instead of greater.", CMPTEXT(res));
     Tstamp_set(r1, INT64_MAX - 1, KQT_TSTAMP_BEAT - 1);
     Tstamp_set(r2, INT64_MAX, 0);
     res = Tstamp_cmp(r1, r2);
-    fail_unless(res < 0,
+    ck_assert_msg(res < 0,
             "Tstamp_cmp() returned %s instead of smaller.", CMPTEXT(res));
     res = Tstamp_cmp(r2, r1);
-    fail_unless(res > 0,
+    ck_assert_msg(res > 0,
             "Tstamp_cmp() returned %s instead of greater.", CMPTEXT(res));
 
     Tstamp_set(r1, INT64_MIN, 0);
     Tstamp_set(r2, INT64_MAX, KQT_TSTAMP_BEAT - 1);
     res = Tstamp_cmp(r1, r2);
-    fail_unless(res < 0,
+    ck_assert_msg(res < 0,
             "Tstamp_cmp() returned %s instead of smaller.", CMPTEXT(res));
     res = Tstamp_cmp(r2, r1);
-    fail_unless(res > 0,
+    ck_assert_msg(res > 0,
             "Tstamp_cmp() returned %s instead of greater.", CMPTEXT(res));
     Tstamp_set(r1, INT64_MIN, KQT_TSTAMP_BEAT - 1);
     Tstamp_set(r2, INT64_MAX, 0);
     res = Tstamp_cmp(r1, r2);
-    fail_unless(res < 0,
+    ck_assert_msg(res < 0,
             "Tstamp_cmp() returned %s instead of smaller.", CMPTEXT(res));
     res = Tstamp_cmp(r2, r1);
-    fail_unless(res > 0,
+    ck_assert_msg(res > 0,
             "Tstamp_cmp() returned %s instead of greater.", CMPTEXT(res));
 }
 END_TEST
@@ -584,16 +584,16 @@ START_TEST (add)
     Tstamp_set(r2, -1, 1);
     Tstamp_set(exp, -2, 1);
     ret = Tstamp_add(res, r1, r2);
-    fail_unless(ret == res,
-            "Tstamp_add() returned %p instead of %p.", ret, res);
-    fail_unless(Tstamp_cmp(res, exp) == 0,
+    ck_assert_msg(ret == res,
+            "Tstamp_add() returned %p instead of %p.", (void*)ret, (void*)res);
+    ck_assert_msg(Tstamp_cmp(res, exp) == 0,
             "Tstamp_add() returned %lld:%ld (expected %lld:%ld).",
             (long long)res->beats, (long)res->rem,
             (long long)exp->beats, (long)exp->rem);
     ret = Tstamp_add(res, r2, r1);
-    fail_unless(ret == res,
-            "Tstamp_add() returned %p instead of %p.", ret, res);
-    fail_unless(Tstamp_cmp(res, exp) == 0,
+    ck_assert_msg(ret == res,
+            "Tstamp_add() returned %p instead of %p.", (void*)ret, (void*)res);
+    ck_assert_msg(Tstamp_cmp(res, exp) == 0,
             "Tstamp_add() returned %lld:%ld (expected %lld:%ld).",
             (long long)res->beats, (long)res->rem,
             (long long)exp->beats, (long)exp->rem);
@@ -602,16 +602,16 @@ START_TEST (add)
     Tstamp_set(r2, 0, 1);
     Tstamp_set(exp, -1, 1);
     ret = Tstamp_add(res, r1, r2);
-    fail_unless(ret == res,
-            "Tstamp_add() returned %p instead of %p.", ret, res);
-    fail_unless(Tstamp_cmp(res, exp) == 0,
+    ck_assert_msg(ret == res,
+            "Tstamp_add() returned %p instead of %p.", (void*)ret, (void*)res);
+    ck_assert_msg(Tstamp_cmp(res, exp) == 0,
             "Tstamp_add() returned %lld:%ld (expected %lld:%ld).",
             (long long)res->beats, (long)res->rem,
             (long long)exp->beats, (long)exp->rem);
     ret = Tstamp_add(res, r2, r1);
-    fail_unless(ret == res,
-            "Tstamp_add() returned %p instead of %p.", ret, res);
-    fail_unless(Tstamp_cmp(res, exp) == 0,
+    ck_assert_msg(ret == res,
+            "Tstamp_add() returned %p instead of %p.", (void*)ret, (void*)res);
+    ck_assert_msg(Tstamp_cmp(res, exp) == 0,
             "Tstamp_add() returned %lld:%ld (expected %lld:%ld).",
             (long long)res->beats, (long)res->rem,
             (long long)exp->beats, (long)exp->rem);
@@ -620,16 +620,16 @@ START_TEST (add)
     Tstamp_set(r2, 0, 1);
     Tstamp_set(exp, 0, 0);
     ret = Tstamp_add(res, r1, r2);
-    fail_unless(ret == res,
-            "Tstamp_add() returned %p instead of %p.", ret, res);
-    fail_unless(Tstamp_cmp(res, exp) == 0,
+    ck_assert_msg(ret == res,
+            "Tstamp_add() returned %p instead of %p.", (void*)ret, (void*)res);
+    ck_assert_msg(Tstamp_cmp(res, exp) == 0,
             "Tstamp_add() returned %lld:%ld (expected %lld:%ld).",
             (long long)res->beats, (long)res->rem,
             (long long)exp->beats, (long)exp->rem);
     ret = Tstamp_add(res, r2, r1);
-    fail_unless(ret == res,
-            "Tstamp_add() returned %p instead of %p.", ret, res);
-    fail_unless(Tstamp_cmp(res, exp) == 0,
+    ck_assert_msg(ret == res,
+            "Tstamp_add() returned %p instead of %p.", (void*)ret, (void*)res);
+    ck_assert_msg(Tstamp_cmp(res, exp) == 0,
             "Tstamp_add() returned %lld:%ld (expected %lld:%ld).",
             (long long)res->beats, (long)res->rem,
             (long long)exp->beats, (long)exp->rem);
@@ -638,16 +638,16 @@ START_TEST (add)
     Tstamp_set(r2, 0, KQT_TSTAMP_BEAT - 1);
     Tstamp_set(exp, 1, KQT_TSTAMP_BEAT - 2);
     ret = Tstamp_add(res, r1, r2);
-    fail_unless(ret == res,
-            "Tstamp_add() returned %p instead of %p.", ret, res);
-    fail_unless(Tstamp_cmp(res, exp) == 0,
+    ck_assert_msg(ret == res,
+            "Tstamp_add() returned %p instead of %p.", (void*)ret, (void*)res);
+    ck_assert_msg(Tstamp_cmp(res, exp) == 0,
             "Tstamp_add() returned %lld:%ld (expected %lld:%ld).",
             (long long)res->beats, (long)res->rem,
             (long long)exp->beats, (long)exp->rem);
     ret = Tstamp_add(res, r2, r1);
-    fail_unless(ret == res,
-            "Tstamp_add() returned %p instead of %p.", ret, res);
-    fail_unless(Tstamp_cmp(res, exp) == 0,
+    ck_assert_msg(ret == res,
+            "Tstamp_add() returned %p instead of %p.", (void*)ret, (void*)res);
+    ck_assert_msg(Tstamp_cmp(res, exp) == 0,
             "Tstamp_add() returned %lld:%ld (expected %lld:%ld).",
             (long long)res->beats, (long)res->rem,
             (long long)exp->beats, (long)exp->rem);
@@ -656,16 +656,16 @@ START_TEST (add)
     Tstamp_set(r2, 0, 0);
     Tstamp_set(exp, -1, 0);
     ret = Tstamp_add(res, r1, r2);
-    fail_unless(ret == res,
-            "Tstamp_add() returned %p instead of %p.", ret, res);
-    fail_unless(Tstamp_cmp(res, exp) == 0,
+    ck_assert_msg(ret == res,
+            "Tstamp_add() returned %p instead of %p.", (void*)ret, (void*)res);
+    ck_assert_msg(Tstamp_cmp(res, exp) == 0,
             "Tstamp_add() returned %lld:%ld (expected %lld:%ld).",
             (long long)res->beats, (long)res->rem,
             (long long)exp->beats, (long)exp->rem);
     ret = Tstamp_add(res, r2, r1);
-    fail_unless(ret == res,
-            "Tstamp_add() returned %p instead of %p.", ret, res);
-    fail_unless(Tstamp_cmp(res, exp) == 0,
+    ck_assert_msg(ret == res,
+            "Tstamp_add() returned %p instead of %p.", (void*)ret, (void*)res);
+    ck_assert_msg(Tstamp_cmp(res, exp) == 0,
             "Tstamp_add() returned %lld:%ld (expected %lld:%ld).",
             (long long)res->beats, (long)res->rem,
             (long long)exp->beats, (long)exp->rem);
@@ -674,16 +674,16 @@ START_TEST (add)
     Tstamp_set(r2, 0, 0);
     Tstamp_set(exp, 0, 0);
     ret = Tstamp_add(res, r1, r2);
-    fail_unless(ret == res,
-            "Tstamp_add() returned %p instead of %p.", ret, res);
-    fail_unless(Tstamp_cmp(res, exp) == 0,
+    ck_assert_msg(ret == res,
+            "Tstamp_add() returned %p instead of %p.", (void*)ret, (void*)res);
+    ck_assert_msg(Tstamp_cmp(res, exp) == 0,
             "Tstamp_add() returned %lld:%ld (expected %lld:%ld).",
             (long long)res->beats, (long)res->rem,
             (long long)exp->beats, (long)exp->rem);
     ret = Tstamp_add(res, r2, r1);
-    fail_unless(ret == res,
-            "Tstamp_add() returned %p instead of %p.", ret, res);
-    fail_unless(Tstamp_cmp(res, exp) == 0,
+    ck_assert_msg(ret == res,
+            "Tstamp_add() returned %p instead of %p.", (void*)ret, (void*)res);
+    ck_assert_msg(Tstamp_cmp(res, exp) == 0,
             "Tstamp_add() returned %lld:%ld (expected %lld:%ld).",
             (long long)res->beats, (long)res->rem,
             (long long)exp->beats, (long)exp->rem);
@@ -692,16 +692,16 @@ START_TEST (add)
     Tstamp_set(r2, 0, 0);
     Tstamp_set(exp, 1, 0);
     ret = Tstamp_add(res, r1, r2);
-    fail_unless(ret == res,
-            "Tstamp_add() returned %p instead of %p.", ret, res);
-    fail_unless(Tstamp_cmp(res, exp) == 0,
+    ck_assert_msg(ret == res,
+            "Tstamp_add() returned %p instead of %p.", (void*)ret, (void*)res);
+    ck_assert_msg(Tstamp_cmp(res, exp) == 0,
             "Tstamp_add() returned %lld:%ld (expected %lld:%ld).",
             (long long)res->beats, (long)res->rem,
             (long long)exp->beats, (long)exp->rem);
     ret = Tstamp_add(res, r2, r1);
-    fail_unless(ret == res,
-            "Tstamp_add() returned %p instead of %p.", ret, res);
-    fail_unless(Tstamp_cmp(res, exp) == 0,
+    ck_assert_msg(ret == res,
+            "Tstamp_add() returned %p instead of %p.", (void*)ret, (void*)res);
+    ck_assert_msg(Tstamp_cmp(res, exp) == 0,
             "Tstamp_add() returned %lld:%ld (expected %lld:%ld).",
             (long long)res->beats, (long)res->rem,
             (long long)exp->beats, (long)exp->rem);
@@ -711,9 +711,9 @@ START_TEST (add)
     Tstamp_set(r2, 3, 0);
     Tstamp_set(exp, 5, 0);
     ret = Tstamp_adda(r1, r2);
-    fail_unless(ret == r1,
-            "Tstamp_adda() returned %p instead of %p.", ret, r1);
-    fail_unless(Tstamp_cmp(r1, exp) == 0,
+    ck_assert_msg(ret == r1,
+            "Tstamp_adda() returned %p instead of %p.", (void*)ret, (void*)r1);
+    ck_assert_msg(Tstamp_cmp(r1, exp) == 0,
             "Tstamp_adda() returned " PRIts " instead of " PRIts,
             PRIVALts(*r1), PRIVALts(*exp));
 }
@@ -823,9 +823,9 @@ START_TEST (sub)
     Tstamp_set(r2, -1, 1);
     Tstamp_set(exp, -1, KQT_TSTAMP_BEAT - 1);
     ret = Tstamp_sub(res, r1, r2);
-    fail_unless(ret == res,
-            "Tstamp_sub() returned %p instead of %p.", ret, res);
-    fail_unless(Tstamp_cmp(res, exp) == 0,
+    ck_assert_msg(ret == res,
+            "Tstamp_sub() returned %p instead of %p.", (void*)ret, (void*)res);
+    ck_assert_msg(Tstamp_cmp(res, exp) == 0,
             "Tstamp_sub() returned %lld:%ld (expected %lld:%ld).",
             (long long)res->beats, (long)res->rem,
             (long long)exp->beats, (long)exp->rem);
@@ -834,9 +834,9 @@ START_TEST (sub)
     Tstamp_set(r2, 0, 1);
     Tstamp_set(exp, -2, KQT_TSTAMP_BEAT - 1);
     ret = Tstamp_sub(res, r1, r2);
-    fail_unless(ret == res,
-            "Tstamp_sub() returned %p instead of %p.", ret, res);
-    fail_unless(Tstamp_cmp(res, exp) == 0,
+    ck_assert_msg(ret == res,
+            "Tstamp_sub() returned %p instead of %p.", (void*)ret, (void*)res);
+    ck_assert_msg(Tstamp_cmp(res, exp) == 0,
             "Tstamp_sub() returned %lld:%ld (expected %lld:%ld).",
             (long long)res->beats, (long)res->rem,
             (long long)exp->beats, (long)exp->rem);
@@ -845,9 +845,9 @@ START_TEST (sub)
     Tstamp_set(r2, 0, 1);
     Tstamp_set(exp, -1, KQT_TSTAMP_BEAT - 2);
     ret = Tstamp_sub(res, r1, r2);
-    fail_unless(ret == res,
-            "Tstamp_sub() returned %p instead of %p.", ret, res);
-    fail_unless(Tstamp_cmp(res, exp) == 0,
+    ck_assert_msg(ret == res,
+            "Tstamp_sub() returned %p instead of %p.", (void*)ret, (void*)res);
+    ck_assert_msg(Tstamp_cmp(res, exp) == 0,
             "Tstamp_sub() returned %lld:%ld (expected %lld:%ld).",
             (long long)res->beats, (long)res->rem,
             (long long)exp->beats, (long)exp->rem);
@@ -856,9 +856,9 @@ START_TEST (sub)
     Tstamp_set(r2, 0, KQT_TSTAMP_BEAT - 1);
     Tstamp_set(exp, 0, 0);
     ret = Tstamp_sub(res, r1, r2);
-    fail_unless(ret == res,
-            "Tstamp_sub() returned %p instead of %p.", ret, res);
-    fail_unless(Tstamp_cmp(res, exp) == 0,
+    ck_assert_msg(ret == res,
+            "Tstamp_sub() returned %p instead of %p.", (void*)ret, (void*)res);
+    ck_assert_msg(Tstamp_cmp(res, exp) == 0,
             "Tstamp_sub() returned %lld:%ld (expected %lld:%ld).",
             (long long)res->beats, (long)res->rem,
             (long long)exp->beats, (long)exp->rem);
@@ -867,9 +867,9 @@ START_TEST (sub)
     Tstamp_set(r2, 0, 0);
     Tstamp_set(exp, -1, 0);
     ret = Tstamp_sub(res, r1, r2);
-    fail_unless(ret == res,
-            "Tstamp_sub() returned %p instead of %p.", ret, res);
-    fail_unless(Tstamp_cmp(res, exp) == 0,
+    ck_assert_msg(ret == res,
+            "Tstamp_sub() returned %p instead of %p.", (void*)ret, (void*)res);
+    ck_assert_msg(Tstamp_cmp(res, exp) == 0,
             "Tstamp_sub() returned %lld:%ld (expected %lld:%ld).",
             (long long)res->beats, (long)res->rem,
             (long long)exp->beats, (long)exp->rem);
@@ -878,9 +878,9 @@ START_TEST (sub)
     Tstamp_set(r2, 0, 0);
     Tstamp_set(exp, 0, 0);
     ret = Tstamp_sub(res, r1, r2);
-    fail_unless(ret == res,
-            "Tstamp_sub() returned %p instead of %p.", ret, res);
-    fail_unless(Tstamp_cmp(res, exp) == 0,
+    ck_assert_msg(ret == res,
+            "Tstamp_sub() returned %p instead of %p.", (void*)ret, (void*)res);
+    ck_assert_msg(Tstamp_cmp(res, exp) == 0,
             "Tstamp_sub() returned %lld:%ld (expected %lld:%ld).",
             (long long)res->beats, (long)res->rem,
             (long long)exp->beats, (long)exp->rem);
@@ -889,9 +889,9 @@ START_TEST (sub)
     Tstamp_set(r2, 0, 0);
     Tstamp_set(exp, 1, 0);
     ret = Tstamp_sub(res, r1, r2);
-    fail_unless(ret == res,
-            "Tstamp_sub() returned %p instead of %p.", ret, res);
-    fail_unless(Tstamp_cmp(res, exp) == 0,
+    ck_assert_msg(ret == res,
+            "Tstamp_sub() returned %p instead of %p.", (void*)ret, (void*)res);
+    ck_assert_msg(Tstamp_cmp(res, exp) == 0,
             "Tstamp_sub() returned %lld:%ld (expected %lld:%ld).",
             (long long)res->beats, (long)res->rem,
             (long long)exp->beats, (long)exp->rem);
@@ -900,9 +900,9 @@ START_TEST (sub)
     Tstamp_set(r2, -1, 0);
     Tstamp_set(exp, 1, 0);
     ret = Tstamp_sub(res, r1, r2);
-    fail_unless(ret == res,
-            "Tstamp_sub() returned %p instead of %p.", ret, res);
-    fail_unless(Tstamp_cmp(res, exp) == 0,
+    ck_assert_msg(ret == res,
+            "Tstamp_sub() returned %p instead of %p.", (void*)ret, (void*)res);
+    ck_assert_msg(Tstamp_cmp(res, exp) == 0,
             "Tstamp_sub() returned %lld:%ld (expected %lld:%ld).",
             (long long)res->beats, (long)res->rem,
             (long long)exp->beats, (long)exp->rem);
@@ -911,9 +911,9 @@ START_TEST (sub)
     Tstamp_set(r2, 1, 0);
     Tstamp_set(exp, -1, 0);
     ret = Tstamp_sub(res, r1, r2);
-    fail_unless(ret == res,
-            "Tstamp_sub() returned %p instead of %p.", ret, res);
-    fail_unless(Tstamp_cmp(res, exp) == 0,
+    ck_assert_msg(ret == res,
+            "Tstamp_sub() returned %p instead of %p.", (void*)ret, (void*)res);
+    ck_assert_msg(Tstamp_cmp(res, exp) == 0,
             "Tstamp_sub() returned %lld:%ld (expected %lld:%ld).",
             (long long)res->beats, (long)res->rem,
             (long long)exp->beats, (long)exp->rem);
@@ -922,9 +922,9 @@ START_TEST (sub)
     Tstamp_set(r2, 0, 1);
     Tstamp_set(exp, -1, KQT_TSTAMP_BEAT - 1);
     ret = Tstamp_sub(res, r1, r2);
-    fail_unless(ret == res,
-            "Tstamp_sub() returned %p instead of %p.", ret, res);
-    fail_unless(Tstamp_cmp(res, exp) == 0,
+    ck_assert_msg(ret == res,
+            "Tstamp_sub() returned %p instead of %p.", (void*)ret, (void*)res);
+    ck_assert_msg(Tstamp_cmp(res, exp) == 0,
             "Tstamp_sub() returned %lld:%ld (expected %lld:%ld).",
             (long long)res->beats, (long)res->rem,
             (long long)exp->beats, (long)exp->rem);
@@ -933,9 +933,9 @@ START_TEST (sub)
     Tstamp_set(r2, -1, KQT_TSTAMP_BEAT - 1);
     Tstamp_set(exp, 0, 1);
     ret = Tstamp_sub(res, r1, r2);
-    fail_unless(ret == res,
-            "Tstamp_sub() returned %p instead of %p.", ret, res);
-    fail_unless(Tstamp_cmp(res, exp) == 0,
+    ck_assert_msg(ret == res,
+            "Tstamp_sub() returned %p instead of %p.", (void*)ret, (void*)res);
+    ck_assert_msg(Tstamp_cmp(res, exp) == 0,
             "Tstamp_sub() returned %lld:%ld (expected %lld:%ld).",
             (long long)res->beats, (long)res->rem,
             (long long)exp->beats, (long)exp->rem);
@@ -945,9 +945,9 @@ START_TEST (sub)
     Tstamp_set(r2, 2, 0);
     Tstamp_set(exp, 1, 0);
     ret = Tstamp_suba(r1, r2);
-    fail_unless(ret == r1,
-            "Tstamp_adda() returned %p instead of %p.", ret, r1);
-    fail_unless(Tstamp_cmp(r1, exp) == 0,
+    ck_assert_msg(ret == r1,
+            "Tstamp_adda() returned %p instead of %p.", (void*)ret, (void*)r1);
+    ck_assert_msg(Tstamp_cmp(r1, exp) == 0,
             "Tstamp_adda() returned " PRIts " instead of " PRIts,
             PRIVALts(*r1), PRIVALts(*exp));
 }
@@ -1052,65 +1052,65 @@ START_TEST (copy)
 
     Tstamp_set(src, INT64_MAX, KQT_TSTAMP_BEAT - 1);
     ret = Tstamp_copy(dest, src);
-    fail_unless(ret == dest,
-            "Tstamp_copy() returned %p instead of %p.", ret, dest);
-    fail_unless(Tstamp_cmp(dest, src) == 0,
+    ck_assert_msg(ret == dest,
+            "Tstamp_copy() returned %p instead of %p.", (void*)ret, (void*)dest);
+    ck_assert_msg(Tstamp_cmp(dest, src) == 0,
             "Tstamp_copy() didn't produce a copy equal to the original.");
 
     Tstamp_set(src, INT64_MAX, 0);
     ret = Tstamp_copy(dest, src);
-    fail_unless(ret == dest,
-            "Tstamp_copy() returned %p instead of %p.", ret, dest);
-    fail_unless(Tstamp_cmp(dest, src) == 0,
+    ck_assert_msg(ret == dest,
+            "Tstamp_copy() returned %p instead of %p.", (void*)ret, (void*)dest);
+    ck_assert_msg(Tstamp_cmp(dest, src) == 0,
             "Tstamp_copy() didn't produce a copy equal to the original.");
 
     Tstamp_set(src, 1, 0);
     ret = Tstamp_copy(dest, src);
-    fail_unless(ret == dest,
-            "Tstamp_copy() returned %p instead of %p.", ret, dest);
-    fail_unless(Tstamp_cmp(dest, src) == 0,
+    ck_assert_msg(ret == dest,
+            "Tstamp_copy() returned %p instead of %p.", (void*)ret, (void*)dest);
+    ck_assert_msg(Tstamp_cmp(dest, src) == 0,
             "Tstamp_copy() didn't produce a copy equal to the original.");
 
     Tstamp_set(src, 0, KQT_TSTAMP_BEAT - 1);
     ret = Tstamp_copy(dest, src);
-    fail_unless(ret == dest,
-            "Tstamp_copy() returned %p instead of %p.", ret, dest);
-    fail_unless(Tstamp_cmp(dest, src) == 0,
+    ck_assert_msg(ret == dest,
+            "Tstamp_copy() returned %p instead of %p.", (void*)ret, (void*)dest);
+    ck_assert_msg(Tstamp_cmp(dest, src) == 0,
             "Tstamp_copy() didn't produce a copy equal to the original.");
 
     Tstamp_set(src, 0, 0);
     ret = Tstamp_copy(dest, src);
-    fail_unless(ret == dest,
-            "Tstamp_copy() returned %p instead of %p.", ret, dest);
-    fail_unless(Tstamp_cmp(dest, src) == 0,
+    ck_assert_msg(ret == dest,
+            "Tstamp_copy() returned %p instead of %p.", (void*)ret, (void*)dest);
+    ck_assert_msg(Tstamp_cmp(dest, src) == 0,
             "Tstamp_copy() didn't produce a copy equal to the original.");
 
     Tstamp_set(src, -1, KQT_TSTAMP_BEAT - 1);
     ret = Tstamp_copy(dest, src);
-    fail_unless(ret == dest,
-            "Tstamp_copy() returned %p instead of %p.", ret, dest);
-    fail_unless(Tstamp_cmp(dest, src) == 0,
+    ck_assert_msg(ret == dest,
+            "Tstamp_copy() returned %p instead of %p.", (void*)ret, (void*)dest);
+    ck_assert_msg(Tstamp_cmp(dest, src) == 0,
             "Tstamp_copy() didn't produce a copy equal to the original.");
 
     Tstamp_set(src, -1, 1);
     ret = Tstamp_copy(dest, src);
-    fail_unless(ret == dest,
-            "Tstamp_copy() returned %p instead of %p.", ret, dest);
-    fail_unless(Tstamp_cmp(dest, src) == 0,
+    ck_assert_msg(ret == dest,
+            "Tstamp_copy() returned %p instead of %p.", (void*)ret, (void*)dest);
+    ck_assert_msg(Tstamp_cmp(dest, src) == 0,
             "Tstamp_copy() didn't produce a copy equal to the original.");
 
     Tstamp_set(src, INT64_MIN, KQT_TSTAMP_BEAT - 1);
     ret = Tstamp_copy(dest, src);
-    fail_unless(ret == dest,
-            "Tstamp_copy() returned %p instead of %p.", ret, dest);
-    fail_unless(Tstamp_cmp(dest, src) == 0,
+    ck_assert_msg(ret == dest,
+            "Tstamp_copy() returned %p instead of %p.", (void*)ret, (void*)dest);
+    ck_assert_msg(Tstamp_cmp(dest, src) == 0,
             "Tstamp_copy() didn't produce a copy equal to the original.");
 
     Tstamp_set(src, INT64_MIN, 0);
     ret = Tstamp_copy(dest, src);
-    fail_unless(ret == dest,
-            "Tstamp_copy() returned %p instead of %p.", ret, dest);
-    fail_unless(Tstamp_cmp(dest, src) == 0,
+    ck_assert_msg(ret == dest,
+            "Tstamp_copy() returned %p instead of %p.", (void*)ret, (void*)dest);
+    ck_assert_msg(Tstamp_cmp(dest, src) == 0,
             "Tstamp_copy() didn't produce a copy equal to the original.");
 }
 END_TEST
@@ -1163,49 +1163,49 @@ START_TEST (toframes)
     Tstamp* r = Tstamp_init(TSTAMP_AUTO);
     double res = 0;
     res = Tstamp_toframes(r, DBL_MIN, 1);
-    fail_unless(res == 0,
+    ck_assert_msg(res == 0,
             "Tstamp_toframes() returned %.4f instead of 0.", res);
     res = Tstamp_toframes(r, DBL_MIN, INT32_MAX);
-    fail_unless(res == 0,
+    ck_assert_msg(res == 0,
             "Tstamp_toframes() returned %.4f instead of 0.", res);
     res = Tstamp_toframes(r, DBL_MAX, 1);
-    fail_unless(res == 0,
+    ck_assert_msg(res == 0,
             "Tstamp_toframes() returned %.4f instead of 0.", res);
     res = Tstamp_toframes(r, DBL_MAX, INT32_MAX);
-    fail_unless(res == 0,
+    ck_assert_msg(res == 0,
             "Tstamp_toframes() returned %.4f instead of 0.", res);
 
     Tstamp_set(r, 1, 0);
     res = Tstamp_toframes(r, 60, 44100);
-    fail_unless(res == 44100,
+    ck_assert_msg(res == 44100,
             "Tstamp_toframes() returned %.4f instead of 44100.", res);
     res = Tstamp_toframes(r, 120, 44100);
-    fail_unless(res == 22050,
+    ck_assert_msg(res == 22050,
             "Tstamp_toframes() returned %.4f instead of 22050.", res);
     res = Tstamp_toframes(r, 60, 96000);
-    fail_unless(res == 96000,
+    ck_assert_msg(res == 96000,
             "Tstamp_toframes() returned %.4f instead of 96000.", res);
 
     Tstamp_set(r, 0, KQT_TSTAMP_BEAT / 2);
     res = Tstamp_toframes(r, 60, 44100);
-    fail_unless(res == 22050,
+    ck_assert_msg(res == 22050,
             "Tstamp_toframes() returned %.4f instead of 22050.", res);
     res = Tstamp_toframes(r, 120, 44100);
-    fail_unless(res == 11025,
+    ck_assert_msg(res == 11025,
             "Tstamp_toframes() returned %.4f instead of 11025.", res);
     res = Tstamp_toframes(r, 60, 96000);
-    fail_unless(res == 48000,
+    ck_assert_msg(res == 48000,
             "Tstamp_toframes() returned %.4f instead of 48000.", res);
 
     Tstamp_set(r, 1, KQT_TSTAMP_BEAT / 2);
     res = Tstamp_toframes(r, 60, 44100);
-    fail_unless(res == 66150,
+    ck_assert_msg(res == 66150,
             "Tstamp_toframes() returned %.4f instead of 66150.", res);
     res = Tstamp_toframes(r, 120, 44100);
-    fail_unless(res == 33075,
+    ck_assert_msg(res == 33075,
             "Tstamp_toframes() returned %.4f instead of 33075.", res);
     res = Tstamp_toframes(r, 60, 96000);
-    fail_unless(res == 144000,
+    ck_assert_msg(res == 144000,
             "Tstamp_toframes() returned %.4f instead of 144000.", res);
 }
 END_TEST
@@ -1284,78 +1284,78 @@ START_TEST (fromframes)
     Tstamp* exp = Tstamp_init(TSTAMP_AUTO);
 
     ret = Tstamp_fromframes(r, 0, DBL_MIN, 1);
-    fail_unless(ret == r,
-            "Tstamp_fromframes() returned %p instead of %p.", ret, r);
-    fail_unless(Tstamp_cmp(r, exp) == 0,
+    ck_assert_msg(ret == r,
+            "Tstamp_fromframes() returned %p instead of %p.", (void*)ret, (void*)r);
+    ck_assert_msg(Tstamp_cmp(r, exp) == 0,
             "Tstamp_fromframes() returned %lld:%ld instead of %lld:%ld.",
             (long long)r->beats, (long)r->rem,
             (long long)exp->beats, (long)exp->rem);
     ret = Tstamp_fromframes(r, 0, DBL_MIN, INT32_MAX);
-    fail_unless(ret == r,
-            "Tstamp_fromframes() returned %p instead of %p.", ret, r);
-    fail_unless(Tstamp_cmp(r, exp) == 0,
+    ck_assert_msg(ret == r,
+            "Tstamp_fromframes() returned %p instead of %p.", (void*)ret, (void*)r);
+    ck_assert_msg(Tstamp_cmp(r, exp) == 0,
             "Tstamp_fromframes() returned %lld:%ld instead of %lld:%ld.",
             (long long)r->beats, (long)r->rem,
             (long long)exp->beats, (long)exp->rem);
     ret = Tstamp_fromframes(r, 0, DBL_MAX, INT32_MAX);
-    fail_unless(ret == r,
-            "Tstamp_fromframes() returned %p instead of %p.", ret, r);
-    fail_unless(Tstamp_cmp(r, exp) == 0,
+    ck_assert_msg(ret == r,
+            "Tstamp_fromframes() returned %p instead of %p.", (void*)ret, (void*)r);
+    ck_assert_msg(Tstamp_cmp(r, exp) == 0,
             "Tstamp_fromframes() returned %lld:%ld instead of %lld:%ld.",
             (long long)r->beats, (long)r->rem,
             (long long)exp->beats, (long)exp->rem);
     ret = Tstamp_fromframes(r, 0, DBL_MAX, INT32_MAX);
-    fail_unless(ret == r,
-            "Tstamp_fromframes() returned %p instead of %p.", ret, r);
-    fail_unless(Tstamp_cmp(r, exp) == 0,
+    ck_assert_msg(ret == r,
+            "Tstamp_fromframes() returned %p instead of %p.", (void*)ret, (void*)r);
+    ck_assert_msg(Tstamp_cmp(r, exp) == 0,
             "Tstamp_fromframes() returned %lld:%ld instead of %lld:%ld.",
             (long long)r->beats, (long)r->rem,
             (long long)exp->beats, (long)exp->rem);
 
     Tstamp_set(exp, 1, 0);
     ret = Tstamp_fromframes(r, 44100, 60, 44100);
-    fail_unless(ret == r,
-            "Tstamp_fromframes() returned %p instead of %p.", ret, r);
-    fail_unless(Tstamp_cmp(r, exp) == 0,
+    ck_assert_msg(ret == r,
+            "Tstamp_fromframes() returned %p instead of %p.", (void*)ret, (void*)r);
+    ck_assert_msg(Tstamp_cmp(r, exp) == 0,
             "Tstamp_fromframes() returned %lld:%ld instead of %lld:%ld.",
             (long long)r->beats, (long)r->rem,
             (long long)exp->beats, (long)exp->rem);
     ret = Tstamp_fromframes(r, 48000, 120, 96000);
-    fail_unless(ret == r,
-            "Tstamp_fromframes() returned %p instead of %p.", ret, r);
-    fail_unless(Tstamp_cmp(r, exp) == 0,
+    ck_assert_msg(ret == r,
+            "Tstamp_fromframes() returned %p instead of %p.", (void*)ret, (void*)r);
+    ck_assert_msg(Tstamp_cmp(r, exp) == 0,
             "Tstamp_fromframes() returned %lld:%ld instead of %lld:%ld.",
             (long long)r->beats, (long)r->rem,
             (long long)exp->beats, (long)exp->rem);
 
     Tstamp_set(exp, 0, KQT_TSTAMP_BEAT / 2);
     ret = Tstamp_fromframes(r, 22050, 60, 44100);
-    fail_unless(ret == r,
-            "Tstamp_fromframes() returned %p instead of %p.", ret, r);
-    fail_unless(Tstamp_cmp(r, exp) == 0,
+    ck_assert_msg(ret == r,
+            "Tstamp_fromframes() returned %p instead of %p.", (void*)ret, (void*)r);
+    ck_assert_msg(Tstamp_cmp(r, exp) == 0,
             "Tstamp_fromframes() returned %lld:%ld instead of %lld:%ld.",
             (long long)r->beats, (long)r->rem,
             (long long)exp->beats, (long)exp->rem);
     ret = Tstamp_fromframes(r, 24000, 120, 96000);
-    fail_unless(ret == r,
-            "Tstamp_fromframes() returned %p instead of %p.", ret, r);
-    fail_unless(Tstamp_cmp(r, exp) == 0,
+    ck_assert_msg(ret == r,
+            "Tstamp_fromframes() returned %p instead of %p.", (void*)ret, (void*)r);
+    ck_assert_msg(Tstamp_cmp(r, exp) == 0,
             "Tstamp_fromframes() returned %lld:%ld instead of %lld:%ld.",
             (long long)r->beats, (long)r->rem,
             (long long)exp->beats, (long)exp->rem);
 
     Tstamp_set(exp, 1, KQT_TSTAMP_BEAT / 2);
     ret = Tstamp_fromframes(r, 66150, 60, 44100);
-    fail_unless(ret == r,
-            "Tstamp_fromframes() returned %p instead of %p.", ret, r);
-    fail_unless(Tstamp_cmp(r, exp) == 0,
+    ck_assert_msg(ret == r,
+            "Tstamp_fromframes() returned %p instead of %p.", (void*)ret, (void*)r);
+    ck_assert_msg(Tstamp_cmp(r, exp) == 0,
             "Tstamp_fromframes() returned %lld:%ld instead of %lld:%ld.",
             (long long)r->beats, (long)r->rem,
             (long long)exp->beats, (long)exp->rem);
     ret = Tstamp_fromframes(r, 72000, 120, 96000);
-    fail_unless(ret == r,
-            "Tstamp_fromframes() returned %p instead of %p.", ret, r);
-    fail_unless(Tstamp_cmp(r, exp) == 0,
+    ck_assert_msg(ret == r,
+            "Tstamp_fromframes() returned %p instead of %p.", (void*)ret, (void*)r);
+    ck_assert_msg(Tstamp_cmp(r, exp) == 0,
             "Tstamp_fromframes() returned %lld:%ld instead of %lld:%ld.",
             (long long)r->beats, (long)r->rem,
             (long long)exp->beats, (long)exp->rem);

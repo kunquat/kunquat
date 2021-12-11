@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2012-2018
+ * Author: Tomi Jylhä-Ollila, Finland 2012-2021
  *
  * This file is part of Kunquat.
  *
@@ -73,7 +73,7 @@ static const long mixing_rates[] =
 void check_unexpected_error(void)
 {
     const char* error_string = kqt_Handle_get_error(handle);
-    fail_unless(
+    ck_assert_msg(
             strcmp(error_string, "") == 0,
             "Unexpected error"
             KT_VALUES("%s", "", error_string));
@@ -85,7 +85,7 @@ void setup_empty(void)
 {
     assert(handle == 0);
     handle = kqt_new_Handle();
-    fail_if(handle == 0,
+    ck_assert_msg(handle != 0,
             "Couldn't create handle:\n%s\n", kqt_Handle_get_error(0));
     return;
 }
@@ -164,7 +164,7 @@ void fail_buffers(
         actual_vals_ptr += alen;
     }
 
-    fail("Buffers differ at offset %d:%s%s%s",
+    ck_abort_msg("Buffers differ at offset %ld:%s%s%s",
             offset, indices, expected_vals, actual_vals);
 }
 
@@ -201,7 +201,7 @@ void set_audio_rate(long rate)
     check_unexpected_error();
     long actual_rate = kqt_Handle_get_audio_rate(handle);
     check_unexpected_error();
-    fail_unless(
+    ck_assert_msg(
             actual_rate == rate,
             "Wrong audio rate"
             KT_VALUES("%ld", rate, actual_rate));

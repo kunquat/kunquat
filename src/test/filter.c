@@ -1,7 +1,7 @@
 
 
 /*
- * Authors: Tomi Jylhä-Ollila, Finland 2013-2016
+ * Authors: Tomi Jylhä-Ollila, Finland 2013-2021
  *          Ossi Saresoja, Finland 2013
  *
  * This file is part of Kunquat.
@@ -101,7 +101,7 @@ START_TEST(Two_Pole_Frequency_Response)
 
     const double tolerance = 0.001; // FIXME: proper value based on params
 
-    fail_unless(fabs(actual_power - expected_power) <= tolerance,
+    ck_assert_msg(fabs(actual_power - expected_power) <= tolerance,
             "\nExpected power: %.6f\n  Actual power: %.6f",
             expected_power, actual_power);
 }
