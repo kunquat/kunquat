@@ -20,6 +20,7 @@ import time
 import tempfile
 from io import BytesIO
 import os.path
+import shutil
 import zipfile
 
 from kunquat.kunquat.file import KqtFile, KunquatFileError, KQTFILE_KEEP_ALL_DATA
@@ -203,7 +204,7 @@ class Controller():
 
         if tmpname:
             try:
-                os.rename(tmpname, module_path)
+                shutil.move(tmpname, module_path)
             except OSError as e:
                 self._session.set_module_save_error_info(module_path, e.strerror)
                 self._updater.signal_update(
@@ -260,7 +261,7 @@ class Controller():
 
         if tmpname:
             try:
-                os.rename(tmpname, au_path)
+                shutil.move(tmpname, au_path)
             except OSError as e:
                 self._session.set_au_export_error_info(au_path, e.strerror)
                 self._updater.signal_update(
