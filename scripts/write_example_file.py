@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2017
+# Author: Tomi Jylhä-Ollila, Finland 2014-2022
 #
 # This file is part of Kunquat.
 #
@@ -12,9 +12,9 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from distutils.spawn import find_executable
 import os
 import os.path
+import shutil
 import sys
 
 
@@ -30,7 +30,7 @@ def look_at_files(in_files):
 
 
 def create_archive(out_file, examples_path, archive_root):
-    exec_path = find_executable('python3')
+    exec_path = shutil.which('python3')
     if not exec_path:
         print('python3 not found.')
         sys.exit(1)
