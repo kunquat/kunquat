@@ -2,7 +2,7 @@
 
 #
 # Authors: Toni Ruottu, Finland 2013
-#          Tomi Jylhä-Ollila, Finland 2014-2019
+#          Tomi Jylhä-Ollila, Finland 2014-2022
 #
 # This file is part of Kunquat.
 #
@@ -12,7 +12,8 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from collections import deque, MutableMapping
+from collections import deque
+from collections.abc import MutableMapping
 from itertools import count
 
 
