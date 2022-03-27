@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2014-2017
+# Author: Tomi Jylhä-Ollila, Finland 2014-2022
 #
 # This file is part of Kunquat.
 #
@@ -11,7 +11,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from collections import MutableMapping
+from collections.abc import MutableMapping
 from itertools import count
 
 from kunquat.tracker.ui.qt import *

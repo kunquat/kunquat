@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2013-2016
+# Author: Tomi Jylhä-Ollila, Finland 2013-2022
 #
 # This file is part of Kunquat.
 #
@@ -11,7 +11,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from collections import Sequence
+from collections.abc import Sequence
 import math
 import numbers
 
