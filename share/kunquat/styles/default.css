@@ -31,7 +31,7 @@ QWidget
     font-size: <def_font_size>;
     font-style: normal;
     font-weight: normal;
-    font-family: <def_font_family>;
+    font-family: "<def_font_family>";
 }
 
 QWidget:disabled
@@ -81,7 +81,7 @@ QToolTip
     font-size: <def_font_size>;
     font-style: normal;
     font-weight: normal;
-    font-family: <def_font_family>;
+    font-family: "<def_font_family>";
 }
 
 /* Base styles for button container widgets */
