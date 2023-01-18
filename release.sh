@@ -32,6 +32,12 @@ ver_stash=`git stash create`; git archive -o $RELEASE.tar.gz --prefix=$RELEASE/ 
 git checkout $version_lib_path
 git checkout $version_tracker_path
 
+# Update versions and shasums in packaging scripts
+for pkg in kunquat kunquat-git; do 
+  sed --in-place "s/^pkgver=.*/pkgver=$VERSION/" packaging/arch/$pkg/PKGBUILD
+done
+shasum=$(sha256sum -b $RELEASE.tar.gz|grep -o '^[a-f0-9]*')
+sed --in-place "s/'[^']*' # Release package hash/'$shasum' # Release package hash/" packaging/arch/kunquat/PKGBUILD
 
 exit 0
 
